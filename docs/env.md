@@ -98,7 +98,7 @@ const res = await env.createEnv('aaa')
 }
 ```
 
-> !Status 为环境当前状态
+> ⚠️Status 为环境当前状态
 >
 > -   NORMAL：正常可用
 > -   NOINITIALIZE：尚未初始化
@@ -124,7 +124,7 @@ const envs = await env.getEnvAuthDomains()
 
 ### 返回示例
 
-```json
+```js
 {
     "Domains": [
         {
@@ -219,7 +219,7 @@ const res = await env.getEnvInfo()
 
 ### 返回示例
 
-```json
+```js
 {
     "EnvInfo": {
         "EnvId": "luke-87pns", // 该环境的账户下唯一标识

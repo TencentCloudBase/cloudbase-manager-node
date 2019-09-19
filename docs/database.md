@@ -27,7 +27,7 @@ const { database } = new CloudBase({
 -   [导出数据](#导出数据)
 -   [查询迁移（导入|导出）状态](#查询迁移导入导出状态)
 -   [查询数据分布](#查询数据分布)
--   [获取数据库实例](#获取数据库实例)
+-   [集合文档操作](#集合文档操作)
 
 ## 创建集合
 
@@ -163,7 +163,7 @@ let result = await database.deleteCollection('collectionAlreadyExists')
 
 该接口可更新集合，目前支持更新索引。
 
-> !目前该接口只能更新索引，包括创建和删除。
+> ⚠️目前该接口只能更新索引，包括创建和删除。
 
 -   索引创建时如果已经存在，则会先删除再创建索引。
 -   因为一次接口调用可同时创建多个索引，所以可能部分索引创建失败，部分创建成功，接口报异常。
@@ -670,30 +670,18 @@ let result = await database.distribution()
 | Collections[N].CollectionName | String | 集合名称     |
 | Collections[N].DocCount       | Number | 文档数量     |
 
-## 获取数据库实例
+## 集合文档操作
 
 ### 接口定义
 
-该接口可获取 @cloudbase/database 数据库实例。
-
-```javascript
-db()
-```
-
-### 参数说明
-
-无
-
-该 SDK 内嵌 @cloudbase/database，该函数返回 实例。
+详细文档参考 [这里](https://github.com/TencentCloudBase/tcb-admin-node/blob/master/docs/database.md)
 
 ### 调用示例
 
 ```javascript
-const db = app.database.db()
+// 查询文档
 const res = await app.database
     .collection('coll-1')
     .where({ name: 'aaa' })
     .get()
 ```
-
-更多详情请参见 [这里](https://github.com/TencentCloudBase/tcb-manager-node/blob/master/docs/database.md)。

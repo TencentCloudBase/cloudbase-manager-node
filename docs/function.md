@@ -108,8 +108,8 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 |   名称   | 是否必填 |                          类型                          |               描述                |
 | :------: | :------: | :----------------------------------------------------: | :-------------------------------: |
 |   name   |    是    |                         String                         |             函数名称              |
-|  config  |    是    |      [CloudFunctionConfig](#cloudfunctionconfig)       |           函数配置对象            |
-| triggers |    否    | Array of [CloudFunctionTrigger](#cloudfunctiontrigger) |                                   |
+|  config  |    是    |      [CloudFunctionConfig](#icloudfunctionconfig)       |           函数配置对象            |
+| triggers |    否    | Array of [ICloudFunctionTrigger](#icloudfunctiontrigger) |                                   |
 | handler  |    否    |                         String                         |             函数入口              |
 |  params  |    否    |                         Object                         | invoke 触发函数时，传入函数的参数 |
 
@@ -121,12 +121,12 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 | :----------: | :------: | :---------: | :-----------------------------------------------: |
 |   timeout    |    否    |   Number    |                   函数超时时间                    |
 | envVariables |    否    |   Object    |             包含环境变量的键值对对象              |
-|     vpc      |    否    | [VPC](#vpc) |                   私有网络配置                    |
+|     vpc      |    否    | [IFunctionVPC](#ifunctionvpc) |                   私有网络配置                    |
 |   runtime    |    否    |   String    | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
 
 **注：`runtime` 默认为 `Nodejs8.9`，使用 Node 运行时可不填，使用 Php 和 Java 则必填。**
 
-### CloudFunctionTrigger
+### ICloudFunctionTrigger
 
 |  名称  | 是否必填 |  类型  |                         描述                          |
 | :----: | :------: | :----: | :---------------------------------------------------: |
@@ -134,14 +134,14 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 |  type  |    是    | String |               触发器类型，可选值：timer               |
 | config |    是    | String | 触发器配置，在定时触发器下，config 格式为 cron 表达式 |
 
-### VPC
+### IFunctionVPC
 
 |   名称   | 是否必填 |  类型  |    描述     |
 | :------: | :------: | :----: | :---------: |
 |  vpcId   |    是    | String |   VPC Id    |
 | subnetId |    是    | String | VPC 子网 Id |
 
-> !请在测试时在云开发控制台确认函数创建并部署成功，有可能创建成功，`createFunction` 成功返回，但是部署失败，部署失败的原因通常为 `handler` 参数与源码包不对应。
+> ⚠️请在测试时在云开发控制台确认函数创建并部署成功，有可能创建成功，`createFunction` 成功返回，但是部署失败，部署失败的原因通常为 `handler` 参数与源码包不对应。
 
 **调用示例**
 

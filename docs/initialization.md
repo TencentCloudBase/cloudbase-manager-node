@@ -14,9 +14,9 @@ const app = CloudBase.init({
 
 初始化后得到一个 CloudBase 实例。（该实例是单例的，多次调用 CloudBase.init 只会初始化一次。）
 
-> !需要提前开通云开发服务并创建环境，否则 SDK 无法使用。
+> ⚠️需要提前开通云开发服务并创建环境，否则无法使用。
 
-> !服务端环境下（非云函数环境），需要用户传入 SecretId， SecretKey（腾讯云控制台获取）
+> ⚠️服务端环境下（非云函数环境），需要用户传入 SecretId， SecretKey（腾讯云控制台获取）
 
 您也可以通过 new CloudBase 创建实例，示例代码如下：
 
@@ -24,12 +24,12 @@ const app = CloudBase.init({
 const app = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
-    secretToken: 'Your SecretToken', // 使用临时凭证需要此字段
+    token: 'Your SecretToken', // 使用临时凭证需要此字段
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 ```
 
-每次初始化都会得到一个全新的 CloudBase 实例，如果需要管理多个腾讯云账号下的 云开发 服务，可通过此种方式创建多个 CloudBase 实例。
+每次初始化都会得到一个全新的 CloudBase 实例，如果需要管理多个腾讯云账号下的云开发服务，可通过此种方式创建多个 CloudBase 实例。
 
 在云函数环境下，支持免密钥初始化，示例代码如下：
 
@@ -82,7 +82,7 @@ console.log(result)
     "Runtime": "Nodejs8.9",
     "FunctionName": "app",
     "VpcConfig": { "VpcId": "", "SubnetId": "" },
-    "Environment": { "Variables": [[Object], [Object]] },
+    "Environment": { "Variables": [] },
     "Namespace": "luke-87pns",
     "Status": "Active"
 }
@@ -99,7 +99,7 @@ console.log(result)
 -   `options: object` - 【可选】初始化参数，如果 SDK 运行在云函数中，可省略，显式传递的参数优先级更高
     -   `secretId: string` - 腾讯云凭证 SecretId，`secretId` 与 `secretKey` 必须同时传递
     -   `secretKey: string` - 腾讯云凭证 SecretKey，`secretId` 与 `secretKey` 必须同时传递
-    -   `secretToken: string` - 【可选】腾讯云临时凭证 `token`，传递此字段时意味着使用的是临时凭证，如果显式传递临时凭证，则此参数必传
+    -   `token: string` - 【可选】腾讯云临时凭证 `token`，传递此字段时意味着使用的是临时凭证，如果显式传递临时凭证，则此参数必传
     -   `envId: string` - 【可选】环境 Id，因为后续的很多接口依赖于环境，在未传递的情况下，需要通过 `addEnvironment()` 添加环境方可进行后续接口调用
 
 静态方法：
@@ -116,7 +116,7 @@ console.log(result)
 const app = CloudBase.init({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
-    secretToken: 'Your SecretToken',
+    token: 'Your SecretToken',
     envId: 'Your envId'
 })
 ```
