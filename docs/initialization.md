@@ -3,7 +3,7 @@
 通过腾讯云 API 密钥初始化，示例代码如下：
 
 ```javascript
-import CloudBase from '@cloudbase/admin-node'
+import CloudBase from '@cloudbase/manager-node'
 const app = CloudBase.init({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',

@@ -5,7 +5,7 @@ functions 实例可以对云函数进行管理，包括创建、删除、更新�
 获得当前环境下的 functions 实例，示例代码如下：
 
 ```javascript
-import CloudBase from '@cloudbase/admin-node'
+import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
     secretId: 'Your SecretId',

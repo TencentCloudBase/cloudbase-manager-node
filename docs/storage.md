@@ -5,7 +5,7 @@
 获得 storage 实例
 
 ```js
-import CloudBase from '@cloudbase/admin-node'
+import CloudBase from '@cloudbase/manager-node'
 
 const { storage } = new CloudBase({
     secretId: 'Your SecretId',

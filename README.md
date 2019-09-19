@@ -1,19 +1,19 @@
-# cloudbase-node
+# cloudbase-manager-node
 
-云开发 admin-node SDK 支持开发者通过接口形式对云开发提供的云函数、数据库、文件存储等资源进行创建、管理、配置等操作。更多源码内容请参见 [cloudbase-node SDK]()。
+云开发 manager-node SDK 支持开发者通过接口形式对云开发提供的云函数、数据库、文件存储等资源进行创建、管理、配置等操作。更多源码内容请参见 [cloudbase-node SDK]()。
 
 ## 安装
 
 npm
 
 ```bash
-npm install @cloudbase/admin-node
+npm install @cloudbase/manager-node
 ```
 
 yarn
 
 ```bash
-yarn add @cloudbase/admin-node
+yarn add @cloudbase/manager-node
 ```
 
 ## 使用
@@ -21,13 +21,13 @@ yarn add @cloudbase/admin-node
 要在你的代码内使用该模块：
 
 ```js
-const CloudBase = require('@cloudbase/admin-node')
+const CloudBase = require('@cloudbase/manager-node')
 ```
 
 或
 
 ```js
-import CloudBase from '@cloudbase/admin-node'
+import CloudBase from '@cloudbase/manager-node'
 ```
 
 
@@ -45,6 +45,7 @@ const app = CloudBase.init({
 ## 目录
 
 - [初始化](./docs/initialization.md)
+- [环境管理](./docs/env.md)
 - [云函数](./docs/function.md)
 - [数据库](./docs/database.md)
 - [文件存储](./docs/storage.md)

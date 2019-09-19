@@ -46,8 +46,8 @@ export async function cloudBaseRequest(options: {
     const requestHeaders = {
         ...headers,
         'content-type': 'application/json',
-        'user-agent': `cloudabse-admin-node/0.1.0`,
-        'x-tcb-source': 'cloudabse-admin-node, not-scf'
+        'user-agent': `cloudbase-manager-node/0.1.0`,
+        'x-tcb-source': 'cloudbase-manager-node, not-scf'
     }
 
     const { secretId, secretKey, token } = config

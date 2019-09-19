@@ -5,7 +5,7 @@ database 实例可以对数据库进行管理，以下表或集合为相同概�
 获得当前环境下的 database 实例：
 
 ```javascript
-import CloudBase from '@cloudbase/admin-node'
+import CloudBase from '@cloudbase/manager-node'
 
 const { database } = new CloudBase({
     secretId: 'Your SecretId',
@@ -696,4 +696,4 @@ const res = await app.database
     .get()
 ```
 
-更多详情请参见 [这里](https://github.com/TencentCloudBase/tcb-admin-node/blob/master/docs/database.md)。
+更多详情请参见 [这里](https://github.com/TencentCloudBase/tcb-manager-node/blob/master/docs/database.md)。

@@ -5,7 +5,7 @@ env 实例可以对云开发环境进行管理
 获得 env 实例: 示例代码如下
 
 ```javascript
-import CloudBase from '@cloudbase/admin-node'
+import CloudBase from '@cloudbase/manager-node'
 
 const { env } = new CloudBase({
     secretId: 'Your SecretId',
