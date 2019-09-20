@@ -16,7 +16,7 @@ interface CloudBaseConfig {
 }
 
 class CloudBase {
-    private static CloudBase: CloudBase
+    private static cloudBase: CloudBase
 
     /**
      * init 初始化 为单例
@@ -27,11 +27,11 @@ class CloudBase {
      * @memberof CloudBase
      */
     public static init(config: CloudBaseConfig): CloudBase {
-        if (CloudBase.CloudBase === null) {
-            CloudBase.CloudBase = new CloudBase(config)
+        if (!CloudBase.cloudBase) {
+            CloudBase.cloudBase = new CloudBase(config)
         }
 
-        return CloudBase.CloudBase
+        return CloudBase.cloudBase
     }
 
     private context: CloudBaseContext

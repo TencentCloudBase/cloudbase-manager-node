@@ -11,7 +11,7 @@ interface CloudBaseConfig {
     envId?: string;
 }
 declare class CloudBase {
-    private static CloudBase;
+    private static cloudBase;
     static init(config: CloudBaseConfig): CloudBase;
     private context;
     private cloudBaseConfig;
