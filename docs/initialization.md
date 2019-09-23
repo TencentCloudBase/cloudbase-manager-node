@@ -52,7 +52,7 @@ const app = new CloudBase({
 })
 
 // 2. 调用云函数管理下的getFunction
-let result = app.functions.getFunctionDetail('test')
+let result = await app.functions.getFunctionDetail('test')
 
 // 3. 打印结果
 console.log(result)
