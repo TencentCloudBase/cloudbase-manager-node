@@ -67,3 +67,5 @@ example/**/tcb.json
 node_modules
 
 .vscode
+
+download_dir

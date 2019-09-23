@@ -1,23 +1,13 @@
-import CloudBase from '../../src/index'
 import path from 'path'
+import { cloudBaseConfig } from '../config'
+import CloudBase from '../../src/index'
 
-let manager = new CloudBase({
-    secretId: '',
-    secretKey: '',
-    envId: ''
-})
+let manager = new CloudBase(cloudBaseConfig)
 
 async function recreateCollection(collName: string) {
     await manager.database.deleteCollection(collName)
     await manager.database.createCollection(collName)
 }
-
-// 检查当前环境下某集合是否存在
-test('database checkCollectionExists', async () => {
-    const res = await manager.database.checkCollectionExists('rooms')
-
-    expect(res.Exists).toBe(true)
-})
 
 // 当前环境下创建集合
 test('database createCollection', async () => {
@@ -27,8 +17,15 @@ test('database createCollection', async () => {
     } catch (err) {
         res = err
     } finally {
-        expect(!res.code).toBe(true)
+        expect(res.code).toBeFalsy()
     }
+})
+
+// 检查当前环境下某集合是否存在
+test('database checkCollectionExists', async () => {
+    const res = await manager.database.checkCollectionExists('rooms51')
+
+    expect(res.Exists).toBe(true)
 })
 
 // 删除当前环境的集合
@@ -47,6 +44,7 @@ test('database deleteCollection', async () => {
 test('database updateCollection', async () => {
     let res
     try {
+        await recreateCollection('tcb_collection_need_update')
         res = await manager.database.updateCollection('tcb_collection_need_update', {
             CreateIndexes: [
                 {
@@ -80,8 +78,13 @@ test('database updateCollection', async () => {
     } catch (err) {
         res = err
     } finally {
-        expect(!res.code).toBe(true)
+        expect(res.code).toBeFalsy()
     }
+})
+
+test('database createCollectionIfNotExists', async () => {
+    const res1 = await manager.database.createCollectionIfNotExists('rooms')
+    expect(!!res1).toBe(true)
 })
 
 // 查询集合详细信息
@@ -92,7 +95,7 @@ test('database describe collection', async () => {
     } catch (err) {
         res = err
     } finally {
-        expect(!res.code).toBe(true)
+        expect(res.code).toBeFalsy()
     }
 })
 
@@ -104,7 +107,7 @@ test('database listCollection', async () => {
     } catch (err) {
         res = err
     } finally {
-        expect(!res.code).toBe(true)
+        expect(res.code).toBeFalsy()
     }
 })
 
@@ -162,13 +165,14 @@ test('database export and query migrateStatus', async () => {
 })
 
 test('database createCollectionIfNotExists', async () => {
-    const res1 = await manager.database.createCollectionIfNotExists('rooms1')
-    expect(!!res1).toBe(true)
+    const res = await manager.database.createCollectionIfNotExists('rooms1')
+    expect(res).toBeTruthy()
 })
 
 test('database checkIndexExists', async () => {
-    const res1 = await manager.database.checkIndexExists('tcb_collection_need_update', 'index_b_1')
-    expect(!!res1).toBe(true)
+    await recreateCollection('tcb_collection_need_update')
+    const res = await manager.database.checkIndexExists('tcb_collection_need_update', 'index_b_1')
+    expect(res).toBeTruthy()
 })
 
 // db coll query document

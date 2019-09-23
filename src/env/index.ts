@@ -1,7 +1,9 @@
+import COS from 'cos-nodejs-sdk-v5'
+import Util from 'util'
 import { Environment } from '../environment'
 import { IResponseInfo, AuthDomain, EnvInfo, LoginConfigItem } from '../interfaces'
 import { CloudBaseError } from '../error'
-import { guid6, rsaEncrypt, CloudService } from '../utils'
+import { guid6, rsaEncrypt, CloudService, preLazy } from '../utils'
 
 interface ICreateEnvRes {
     // 环境当前状态：NORMAL：正常可用 NOINITIALIZE：尚未初始化 INITIALIZING：初始化过程中
@@ -38,11 +40,7 @@ export class EnvService {
     constructor(environment: Environment) {
         this.environment = environment
         this.envId = environment.getEnvId()
-        this.cloudService = new CloudService(
-            environment.cloudBaseContext,
-            'tcb',
-            '2018-06-08'
-        )
+        this.cloudService = new CloudService(environment.cloudBaseContext, 'tcb', '2018-06-08')
     }
 
     /**
@@ -87,23 +85,40 @@ export class EnvService {
      * @param {string[]} domains 域名字符串数组
      * @returns {Promise<IResponseInfo>}
      */
+    @preLazy()
     public async createEnvDomain(domains: string[]): Promise<IResponseInfo> {
-        return this.cloudService.request('CreateAuthDomain', {
+        const res = await this.cloudService.request('CreateAuthDomain', {
             EnvId: this.envId,
             Domains: domains
         })
+        // 添加 COS CORS 域名
+        const promises = domains.map(async domain => {
+            this.modifyCosCorsDomain(domain)
+        })
+        await Promise.all(promises)
+        return res
     }
 
     /**
      * 删除环境安全域名
-     * @param {string[]} domainIds 域名 Id 数组
+     * @param {string[]} domainIds 域名字符串数组
      * @returns {Promise<IDeleteDomainRes>}
      */
-    public async deleteEnvDomain(domainIds: string[]): Promise<IDeleteDomainRes> {
-        return this.cloudService.request('DeleteAuthDomain', {
+    @preLazy()
+    public async deleteEnvDomain(domains: string[]): Promise<IDeleteDomainRes> {
+        // 根据域名获取域名 Id
+        const { Domains } = await this.getEnvAuthDomains()
+        const domainIds = Domains.filter(item => domains.includes(item.Domain)).map(item => item.Id)
+        const res = await this.cloudService.request('DeleteAuthDomain', {
             EnvId: this.envId,
             DomainIds: domainIds
         })
+        // 删除 COS CORS 域名
+        const promises = domains.map(async domain => {
+            this.modifyCosCorsDomain(domain, true)
+        })
+        await Promise.all(promises)
+        return res
     }
 
     /**
@@ -208,5 +223,96 @@ export class EnvService {
         appSecret && (params.PlatformSecret = rsaEncrypt(appSecret))
 
         return this.cloudService.request('UpdateLoginConfig', params)
+    }
+
+    // 获取 COS CORS 域名
+    private async getCOSDomains() {
+        const cos = this.getCos()
+        const getBucketCors = Util.promisify(cos.getBucketCors).bind(cos)
+        const { bucket, region } = this.getStorageConfig()
+
+        const res = await getBucketCors({
+            Bucket: bucket,
+            Region: region
+        })
+        return res.CORSRules
+    }
+
+    // 添加 COS CORS 域名，和 Web 端行为保持一致
+    private async modifyCosCorsDomain(domain: string, deleted = false) {
+        const cos = this.getCos()
+        const putBucketCors = Util.promisify(cos.putBucketCors).bind(cos)
+        const { bucket, region } = this.getStorageConfig()
+
+        // 去掉原有此域名CORS配置
+        let corsRules = await this.getCOSDomains()
+        corsRules = corsRules.filter(item => {
+            return !(
+                item.AllowedOrigins &&
+                item.AllowedOrigins.length === 2 &&
+                item.AllowedOrigins[0] === `http://${domain}` &&
+                item.AllowedOrigins[1] === `https://${domain}`
+            )
+        })
+
+        if (!deleted) {
+            corsRules.push({
+                AllowedOrigin: [`http://${domain}`, `https://${domain}`],
+                AllowedMethod: ['GET', 'POST', 'PUT', 'DELETE', 'HEAD'],
+                AllowedHeader: ['*'],
+                ExposeHeader: ['Etag', 'Date'],
+                MaxAgeSeconds: '5'
+            })
+        }
+
+        await putBucketCors({
+            Bucket: bucket,
+            Region: region,
+            CORSRules: corsRules
+        })
+    }
+
+    private getCos() {
+        const { secretId, secretKey, token } = this.getAuthConfig()
+        if (!token) {
+            return new COS({
+                SecretId: secretId,
+                SecretKey: secretKey
+            })
+        }
+
+        return new COS({
+            getAuthorization: function(_, callback) {
+                callback({
+                    TmpSecretId: secretId,
+                    TmpSecretKey: secretKey,
+                    XCosSecurityToken: token,
+                    ExpiredTime: 3600 * 1000
+                })
+            }
+        })
+    }
+
+    private getAuthConfig() {
+        const { secretId, secretKey, token } = this.environment.cloudBaseContext
+        const envId = this.environment.getEnvId()
+
+        return {
+            envId,
+            secretId,
+            secretKey,
+            token
+        }
+    }
+
+    private getStorageConfig() {
+        const envConfig = this.environment.lazyEnvironmentConfig
+        const storageConfig = envConfig.Storages && envConfig.Storages[0]
+        const { Region, Bucket } = storageConfig
+        return {
+            env: envConfig.EnvId,
+            region: Region,
+            bucket: Bucket
+        }
     }
 }

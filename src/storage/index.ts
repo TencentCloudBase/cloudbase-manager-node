@@ -1,30 +1,14 @@
 import fs from 'fs'
 import Util from 'util'
 import path from 'path'
-import fetch from 'node-fetch'
+import makeDir from 'make-dir'
 import walkdir from 'walkdir'
 import COS from 'cos-nodejs-sdk-v5'
-import { cloudBaseRequest, CloudService } from '../utils'
+import { cloudBaseRequest, CloudService, fetchStream, preLazy } from '../utils'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
 
 import { IUploadMetadata, IListFileInfo, IFileInfo, ITempUrlInfo } from '../interfaces'
-
-function preLazy() {
-    return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-        let oldValue = descriptor.value
-        descriptor.value = async function() {
-            // 检查当前环境对象上是否已加载好环境信息
-            const currentEnvironment = this.environment
-
-            if (!currentEnvironment.inited) {
-                await currentEnvironment.lazyInit()
-            }
-            let result = await oldValue.apply(this, arguments)
-            return result
-        }
-    }
-}
 
 export class StorageService {
     private environment: Environment
@@ -72,6 +56,35 @@ export class StorageService {
     }
 
     /**
+     * 上传文件夹
+     * TODO: 支持忽略文件/文件夹
+     * @param {string} source 本地文件夹
+     * @param {string} cloudDirectory 云端文件夹
+     * @returns {Promise<void>}
+     */
+    @preLazy()
+    public async uploadDirectory(source: string, cloudDirectory: string): Promise<void> {
+        // 此处不检查路径是否存在
+        // 绝对路径 /var/blog/xxxx
+        const localPath = path.resolve(source)
+        const filePaths = await this.walkdir(localPath)
+
+        if (!filePaths || !filePaths.length) {
+            return
+        }
+
+        const promises = filePaths
+            .filter(filePath => !fs.statSync(filePath).isDirectory())
+            .map(filePath => {
+                const fileKeyPath = filePath.replace(localPath, '')
+                const cloudPath = path.join(cloudDirectory, fileKeyPath)
+                return this.uploadFile(filePath, cloudPath)
+            })
+
+        await Promise.all(promises)
+    }
+
+    /**
      * 下载文件
      * @param {string} cloudPath 云端文件路径
      * @param {string} localPath 文件本地存储路径，文件需指定文件名称
@@ -79,12 +92,48 @@ export class StorageService {
      */
     @preLazy()
     public async downloadFile(cloudPath: string, localPath): Promise<void> {
+        const resolveLocalPath = path.resolve(localPath)
+        const fileDir = path.dirname(localPath)
+
+        if (!fs.existsSync(fileDir)) {
+            throw new CloudBaseError('路径文件夹不存在')
+        }
+
         const urlList = await this.getTemporaryUrl([cloudPath])
         const { url } = urlList[0]
 
-        const res = await fetch(url)
-        const dest = fs.createWriteStream(localPath)
+        const res = await fetchStream(url)
+        const dest = fs.createWriteStream(resolveLocalPath)
         res.body.pipe(dest)
+    }
+
+    /**
+     * 下载文件夹
+     * @param {string} cloudDirectory 云端文件路径
+     * @param {string} localPath 本地文件夹存储路径
+     * @returns {Promise<void>}
+     */
+    @preLazy()
+    public async downloadDirectory(cloudDirectory: string, localPath: string): Promise<void> {
+        const resolveLocalPath = path.resolve(localPath)
+
+        if (!fs.existsSync(resolveLocalPath)) {
+            throw new CloudBaseError('本地存储路径不存在！')
+        }
+
+        const files = await this.listDirectoryFiles(cloudDirectory)
+        const cloudDirectoryKey = this.getCloudKey(cloudDirectory)
+
+        const promises = files.map(async file => {
+            const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
+            const localFilePath = path.join(resolveLocalPath, fileRelativePath)
+            // 创建文件的父文件夹
+            const fileDir = path.dirname(localFilePath)
+            await makeDir(fileDir)
+            await this.downloadFile(file.Key, localFilePath)
+        })
+
+        await Promise.all(promises)
     }
 
     /**
@@ -243,35 +292,6 @@ export class StorageService {
             Date: headers['date'],
             ETag: headers['etag']
         }
-    }
-
-    /**
-     * 上传文件夹
-     * TODO: 支持忽略文件/文件夹
-     * @param {string} source 本地文件夹
-     * @param {string} cloudDirectory 云端文件夹
-     * @returns {Promise<void>}
-     */
-    @preLazy()
-    public async uploadDirectory(source: string, cloudDirectory: string): Promise<void> {
-        // 此处不检查路径是否存在
-        // 绝对路径 /var/blog/xxxx
-        const localPath = path.resolve(source)
-        const filePaths = await this.walkdir(localPath)
-
-        if (!filePaths || !filePaths.length) {
-            return
-        }
-
-        const promises = filePaths
-            .filter(filePath => !fs.statSync(filePath).isDirectory())
-            .map(filePath => {
-                const fileKeyPath = filePath.replace(localPath, '')
-                const cloudPath = path.join(cloudDirectory, fileKeyPath)
-                return this.uploadFile(filePath, cloudPath)
-            })
-
-        await Promise.all(promises)
     }
 
     /**

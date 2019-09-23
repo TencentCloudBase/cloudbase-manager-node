@@ -1,14 +1,12 @@
 import path from 'path'
+import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src/index'
 
-const { storage } = new CloudBase({
-    secretId: '',
-    secretKey: '',
-    envId: ''
-})
+const { storage } = new CloudBase(cloudBaseConfig)
 
 const filePath = 'test/storage/test_data/data.txt'
 const dirPath = 'test/storage/test_data/test_dir'
+const downloadLocalPath = 'test/storage/test_data/download_dir'
 const cloudFilePath = 'test_data/data.txt'
 const cloudDirPath = 'test_dir'
 
@@ -26,10 +24,18 @@ test('上传文件 storage.uploadFile', async () => {
     const info = await storage.getFileInfo(cloudFilePath)
 
     expect(info).toBeTruthy()
-})
+}, 10000)
 
 test('下载文件 storage.downloadFile', async () => {
-    await storage.downloadFile(cloudFilePath, path.join(path.resolve(dirPath), 'download.txt'))
+    await storage.downloadFile(cloudFilePath, path.join(path.resolve(dirPath), 'data.txt'))
+})
+
+test('上传文件夹 storage.uploadDirectory', async () => {
+    await storage.uploadDirectory(dirPath, cloudDirPath)
+})
+
+test('下载文件夹 storage.downloadDirectory', async () => {
+    await storage.downloadDirectory(cloudDirPath, downloadLocalPath)
 })
 
 test('获取文件临时下载链接 storage.getTemporaryUrl', async () => {
@@ -52,10 +58,6 @@ test('删除文件 storage.deleteFile', async () => {
 test('获取已删除文件信息 storage.deleteFile getFileInfo', async () => {
     // 文件不存在
     expect(storage.getFileInfo(cloudFilePath)).rejects.toBeTruthy()
-})
-
-test('上传文件夹 storage.uploadDirectory', async () => {
-    await storage.uploadDirectory(dirPath, cloudDirPath)
 })
 
 test('列出文件夹下的所有文件 storage.listDirectoryFiles', async () => {

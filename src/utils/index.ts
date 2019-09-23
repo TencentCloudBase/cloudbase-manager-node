@@ -7,6 +7,8 @@ export { guid6 } from './uuid'
 export * from './request'
 export * from './auth'
 export * from './cloudbaseRequest'
+export * from './httpRequest'
+export * from './envLazy'
 
 export async function zipDir(dirPath, outputPath) {
     return new Promise((resolve, reject) => {

@@ -173,21 +173,19 @@ const res = await env.createEnvDomain(['luke.com'])
 ### 接口定义
 
 ```javascript
-deleteEnvDomain(domainIds: string[])
+deleteEnvDomain(domains: string[])
 ```
 
 ### 参数说明
 
 | 参数名    | 类型     | 描述             |
 | --------- | -------- | ---------------- |
-| domainIds | String[] | 安全域名 ID 数组 |
+| domains | String[] | 安全域名数组 |
 
 ### 调用示例
 
 ```javascript
-const envs = await env.getEnvAuthDomains()
-const domain = envs.Domains.find(item => item.Domain === 'luke.com')
-const res = await env.deleteEnvDomain([domain.Id])
+const res = await env.deleteEnvDomain(['luke.com'])
 ```
 
 ### 返回示例

@@ -1,10 +1,7 @@
+import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src'
 
-const { functions } = new CloudBase({
-    secretId: '',
-    secretKey: '',
-    envId: ''
-})
+const { functions } = new CloudBase(cloudBaseConfig)
 
 test('列出所有函数: functions.listFunction', async () => {
     const data = await functions.listFunction()

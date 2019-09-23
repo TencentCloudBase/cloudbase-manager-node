@@ -1,10 +1,7 @@
+import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src/index'
 
-let manager = new CloudBase({
-    secretId: '',
-    secretKey: '',
-    envId: ''
-})
+let manager = new CloudBase(cloudBaseConfig)
 
 test('获取所有环境 env.listEnvs', async () => {
     const res = await manager.env.listEnvs()
@@ -43,9 +40,7 @@ test('拉取当前环境的登录配置列表 env.getLoginConfigList', async () 
 
 // 删除当前环境的安全域名
 test('删除当前环境的安全域名 env.deleteEnvDomain', async () => {
-    const res = await manager.env.getEnvAuthDomains()
-    const domain = res.Domains.find(item => item.Domain === 'luke.com')
-    const deleteRes = await manager.env.deleteEnvDomain([domain.Id])
+    const deleteRes = await manager.env.deleteEnvDomain(['luke.com'])
     expect(deleteRes.Deleted).toBe(1)
 })
 
