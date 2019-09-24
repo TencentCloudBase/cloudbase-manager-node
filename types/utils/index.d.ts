@@ -2,6 +2,8 @@ export { guid6 } from './uuid';
 export * from './request';
 export * from './auth';
 export * from './cloudbaseRequest';
+export * from './httpRequest';
+export * from './envLazy';
 export declare function zipDir(dirPath: any, outputPath: any): Promise<unknown>;
 export declare function getRuntime(): string;
 export declare function getEnvVar(envName: string): string;

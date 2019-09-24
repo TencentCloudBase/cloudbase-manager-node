@@ -29,7 +29,7 @@ export declare class EnvService {
     createEnv(name: string): Promise<ICreateEnvRes>;
     getEnvAuthDomains(): Promise<IAuthDomainsRes>;
     createEnvDomain(domains: string[]): Promise<IResponseInfo>;
-    deleteEnvDomain(domainIds: string[]): Promise<IDeleteDomainRes>;
+    deleteEnvDomain(domains: string[]): Promise<IDeleteDomainRes>;
     getEnvInfo(): Promise<{
         EnvInfo: EnvInfo;
         RequestId: string;
@@ -38,5 +38,10 @@ export declare class EnvService {
     getLoginConfigList(): Promise<IEnvLoginConfigRes>;
     createLoginConfig(platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC', appId: string, appSecret: string): Promise<IResponseInfo>;
     updateLoginConfig(configId: string, status?: string, appId?: string, appSecret?: string): Promise<IResponseInfo>;
+    private getCOSDomains;
+    private modifyCosCorsDomain;
+    private getCos;
+    private getAuthConfig;
+    private getStorageConfig;
 }
 export {};
