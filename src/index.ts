@@ -1,7 +1,7 @@
 import { EnvironmentManager } from './environmentManager'
 import { Environment } from './environment'
 import { getRuntime, getEnvVar } from './utils'
-import { RUN_ENV, ENV_NAME, ERRROR } from './constant'
+import { RUN_ENV, ENV_NAME, ERROR } from './constant'
 import { FunctionService } from './function'
 import { StorageService } from './storage'
 import { DatabaseService } from './database'
@@ -54,7 +54,7 @@ class CloudBase {
                 const token = getEnvVar(ENV_NAME.ENV_SESSIONTOKEN)
 
                 if (!secretId || !secretKey) {
-                    throw new Error(ERRROR.MISS_SECRET_INFO_IN_ENV)
+                    throw new Error(ERROR.MISS_SECRET_INFO_IN_ENV)
                 }
 
                 this.cloudBaseConfig = {
@@ -63,7 +63,7 @@ class CloudBase {
                     token
                 }
             } else {
-                throw new Error(ERRROR.MISS_SECRET_INFO_IN_ARGS) // todo
+                throw new Error(ERROR.MISS_SECRET_INFO_IN_ARGS) // todo
             }
         }
 

@@ -2,6 +2,11 @@ export declare enum CodeType {
     File = 0,
     JavaFile = 1
 }
+/**
+ * 将函数代码转换成 Base64 编码
+ * 普通文件：Node，PHP
+ * Java 文件：Jar，ZIP
+ */
 export declare class FunctionPacker {
     root: string;
     name: string;

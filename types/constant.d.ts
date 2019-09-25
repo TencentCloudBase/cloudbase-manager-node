@@ -19,7 +19,7 @@ export declare const ENDPOINT: {
 export declare const SERVICE_TYPE: {
     TCB: string;
 };
-export declare const ERRROR: {
+export declare const ERROR: {
     MISS_SECRET_INFO_IN_ENV: string;
     MISS_SECRET_INFO_IN_ARGS: string;
     CURRENT_ENVIRONMENT_IS_NULL: string;

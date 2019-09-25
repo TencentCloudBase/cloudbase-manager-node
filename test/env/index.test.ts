@@ -56,8 +56,9 @@ test('env UpdateLoginConfig', async () => {
 
 // 创建新环境
 test('env createEnv', async () => {
-    const res = await manager.env.createEnv('aaa')
-    expect(res.Status).toBeTruthy()
+    // 忽略此方法
+    // const res = await manager.env.createEnv('aaa')
+    // expect(res.Status).toBeTruthy()
 })
 
 // 拉取环境列表信息

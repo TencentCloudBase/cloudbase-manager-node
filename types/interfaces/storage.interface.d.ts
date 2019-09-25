@@ -10,7 +10,7 @@ export interface IListFileInfo {
     Key: string;
     LastModified: string;
     ETag: string;
-    Size: number;
+    Size: string;
     Owner: string;
     StorageClass: string;
 }

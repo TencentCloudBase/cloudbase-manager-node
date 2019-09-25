@@ -4,7 +4,7 @@
     "description": "The node manage service api for cloudbase.",
     "main": "lib/index.js",
     "scripts": {
-        "build": "npx tsc",
+        "build": "rimraf lib types && npx tsc",
         "test": "jest --runInBand --detectOpenHandles --coverage --testTimeout=10000",
         "lint": "eslint \"./**/*.ts\"",
         "lint:fix": "eslint --fix \"./**/*.ts\""
@@ -25,7 +25,10 @@
         "eslint": "^6.3.0",
         "eslint-config-alloy": "^3.0.0",
         "husky": "^3.0.5",
+        "jest": "^24.9.0",
         "lint-staged": "^9.2.5",
+        "rimraf": "^3.0.0",
+        "ts-jest": "^24.1.0",
         "typescript": "^3.6.2"
     },
     "dependencies": {
@@ -34,11 +37,9 @@
         "cos-nodejs-sdk-v5": "^2.5.12",
         "del": "^5.1.0",
         "https-proxy-agent": "^2.2.2",
-        "jest": "^24.9.0",
         "make-dir": "^3.0.0",
         "node-fetch": "^2.6.0",
         "query-string": "^6.8.3",
-        "ts-jest": "^24.0.2",
         "walkdir": "^0.4.1"
     },
     "husky": {

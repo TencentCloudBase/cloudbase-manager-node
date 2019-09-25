@@ -39,6 +39,30 @@ import path from 'path'
 await storage.upload(path.resolve('./data.txt'), 'files/data.txt')
 ```
 
+## 上传文件夹
+
+此接口会遍历目标文件夹下所有的文件并上传，同时保持文件夹结构。
+
+```js
+uploadDirectory(source: string, cloudDirectory: string): Promise<void>
+```
+
+### 参数说明
+
+| 参数名         | 类型   | 描述           |
+| -------------- | ------ | -------------- |
+| source         | string | 本地文件夹路径 |
+| cloudDirectory | string | 云端文件夹路径 |
+
+### 响应结果：void
+
+### 调用示例
+
+```js
+import path from 'path'
+await storage.uploadDirectory(path.resolve('./files'))
+```
+
 ## 下载文件
 
 ### 接口定义
@@ -49,9 +73,9 @@ downloadFile(cloudPath: string, localPath): Promise<void>
 
 ### 参数说明
 
-| 参数名    | 类型   | 描述                           |
-| --------- | ------ | ------------------------------ |
-| cloudPath | string | 云端文件路径：`dir/data.txt`   |
+| 参数名    | 类型   | 描述                                 |
+| --------- | ------ | ------------------------------------ |
+| cloudPath | string | 云端文件路径：`dir/data.txt`         |
 | localPath | string | 本地文件存储路径，文件需指定文件名称 |
 
 ### 响应结果：void
@@ -63,21 +87,45 @@ import path from 'path'
 await storage.downloadFile('files/data.txt', path.resolve('./data.txt'))
 ```
 
+## 下载文件夹
+
+### 接口定义
+
+```js
+downloadDirectory(cloudDirectory: string, localPath: string): Promise<void>
+```
+
+### 参数说明
+
+| 参数名         | 类型   | 描述                                 |
+| -------------- | ------ | ------------------------------------ |
+| cloudDirectory | string | 云端文件夹                           |
+| localPath      | string | 本地文件存储路径，文件需指定文件名称 |
+
+### 响应结果：void
+
+### 调用示例
+
+```js
+import path from 'path'
+await storage.downloadDirectory('files/music', path.resolve('./music'))
+```
+
+**NOTE：** 此操作会遍历文件夹下的所有文件，如果文件数量过多，可能会造成执行失败。
+
 ## 列出文件夹下的所有文件
 
 ### 接口定义
 
 ```js
-listDirectoryFiles(cloudDirectory: string, max = 20, marker = ''): Promise<IListFileInfo[]>
+listDirectoryFiles(cloudDirectory: string): Promise<IListFileInfo[]>
 ```
 
 ### 参数说明
 
-| 参数名    | 类型   | 描述                                                                              |
-| --------- | ------ | --------------------------------------------------------------------------------- |
-| cloudDirectory | string | 云端文件夹路径：`dir/data/`                                                       |
-| max       | number | 每次传输数据的最大条数，默认为 20，最大值为 1000                                  |
-| marker    | string | 起始文件/文件夹路径，从该文件/文件夹路径之后（不含）按照 UTF-8 字典序返回文件信息 |
+| 参数名         | 类型   | 描述                        |
+| -------------- | ------ | --------------------------- |
+| cloudDirectory | string | 云端文件夹路径：`dir/data/` |
 
 ### 响应结果
 
@@ -179,30 +227,6 @@ deleteDirectory(cloudDirectory: string): Promise<void>
 await storage.deleteDirectory('files/')
 ```
 
-## 上传文件夹
-
-此接口会遍历目标文件夹下所有的文件并上传，同时保持文件夹结构。
-
-```js
-uploadDirectory(source: string, cloudDirectory: string): Promise<void>
-```
-
-### 参数说明
-
-| 参数名         | 类型   | 描述           |
-| -------------- | ------ | -------------- |
-| source         | string | 本地文件夹路径 |
-| cloudDirectory | string | 云端文件夹路径 |
-
-### 响应结果：void
-
-### 调用示例
-
-```js
-import path from 'path'
-await storage.uploadDirectory(path.resolve('./files'))
-```
-
 ## 获取文件临时下载链接
 
 ### 接口定义
@@ -246,4 +270,74 @@ const urls2 = await storage.getTemporaryUrl([
         maxAge: 86400
     }
 ])
+```
+
+## 获取文件存储权限
+
+### 接口定义
+
+```js
+getStorageAcl()
+```
+
+### 参数说明
+
+空
+
+TempUrlInfo
+
+### 响应结果
+
+```js
+'READONLY'
+```
+
+所有权限类型：
+
+-   READONLY：所有用户可读，仅创建者和管理员可写
+-   PRIVATE：仅创建者及管理员可读写
+-   ADMINWRITE：所有用户可读，仅管理员可写
+-   ADMINONLY：仅管理员可读写
+
+### 调用示例
+
+```js
+const acl = await storage.getStorageAcl()
+```
+
+## 设置文件存储权限
+
+### 接口定义
+
+```js
+setStorageAcl(acl: string)
+```
+
+### 参数说明
+
+| 参数名 | 类型     | 描述             |
+| ------ | -------- | ---------------- |
+| acl    | `string` | 文件存储权限描述 |
+
+acl 支持选项：
+
+-   READONLY：所有用户可读，仅创建者和管理员可写
+-   PRIVATE：仅创建者及管理员可读写
+-   ADMINWRITE：所有用户可读，仅管理员可写
+-   ADMINONLY：仅管理员可读写
+
+TempUrlInfo
+
+### 响应结果
+
+```js
+{
+    requestId: 'xxxx'
+}
+```
+
+### 调用示例
+
+```js
+const res = await storage.setStorageAcl('READONLY')
 ```

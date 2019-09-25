@@ -12,6 +12,14 @@ interface CloudBaseConfig {
 }
 declare class CloudBase {
     private static cloudBase;
+    /**
+     * init 初始化 为单例
+     *
+     * @static
+     * @param {ManagerConfig} config
+     * @returns {CloudBase}
+     * @memberof CloudBase
+     */
     static init(config: CloudBaseConfig): CloudBase;
     private context;
     private cloudBaseConfig;

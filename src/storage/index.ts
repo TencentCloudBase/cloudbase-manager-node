@@ -8,15 +8,23 @@ import { cloudBaseRequest, CloudService, fetchStream, preLazy } from '../utils'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
 
-import { IUploadMetadata, IListFileInfo, IFileInfo, ITempUrlInfo } from '../interfaces'
+import {
+    IUploadMetadata,
+    IListFileInfo,
+    IFileInfo,
+    ITempUrlInfo,
+    IResponseInfo
+} from '../interfaces'
+
+type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY'
 
 export class StorageService {
     private environment: Environment
-    private cloudService: CloudService
+    private tcbService: CloudService
 
     constructor(environment: Environment) {
         this.environment = environment
-        this.cloudService = new CloudService(environment.cloudBaseContext, 'cos', '2018-11-27')
+        this.tcbService = new CloudService(environment.cloudBaseContext, 'tcb', '2018-06-08')
     }
 
     /**
@@ -57,17 +65,17 @@ export class StorageService {
 
     /**
      * 上传文件夹
-     * TODO: 支持忽略文件/文件夹
      * @param {string} source 本地文件夹
      * @param {string} cloudDirectory 云端文件夹
      * @returns {Promise<void>}
      */
     @preLazy()
     public async uploadDirectory(source: string, cloudDirectory: string): Promise<void> {
+        // TODO: 支持忽略文件/文件夹
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
         const localPath = path.resolve(source)
-        const filePaths = await this.walkdir(localPath)
+        const filePaths = await this.walkLocalDir(localPath)
 
         if (!filePaths || !filePaths.length) {
             return
@@ -121,8 +129,8 @@ export class StorageService {
             throw new CloudBaseError('本地存储路径不存在！')
         }
 
-        const files = await this.listDirectoryFiles(cloudDirectory)
         const cloudDirectoryKey = this.getCloudKey(cloudDirectory)
+        const files = await this.walkCloudDir(cloudDirectoryKey)
 
         const promises = files.map(async file => {
             const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
@@ -137,41 +145,21 @@ export class StorageService {
     }
 
     /**
-     * 列出文件夹下的所有文件
+     * 列出文件夹下的文件
      * @link https://cloud.tencent.com/document/product/436/7734
      * @param {string} cloudDirectory 云端文件夹
-     * @param {number} [max=20] 最大传输数据条目数量
-     * @param {string} [marker=''] 起始路径名，后（不含）按照 UTF-8 字典序返回条目
      * @returns {Promise<ListFileInfo[]>}
      */
     @preLazy()
-    public async listDirectoryFiles(
-        cloudDirectory: string,
-        max = 20,
-        marker = ''
-    ): Promise<IListFileInfo[]> {
+    public async listDirectoryFiles(cloudDirectory: string): Promise<IListFileInfo[]> {
         if (!cloudDirectory) {
             throw new CloudBaseError('目录不能为空！')
         }
 
-        if (max > 1000) {
-            throw new CloudBaseError('每次最多返回 1000 条数据')
-        }
-
-        const cos = this.getCos()
-        const getBucket = Util.promisify(cos.getBucket).bind(cos)
-        const { bucket, region } = this.getStorageConfig()
         const key = this.getCloudKey(cloudDirectory)
+        const files = await this.walkCloudDir(key)
 
-        const res = await getBucket({
-            Bucket: bucket,
-            Region: region,
-            Prefix: key,
-            MaxKeys: max,
-            Marker: marker
-        })
-
-        return res.Contents
+        return files
     }
 
     /**
@@ -179,6 +167,7 @@ export class StorageService {
      * @param {((string | ITempUrlInfo)[])} fileList 文件路径或文件信息数组
      * @returns {Promise<{ fileId: string; url: string }[]>}
      */
+    @preLazy()
     public async getTemporaryUrl(
         fileList: (string | ITempUrlInfo)[]
     ): Promise<{ fileId: string; url: string }[]> {
@@ -307,7 +296,7 @@ export class StorageService {
 
         const key = this.getCloudKey(cloudDirectory)
 
-        const files = await this.listDirectoryFiles(key)
+        const files = await this.walkCloudDir(key)
 
         const promises = files.map(
             async file =>
@@ -321,6 +310,90 @@ export class StorageService {
         await Promise.all(promises)
     }
 
+    /**
+     * 获取文件存储权限
+     * READONLY：所有用户可读，仅创建者和管理员可写
+     * PRIVATE：仅创建者及管理员可读写
+     * ADMINWRITE：所有用户可读，仅管理员可写
+     * ADMINONLY：仅管理员可读写
+     * @returns
+     */
+    @preLazy()
+    public async getStorageAcl(): Promise<AclType> {
+        const { bucket, env } = this.getStorageConfig()
+
+        const res = await this.tcbService.request('DescribeStorageACL', {
+            EnvId: env,
+            Bucket: bucket
+        })
+
+        return res.AclTag
+    }
+
+    /**
+     * 设置文件存储权限
+     * READONLY：所有用户可读，仅创建者和管理员可写
+     * PRIVATE：仅创建者及管理员可读写
+     * ADMINWRITE：所有用户可读，仅管理员可写
+     * ADMINONLY：仅管理员可读写
+     * @param {string} acl
+     * @returns
+     */
+    @preLazy()
+    public async setStorageAcl(acl: AclType): Promise<IResponseInfo> {
+        const validAcl = ['READONLY', 'PRIVATE', 'ADMINWRITE', 'ADMINONLY']
+        if (!validAcl.includes(acl)) {
+            throw new CloudBaseError('非法的权限类型')
+        }
+
+        const { bucket, env } = this.getStorageConfig()
+
+        const res = await this.tcbService.request('ModifyStorageACL', {
+            EnvId: env,
+            Bucket: bucket,
+            AclTag: acl
+        })
+
+        return res
+    }
+
+    /**
+     * 遍历云端文件夹
+     * @param {string} prefix
+     * @param {string} [marker] 路径开始标志
+     * @returns {Promise<IListFileInfo[]>}
+     */
+    @preLazy()
+    public async walkCloudDir(prefix: string, marker?: string): Promise<IListFileInfo[]> {
+        let fileList = []
+        const cos = this.getCos()
+        const getBucket = Util.promisify(cos.getBucket).bind(cos)
+        const { bucket, region } = this.getStorageConfig()
+
+        const prefixKey = this.getCloudKey(prefix)
+
+        const res = await getBucket({
+            Bucket: bucket,
+            Region: region,
+            Prefix: prefixKey,
+            MaxKeys: 100,
+            Marker: marker
+        })
+
+        fileList.push(...res.Contents)
+
+        let moreFiles = []
+        if (res.IsTruncated === 'true' || res.IsTruncated === true) {
+            moreFiles = await this.walkCloudDir(prefixKey, res.NextMarker)
+        }
+
+        fileList.push(...moreFiles)
+        return fileList
+    }
+
+    /**
+     * 获取文件上传链接属性
+     */
     private async getUploadMetadata(path: string): Promise<IUploadMetadata> {
         const config = this.getAuthConfig()
 
@@ -340,6 +413,9 @@ export class StorageService {
         return res.data
     }
 
+    /**
+     * 获取 COS 配置
+     */
     private getCos() {
         const { secretId, secretKey, token } = this.getAuthConfig()
         if (!token) {
@@ -361,6 +437,9 @@ export class StorageService {
         })
     }
 
+    /**
+     * 获取授权信息
+     */
     private getAuthConfig() {
         const { secretId, secretKey, token } = this.environment.cloudBaseContext
         const envId = this.environment.getEnvId()
@@ -375,9 +454,6 @@ export class StorageService {
 
     /**
      * 将 cloudPath 转换成 cloudPath/ 形式
-     * @private
-     * @param {string} cloudPath
-     * @returns {string}
      */
     private getCloudKey(cloudPath: string): string {
         return cloudPath[cloudPath.length - 1] === '/' ? cloudPath : `${cloudPath}/`
@@ -385,9 +461,6 @@ export class StorageService {
 
     /**
      * 将 cloudPath 转换成 fileId
-     * @private
-     * @param {string} cloudPath
-     * @returns {string}
      */
     private cloudPathToFileId(cloudPath: string): string {
         const { env, bucket } = this.getStorageConfig()
@@ -409,12 +482,9 @@ export class StorageService {
     }
 
     /**
-     * 遍历文件夹
-     * @private
-     * @param {string} dir
-     * @returns
+     * 遍历本地文件夹
      */
-    private async walkdir(dir: string) {
+    private async walkLocalDir(dir: string) {
         try {
             return walkdir.async(dir)
         } catch (e) {

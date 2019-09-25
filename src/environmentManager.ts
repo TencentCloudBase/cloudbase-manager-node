@@ -1,5 +1,5 @@
 import { Environment } from './environment'
-import { ERRROR } from './constant'
+import { ERROR } from './constant'
 import { CloudBaseContext } from './context'
 
 export class EnvironmentManager {
@@ -15,7 +15,7 @@ export class EnvironmentManager {
 
     public getCurrentEnv(): Environment {
         if (!this.currentEnv) {
-            throw new Error(ERRROR.CURRENT_ENVIRONMENT_IS_NULL)
+            throw new Error(ERROR.CURRENT_ENVIRONMENT_IS_NULL)
         }
         return this.currentEnv
     }
