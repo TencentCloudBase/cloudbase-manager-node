@@ -174,12 +174,3 @@ test('database checkIndexExists', async () => {
     const res = await manager.database.checkIndexExists('tcb_collection_need_update', 'index_b_1')
     expect(res).toBeTruthy()
 })
-
-// db coll query document
-test('database query document', async () => {
-    const res = await manager.database
-        .collection('coll-1')
-        .where({ name: 'aaa' })
-        .get()
-    expect(res.data.length).toBeGreaterThanOrEqual(0)
-})

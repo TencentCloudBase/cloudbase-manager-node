@@ -12,7 +12,6 @@ import {
 } from '../interfaces/'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
-import { Db } from '@cloudbase/database'
 import { CloudBaseRequest } from '../utils/cloudbaseRequest'
 import { CloudService } from '../utils'
 
@@ -79,7 +78,7 @@ function preLazy() {
     }
 }
 
-export class DatabaseService extends Db {
+export class DatabaseService {
     static tcbServiceVersion: IServiceVersion = {
         service: 'tcb',
         version: '2018-06-08'
@@ -97,14 +96,7 @@ export class DatabaseService extends Db {
     private DEFAULT_MGO_OFFSET = 0
     private DEFAULT_MGO_LIMIT = 100
 
-    constructor(environment: Environment, dbConfig?: Record<string, any>) {
-        super({
-            envId: environment.getEnvId(),
-            ...environment.cloudBaseContext,
-            ...dbConfig
-        })
-        Db.reqClass = CloudBaseRequest
-
+    constructor(environment: Environment) {
         this.environment = environment
         this.envId = environment.getEnvId()
 
@@ -264,7 +256,7 @@ export class DatabaseService extends Db {
     }
 
     // 查询DB的数据存储分布
-    async distribution(): Promise<IDistributionInfo> {
+    public async distribution(): Promise<IDistributionInfo> {
         const res: any = await this.dbOpService.request('DescribeDbDistribution', {
             EnvId: this.envId
         })
@@ -273,7 +265,7 @@ export class DatabaseService extends Db {
     }
 
     // 查询DB 迁移进度
-    async migrateStatus(jobId: number): Promise<IDatabaseMigrateQueryInfo> {
+    public async migrateStatus(jobId: number): Promise<IDatabaseMigrateQueryInfo> {
         const res: IDatabaseMigrateQueryInfo = await this.dbOpService.request(
             'DatabaseMigrateQueryInfo',
             {
@@ -286,7 +278,7 @@ export class DatabaseService extends Db {
     }
 
     // 数据库导入数据
-    async import(
+    public async import(
         collectionName: string,
         file: any,
         options: any
@@ -327,7 +319,7 @@ export class DatabaseService extends Db {
     }
 
     // 数据库导出数据
-    async export(
+    public async export(
         collectionName: string,
         file: any,
         options: any
