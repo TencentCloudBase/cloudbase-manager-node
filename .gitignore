@@ -69,3 +69,5 @@ node_modules
 .vscode
 
 download_dir
+
+test/config.ts
