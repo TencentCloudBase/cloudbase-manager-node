@@ -146,6 +146,7 @@ export class CloudService {
         // 所以这里把 readStream 转为 Buffer
         // await convertReadStreamToBuffer(data)
         const timestamp = Math.floor(Date.now() / 1000)
+        const { proxy } = this.cloudBaseContext
 
         const { method, timeout, data = {} } = this
 
@@ -185,9 +186,10 @@ export class CloudService {
 
         config.headers['Authorization'] = sign
 
-        // 代理
-        if (!config.agent && process.env.http_proxy) {
-            config.agent = new HttpsProxyAgent(process.env.http_proxy)
+        if (!config.agent) {
+            if (proxy || process.env.http_proxy) {
+                config.agent = new HttpsProxyAgent(proxy || process.env.http_proxy)
+            }
         }
 
         const res = await fetch(this.url, config)

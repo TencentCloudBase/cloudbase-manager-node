@@ -8,15 +8,16 @@ const app = CloudBase.init({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     token: 'Your SecretToken', // 使用临时凭证需要此字段
-    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    envId: 'Your envId', // 云开发环境ID，可在腾讯云云开发控制台获取
+    proxy: '' // 支持代理设置
 })
 ```
 
 初始化后得到一个 CloudBase 实例。（该实例是单例的，多次调用 CloudBase.init 只会初始化一次。）
 
-> ⚠️需要提前开通云开发服务并创建环境，否则无法使用。
+> ⚠️ 需要提前开通云开发服务并创建环境，否则无法使用。
 
-> ⚠️服务端环境下（非云函数环境），需要用户传入 SecretId， SecretKey（腾讯云控制台获取）
+> ⚠️ 服务端环境下（非云函数环境），需要用户传入 SecretId， SecretKey（腾讯云控制台获取）
 
 您也可以通过 new CloudBase 创建实例，示例代码如下：
 

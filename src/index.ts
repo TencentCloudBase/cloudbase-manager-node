@@ -13,6 +13,7 @@ interface CloudBaseConfig {
     secretKey?: string
     token?: string
     envId?: string
+    proxy?: string
 }
 
 class CloudBase {
@@ -69,6 +70,10 @@ class CloudBase {
 
         if (config.envId) {
             this.cloudBaseConfig.envId = config.envId
+        }
+
+        if (config.proxy) {
+            this.cloudBaseConfig.proxy = config.proxy
         }
 
         // 初始化 context

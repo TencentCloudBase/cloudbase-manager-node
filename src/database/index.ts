@@ -12,7 +12,6 @@ import {
 } from '../interfaces/'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
-import { CloudBaseRequest } from '../utils/cloudbaseRequest'
 import { CloudService } from '../utils'
 
 interface IDatabaseConfig {
