@@ -16,6 +16,6 @@ export declare class CloudService {
     constructor(context: CloudBaseContext, service: string, version: string, baseParams?: Record<string, any>);
     getUrl(): any;
     request(action: string, data?: Record<string, any>, method?: 'POST' | 'GET'): Promise<any>;
-    requestWithSign(): Promise<import("node-fetch").Response>;
+    requestWithSign(): Promise<any>;
     getRequestSign(timestamp: number): string;
 }

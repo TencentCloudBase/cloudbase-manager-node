@@ -9,6 +9,7 @@ interface CloudBaseConfig {
     secretKey?: string;
     token?: string;
     envId?: string;
+    proxy?: string;
 }
 declare class CloudBase {
     private static cloudBase;

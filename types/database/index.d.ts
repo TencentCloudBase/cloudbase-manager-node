@@ -1,6 +1,5 @@
 import { IServiceVersion, IExistsRes, CreateIndex, DropIndex, IndexInfo, TableInfo, Pager, IResponseInfo, CollectionDispension } from '../interfaces/';
 import { Environment } from '../environment';
-import { Db } from '@cloudbase/database';
 interface IDatabaseConfig {
     Tag: string;
 }
@@ -39,7 +38,7 @@ interface IDatabaseMigrateQueryInfo extends IResponseInfo {
 interface IDatabaseImportAndExportInfo extends IResponseInfo {
     JobId: number;
 }
-export declare class DatabaseService extends Db {
+export declare class DatabaseService {
     static tcbServiceVersion: IServiceVersion;
     static flexdbServiceVersion: IServiceVersion;
     private environment;
@@ -48,7 +47,7 @@ export declare class DatabaseService extends Db {
     private collOpService;
     private DEFAULT_MGO_OFFSET;
     private DEFAULT_MGO_LIMIT;
-    constructor(environment: Environment, dbConfig?: Record<string, any>);
+    constructor(environment: Environment);
     getCurrEnvironment(): Environment;
     getDatabaseConfig(): IDatabaseConfig;
     checkCollectionExists(collectionName: string): Promise<IExistsRes>;
