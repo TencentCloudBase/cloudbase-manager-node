@@ -1,35 +1,15 @@
-import fetch from 'node-fetch'
-import HttpsProxyAgent from 'https-proxy-agent'
 import { getAuth } from './auth'
+import { fetch } from './http-request'
 
-export class CloudBaseRequest {
-    private config: any
-    constructor(config: {
+export async function cloudBaseRequest(options: {
+    config: {
         envId: string
         secretId: string
         secretKey: string
         token?: string
         timeout?: number
-    }) {
-        this.config = config
+        proxy: string
     }
-
-    async send(api, data) {
-        const params = { ...data, action: api}
-
-        return await cloudBaseRequest({
-            config: this.config,
-            params,
-            method: 'post',
-            headers: {
-                'content-type': 'application/json'
-            }
-        })
-    }
-}
-
-export async function cloudBaseRequest(options: {
-    config: { envId: string; secretId: string; secretKey: string; token?: string; timeout?: number }
     params: Record<string, any>
     method?: string
     headers?: Record<string, any>
@@ -50,7 +30,7 @@ export async function cloudBaseRequest(options: {
         'x-tcb-source': 'cloudbase-manager-node, not-scf'
     }
 
-    const { secretId, secretKey, token } = config
+    const { secretId, secretKey, token, proxy } = config
 
     const authData = {
         secretId,
@@ -69,17 +49,15 @@ export async function cloudBaseRequest(options: {
         authorization
     }
 
-    let agent
-    if (process.env.http_proxy) {
-        agent = new HttpsProxyAgent(process.env.http_proxy)
-    }
+    const res = await fetch(
+        url,
+        {
+            method,
+            body: JSON.stringify(requestBody),
+            headers: requestHeaders
+        },
+        proxy
+    )
 
-    const res = await fetch(url, {
-        method,
-        body: JSON.stringify(requestBody),
-        agent,
-        headers: requestHeaders
-    })
-
-    return await res.json()
+    return res
 }

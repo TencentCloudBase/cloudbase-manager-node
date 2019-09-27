@@ -4,10 +4,10 @@ import crypto from 'crypto'
 import { PUBLIC_RSA_KEY, ENV_NAME } from '../constant'
 
 export { guid6 } from './uuid'
-export * from './request'
+export * from './cloud-api-request'
 export * from './auth'
-export * from './cloudbaseRequest'
-export * from './httpRequest'
+export * from './cloudbase-request'
+export * from './http-request'
 export * from './envLazy'
 
 export async function zipDir(dirPath, outputPath) {

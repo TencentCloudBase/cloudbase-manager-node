@@ -1,9 +1,8 @@
-import fetch from 'node-fetch'
 import crypto from 'crypto'
 import QueryString from 'query-string'
-import HttpsProxyAgent from 'https-proxy-agent'
 import { CloudBaseError } from '../error'
 import { CloudBaseContext } from '../context'
+import { fetch } from './http-request'
 
 interface ManagerConfig {
     secretId?: string
@@ -100,10 +99,6 @@ export class CloudService {
 
         this.url = this.getUrl()
 
-        // if (databaseAction.indexOf(action) > -1) {
-        //     this.url = 'https://flexdb.ap-shanghai.tencentcloudapi.com'
-        // }
-
         const { secretId, secretKey, token } = this.cloudBaseContext
 
         this.secretId = secretId
@@ -111,26 +106,16 @@ export class CloudService {
         this.token = token
 
         try {
-            const res = await this.requestWithSign()
+            const data: Record<string, any> = await this.requestWithSign()
 
-            if (res.status !== 200) {
-                const tcError = new CloudBaseError(res.statusText, {
-                    code: res.status
+            if (data.Response.Error) {
+                const tcError = new CloudBaseError(data.Response.Error.Message, {
+                    requestId: data.Response.RequestId,
+                    code: data.Response.Error.Code
                 })
                 throw tcError
             } else {
-                // res.json 返回值为 Promise
-                const data: Record<string, any> = await res.json()
-
-                if (data.Response.Error) {
-                    const tcError = new CloudBaseError(data.Response.Error.Message, {
-                        requestId: data.Response.RequestId,
-                        code: data.Response.Error.Code
-                    })
-                    throw tcError
-                } else {
-                    return data.Response
-                }
+                return data.Response
             }
         } catch (e) {
             // throw e
@@ -186,14 +171,7 @@ export class CloudService {
 
         config.headers['Authorization'] = sign
 
-        if (!config.agent) {
-            if (proxy || process.env.http_proxy) {
-                config.agent = new HttpsProxyAgent(proxy || process.env.http_proxy)
-            }
-        }
-
-        const res = await fetch(this.url, config)
-        return res
+        return fetch(this.url, config, proxy)
     }
 
     getRequestSign(timestamp: number) {

@@ -110,7 +110,8 @@ export class StorageService {
         const urlList = await this.getTemporaryUrl([cloudPath])
         const { url } = urlList[0]
 
-        const res = await fetchStream(url)
+        const { proxy } = await this.getAuthConfig()
+        const res = await fetchStream(url, {}, proxy)
         const dest = fs.createWriteStream(resolveLocalPath)
         res.body.pipe(dest)
     }
@@ -441,14 +442,15 @@ export class StorageService {
      * 获取授权信息
      */
     private getAuthConfig() {
-        const { secretId, secretKey, token } = this.environment.cloudBaseContext
+        const { secretId, secretKey, token, proxy } = this.environment.cloudBaseContext
         const envId = this.environment.getEnvId()
 
         return {
             envId,
             secretId,
             secretKey,
-            token
+            token,
+            proxy
         }
     }
 
