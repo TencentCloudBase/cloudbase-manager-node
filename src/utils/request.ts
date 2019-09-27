@@ -187,7 +187,9 @@ export class CloudService {
         config.headers['Authorization'] = sign
 
         if (!config.agent) {
-            config.agent = new HttpsProxyAgent(proxy || process.env.http_proxy)
+            if (proxy || process.env.http_proxy) {
+                config.agent = new HttpsProxyAgent(proxy || process.env.http_proxy)
+            }
         }
 
         const res = await fetch(this.url, config)
