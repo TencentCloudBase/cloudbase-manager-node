@@ -29,23 +29,23 @@ const { env } = new CloudBase({
 
 ## 获取所有环境信息
 
-## 接口定义
+### 接口定义
 
 ```javascript
 listEnvs()
 ```
 
-## 参数说明
+### 参数说明
 
 无
 
-## 调用示例
+### 调用示例
 
 ```javascript
 const res = await env.listEnvs()
 ```
 
-## 返回结果
+### 返回结果
 
 ```json
 {

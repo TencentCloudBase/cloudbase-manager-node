@@ -14,29 +14,29 @@ const { functions } = new CloudBase({
 })
 ```
 
-#### 目录
+## 目录
 
--   [获取云函数列表](#获取云函数列表)
--   [创建函数](#创建函数)
--   [更新云函数代码](#更新云函数代码)
--   [更新云函数配置](#更新云函数配置)
--   [删除云函数](#删除云函数)
--   [获取云函数详情](#获取云函数详情)
--   [调用云函数](#调用云函数)
--   [获取云函数调用日志](#获取云函数调用日志)
--   [拷贝云函数](#拷贝云函数)
--   [创建云函数触发器](#创建云函数触发器)
--   [删除云函数触发器](#删除云函数触发器)
+- [获取云函数列表](#获取云函数列表)
+- [创建函数](#创建函数)
+- [更新云函数代码](#更新云函数代码)
+- [更新云函数配置](#更新云函数配置)
+- [删除云函数](#删除云函数)
+- [获取云函数详情](#获取云函数详情)
+- [调用云函数](#调用云函数)
+- [获取云函数调用日志](#获取云函数调用日志)
+- [拷贝云函数](#拷贝云函数)
+- [创建云函数触发器](#创建云函数触发器)
+- [删除云函数触发器](#删除云函数触发器)
 
-### 获取云函数列表
+## 获取云函数列表
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 listFunctions(limit: number, offset: number) // limit 默认20 offset 默认0
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名 | 类型   | 描述 |
 | ------ | ------ | ---- |
@@ -82,15 +82,15 @@ let res = await functions.listFunctions(20, 0)
 | Functions[].AddTime      | String | 创建时间     |
 | Functions[].ModTime      | String | 修改时间     |
 
-### 创建函数
+## 创建函数
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, base64Code: string)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名           | 类型           | 描述                   |
 | ---------------- | -------------- | ---------------------- |
@@ -100,8 +100,6 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 | base64Code       | string         | 函数文件的 base64 编码 |
 
 **注：createFunction 支持两种方式创建函数，1. 用户指定本地的函数文件根目录(绝对地址); 2. 用户将函数代码包压缩为 zip 文件后进行 base64 转码，传入 base64Code 参数**
-
-### 结构体
 
 ### ICloudFunction
 
@@ -194,15 +192,15 @@ const res = await functions.createFunction(
 
 以 JSON 对象描述，在 javascript 中为对应的数组结构，其他函数返回格式相同。
 
-### 更新云函数代码
+## 更新云函数代码
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 updateFunctionCode(func: ICloudFunction, functionRootPath: string, base64Code: string)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名           | 类型           | 描述                   |
 | ---------------- | -------------- | ---------------------- |
@@ -239,15 +237,15 @@ let res = await functions.updateFunctionCode(
 | --------- | ------ | ------------ |
 | RequestID | String | 请求唯一标识 |
 
-### 更新云函数配置
+## 更新云函数配置
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 updateFunctionConfig(name: string, config: ICloudFunctionConfig)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名 | 类型                 | 描述           |
 | ------ | -------------------- | -------------- |
@@ -278,15 +276,15 @@ let res = await functions.updateFunctionConfig('app', {
 | --------- | ------ | ------------ |
 | RequestID | String | 请求唯一标识 |
 
-### 删除云函数
+## 删除云函数
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 deleteFunction(name: string)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名 | 类型   | 描述     |
 | ------ | ------ | -------- |
@@ -312,15 +310,15 @@ let res = await functions.deleteFunction('functionName')
 | --------- | ------ | ------------ |
 | RequestID | String | 请求唯一标识 |
 
-### 获取云函数详情
+## 获取云函数详情
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 getFunctionDetail(name: string)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名 | 类型   | 描述     |
 | ------ | ------ | -------- |
@@ -382,15 +380,15 @@ let res = await functions.getFunctionDetail('functionName')
 | MemorySize                    | Number | 函数的最大可用内存 |
 | Timeout                       | Number | 函数的超时时间     |
 
-### 调用云函数
+## 调用云函数
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 invokeFunction(name: string, params: object)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名       | 类型   | 描述                          |
 | ------------ | ------ | ----------------------------- |
@@ -438,19 +436,19 @@ const res = await functions.invokeFunction('app', {
 | Result.ErrMsg            | String | 表示执行函数的错误返回信息，异步调用返回为空        |
 | Result.Log               | String | 表示执行过程中的日志输出，异步调用返回为空          |
 
-### 获取云函数调用日志
+## 获取云函数调用日志
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 getFunctionLogs(options: IFunctionLogOptions)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名  | 类型                | 描述         |
 | ------- | ------------------- | ------------ |
-| options | IFunctionLogOptions | 日志查询选项 |
+| options | [IFunctionLogOptions](#ifunctionlogoptions) | 日志查询选项 |
 
 ### IFunctionLogOptions
 
@@ -512,15 +510,15 @@ const logs = await functions.getFunctionLogs({ name: 'app' })
 | Data[].RetMsg         | String | 表示执行函数的返回，异步调用返回为空                        |
 | Data[].Log            | String | 表示执行过程中的日志输出，异步调用返回为空                  |
 
-### 拷贝云函数
+## 拷贝云函数
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 copyFunction(name: string, newFunctionName: string, targetEnvId: string, force = false)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名          | 类型    | 描述                              |
 | --------------- | ------- | --------------------------------- |
@@ -543,28 +541,20 @@ const logs = await functions.copyFunction()
 }
 ```
 
-### 创建云函数触发器
+## 创建云函数触发器
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 createFunctionTriggers(name: string, triggers: ICloudFunctionTrigger[])
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名   | 类型                    | 描述           |
 | -------- | ----------------------- | -------------- |
 | name     | String                  | 函数名         |
-| triggers | ICloudFunctionTrigger[] | 触发器配置数组 |
-
-### ICloudFunctionTrigger
-
-|  名称  | 是否必填 |  类型  |                  描述                  |
-| :----: | :------: | :----: | :------------------------------------: |
-|  name  |    是    | String |               触发器名词               |
-|  type  |    是    | String |     触发器类型(暂只支持定时触发器)     |
-| config |    是    |  any   | 触发器配置(定时触发器配置为字符串形式) |
+| triggers | [ICloudFunctionTrigger](#icloudfunctiontrigger) | 触发器配置数组 |
 
 **调用示例**
 
@@ -589,15 +579,15 @@ const res = await functions.createFunctionTriggers('app', [
 }
 ```
 
-### 删除云函数触发器
+## 删除云函数触发器
 
-#### 接口定义
+### 接口定义
 
 ```javascript
 deleteFunctionTrigger(name: string, triggerName: string)
 ```
 
-#### 参数说明
+### 参数说明
 
 | 参数名      | 类型   | 描述     |
 | ----------- | ------ | -------- |
