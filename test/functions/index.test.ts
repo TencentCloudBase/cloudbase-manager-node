@@ -21,6 +21,70 @@ test('列出所有函数: functions.list(1)', async () => {
     expect(data.length).toBe(1)
 })
 
+test('创建云函数-本地文件上传：functions.createFunction', async () => {
+    const res = await functions.createFunction(
+        {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'sum',
+            // 函数配置
+            config: {
+                // 超时时间
+                timeout: 5,
+                // 环境变量
+                envVariables: {}
+            },
+            // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
+            triggers: [
+                {
+                    // name: 触发器的名字
+                    name: 'myTrigger',
+                    // type: 触发器类型，目前仅支持 timer （即定时触发器）
+                    type: 'timer',
+                    // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+                    config: '0 0 2 1 * * *'
+                }
+            ]
+        },
+        './test/functions/',
+        true,
+        ''
+    )
+
+    expect(res).toBe(undefined)
+})
+
+test('创建云函数-本地文件上传：functions.createFunction', async () => {
+    const res = await functions.createFunction(
+        {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'sum',
+            // 函数配置
+            config: {
+                // 超时时间
+                timeout: 5,
+                // 环境变量
+                envVariables: {}
+            },
+            // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
+            triggers: [
+                {
+                    // name: 触发器的名字
+                    name: 'myTrigger',
+                    // type: 触发器类型，目前仅支持 timer （即定时触发器）
+                    type: 'timer',
+                    // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+                    config: '0 0 2 1 * * *'
+                }
+            ]
+        },
+        '/Users/hengechang/Desktop/work/cloudbase-manager-node/test/functions',
+        true,
+        ''
+    )
+
+    expect(res).toBe(undefined)
+})
+
 test('创建云函数：functions.createFunction', async () => {
     const res = await functions.createFunction(
         {
