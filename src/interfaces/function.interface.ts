@@ -35,7 +35,7 @@ export interface IFunctionLogOptions {
     requestId?: string
 }
 
-export interface IFucntionInvokeRes {
+export interface IFunctionInvokeRes {
     RequestId: string // 请求 Id
     Log: string // 表示执行过程中的日志输出
     RetMsg: string // 表示执行函数的返回

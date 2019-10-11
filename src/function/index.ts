@@ -6,7 +6,7 @@ import {
     IFunctionLogOptions,
     ICloudFunctionConfig,
     ICloudFunctionTrigger,
-    IFucntionInvokeRes
+    IFunctionInvokeRes
 } from '../interfaces'
 import { CloudBaseError } from '../error'
 import { CloudService, preLazy } from '../utils'
@@ -389,10 +389,10 @@ export class FunctionService {
      * 调用云函数
      * @param {string} name 云函数名称
      * @param {Record<string, any>} params 调用函数传入参数
-     * @returns {Promise<IFucntionInvokeRes>}
+     * @returns {Promise<IFunctionInvokeRes>}
      */
     @preLazy()
-    async invokeFunction(name: string, params: Record<string, any>): Promise<IFucntionInvokeRes> {
+    async invokeFunction(name: string, params: Record<string, any>): Promise<IFunctionInvokeRes> {
         const { namespace } = this.getFunctionConfig()
 
         const _params = {
@@ -452,7 +452,7 @@ export class FunctionService {
     @preLazy()
     async createFunctionTriggers(
         name: string,
-        triggers: ICloudFunctionTrigger[]
+        triggers: ICloudFunctionTrigger[] = []
     ): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
 

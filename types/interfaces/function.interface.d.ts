@@ -30,7 +30,7 @@ export interface IFunctionLogOptions {
     endTime?: string;
     requestId?: string;
 }
-export interface IFucntionInvokeRes {
+export interface IFunctionInvokeRes {
     RequestId: string;
     Log: string;
     RetMsg: string;

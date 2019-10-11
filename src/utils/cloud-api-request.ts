@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { URL } from 'url'
 import QueryString from 'query-string'
 import { CloudBaseError } from '../error'
 import { CloudBaseContext } from '../context'

@@ -1,5 +1,5 @@
 import { Environment } from '../environment';
-import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionConfig, ICloudFunctionTrigger, IFucntionInvokeRes } from '../interfaces';
+import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionConfig, ICloudFunctionTrigger, IFunctionInvokeRes } from '../interfaces';
 export declare class FunctionService {
     private environment;
     private vpcService;
@@ -69,9 +69,9 @@ export declare class FunctionService {
      * 调用云函数
      * @param {string} name 云函数名称
      * @param {Record<string, any>} params 调用函数传入参数
-     * @returns {Promise<IFucntionInvokeRes>}
+     * @returns {Promise<IFunctionInvokeRes>}
      */
-    invokeFunction(name: string, params: Record<string, any>): Promise<IFucntionInvokeRes>;
+    invokeFunction(name: string, params: Record<string, any>): Promise<IFunctionInvokeRes>;
     /**
      * 复制云函数
      * @param {string} name 云函数名称
@@ -87,7 +87,7 @@ export declare class FunctionService {
      * @param {ICloudFunctionTrigger[]} triggers 云函数触发器配置
      * @returns {Promise<IResponseInfo>}
      */
-    createFunctionTriggers(name: string, triggers: ICloudFunctionTrigger[]): Promise<IResponseInfo>;
+    createFunctionTriggers(name: string, triggers?: ICloudFunctionTrigger[]): Promise<IResponseInfo>;
     /**
      * 删除云函数触发器
      * @param {string} name 云函数名称
