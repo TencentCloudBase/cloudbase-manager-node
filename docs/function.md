@@ -43,13 +43,13 @@ listFunctions(limit: number, offset: number) // limit 默认20 offset 默认0
 | limit  | number | 范围 |
 | offset | number | 偏移 |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 let res = await functions.listFunctions(20, 0)
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
@@ -68,7 +68,7 @@ let res = await functions.listFunctions(20, 0)
 }
 ```
 
-**返回字段描述**
+#### 字段描述
 
 | 参数名                   | 类型   | 描述         |
 | ------------------------ | ------ | ------------ |
@@ -101,7 +101,7 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 
 **注：createFunction 支持两种方式创建函数，1. 用户指定本地的函数文件根目录(绝对地址); 2. 用户将函数代码包压缩为 zip 文件后进行 base64 转码，传入 base64Code 参数**
 
-### ICloudFunction
+#### ICloudFunction
 
 |   名称   | 是否必填 |                          类型                          |               描述                |
 | :------: | :------: | :----------------------------------------------------: | :-------------------------------: |
@@ -113,7 +113,7 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 
 **注：`handler` 函数处理入口，Node 项目默认值为 index.main，入口文件只能在根目录，如 node 项目的 index.main，指向的是 index.js 文件的 main 方法**
 
-### ICloudFunctionConfig
+#### ICloudFunctionConfig
 
 |     名称     | 是否必填 |    类型     |                       描述                        |
 | :----------: | :------: | :---------: | :-----------------------------------------------: |
@@ -124,7 +124,7 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 
 **注：`runtime` 默认为 `Nodejs8.9`，使用 Node 运行时可不填，使用 Php 和 Java 则必填。**
 
-### ICloudFunctionTrigger
+#### ICloudFunctionTrigger
 
 |  名称  | 是否必填 |  类型  |                         描述                          |
 | :----: | :------: | :----: | :---------------------------------------------------: |
@@ -132,7 +132,7 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 |  type  |    是    | String |               触发器类型，可选值：timer               |
 | config |    是    | String | 触发器配置，在定时触发器下，config 格式为 cron 表达式 |
 
-### IFunctionVPC
+#### IFunctionVPC
 
 |   名称   | 是否必填 |  类型  |    描述     |
 | :------: | :------: | :----: | :---------: |
@@ -141,7 +141,7 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 
 > ⚠️请在测试时在云开发控制台确认函数创建并部署成功，有可能创建成功，`createFunction` 成功返回，但是部署失败，部署失败的原因通常为 `handler` 参数与源码包不对应。
 
-**调用示例**
+### 调用示例
 
 ```javascript
 const res = await functions.createFunction(
@@ -176,21 +176,11 @@ const res = await functions.createFunction(
 )
 ```
 
-**返回示例**
+### 响应结果
 
-```json
-{
-    "RequestId": "eac6b301-a322-493a-8e36-83b295459397"
-}
 ```
-
-**返回字段描述**
-
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
-
-以 JSON 对象描述，在 javascript 中为对应的数组结构，其他函数返回格式相同。
+void
+```
 
 ## 更新云函数代码
 
@@ -210,7 +200,7 @@ updateFunctionCode(func: ICloudFunction, functionRootPath: string, base64Code: s
 
 [ICloudFunction 结构体](#ICloudFunction)
 
-**调用示例**
+### 调用示例
 
 ```javascript
 let res = await functions.updateFunctionCode(
@@ -223,7 +213,7 @@ let res = await functions.updateFunctionCode(
 )
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
@@ -231,7 +221,7 @@ let res = await functions.updateFunctionCode(
 }
 ```
 
-**返回字段描述**
+#### 字段描述
 
 | 参数名    | 类型   | 描述         |
 | --------- | ------ | ------------ |
@@ -254,7 +244,7 @@ updateFunctionConfig(name: string, config: ICloudFunctionConfig)
 
 [ICloudFunctionConfig 结构体](#ICloudFunctionConfig)
 
-**调用示例**
+### 调用示例
 
 ```javascript
 let res = await functions.updateFunctionConfig('app', {
@@ -262,7 +252,7 @@ let res = await functions.updateFunctionConfig('app', {
 })
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
@@ -270,7 +260,7 @@ let res = await functions.updateFunctionConfig('app', {
 }
 ```
 
-**返回字段描述**
+#### 字段描述
 
 | 参数名    | 类型   | 描述         |
 | --------- | ------ | ------------ |
@@ -290,13 +280,13 @@ deleteFunction(name: string)
 | ------ | ------ | -------- |
 | name   | String | 函数名称 |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 let res = await functions.deleteFunction('functionName')
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
@@ -304,7 +294,7 @@ let res = await functions.deleteFunction('functionName')
 }
 ```
 
-**返回字段描述**
+#### 字段描述
 
 | 参数名    | 类型   | 描述         |
 | --------- | ------ | ------------ |
@@ -324,13 +314,13 @@ getFunctionDetail(name: string)
 | ------ | ------ | -------- |
 | name   | String | 函数名称 |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 let res = await functions.getFunctionDetail('functionName')
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
@@ -362,7 +352,7 @@ let res = await functions.getFunctionDetail('functionName')
 }
 ```
 
-**返回字段描述**
+#### 字段描述
 
 | 参数名                        | 类型   | 描述               |
 | ----------------------------- | ------ | ------------------ |
@@ -395,7 +385,7 @@ invokeFunction(name: string, params: object)
 | functionName | String | 函数名称                      |
 | params       | Object | 可选参数 用户调用函数时的入参 |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 const res = await functions.invokeFunction('app', {
@@ -403,7 +393,7 @@ const res = await functions.invokeFunction('app', {
 })
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
@@ -421,7 +411,7 @@ const res = await functions.invokeFunction('app', {
 }
 ```
 
-**返回字段描述**
+#### 字段描述
 
 | 参数名                   | 类型   | 描述                                                |
 | ------------------------ | ------ | --------------------------------------------------- |
@@ -463,13 +453,13 @@ getFunctionLogs(options: IFunctionLogOptions)
 |  endTime  |    否    | String |   查询的具体日期，例如：2017 - 05 - 16 20:59:59，只能与 StartTime 相差一天之内    |
 | requestId |    否    | String |                            执行该函数对应的 requestId                             |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 const logs = await functions.getFunctionLogs({ name: 'app' })
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
@@ -492,7 +482,7 @@ const logs = await functions.getFunctionLogs({ name: 'app' })
 }
 ```
 
-**返回字段描述**
+#### 字段描述
 
 | 参数名                | 类型   | 描述                                                        |
 | --------------------- | ------ | ----------------------------------------------------------- |
@@ -527,19 +517,25 @@ copyFunction(name: string, newFunctionName: string, targetEnvId: string, force =
 | targetEnvId     | String  | 新环境 ID（跨环境拷贝函数时填写） |
 | force           | boolean | 是否覆盖同名函数                  |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 const logs = await functions.copyFunction()
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
     "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
 }
 ```
+
+#### 字段描述
+
+| 参数名    | 类型   | 描述         |
+| --------- | ------ | ------------ |
+| RequestID | String | 请求唯一标识 |
 
 ## 创建云函数触发器
 
@@ -556,7 +552,7 @@ createFunctionTriggers(name: string, triggers: ICloudFunctionTrigger[])
 | name     | String                  | 函数名         |
 | triggers | [ICloudFunctionTrigger](#icloudfunctiontrigger) | 触发器配置数组 |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 const res = await functions.createFunctionTriggers('app', [
@@ -571,13 +567,19 @@ const res = await functions.createFunctionTriggers('app', [
 ])
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
     "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
 }
 ```
+
+#### 字段描述
+
+| 参数名    | 类型   | 描述         |
+| --------- | ------ | ------------ |
+| RequestID | String | 请求唯一标识 |
 
 ## 删除云函数触发器
 
@@ -594,16 +596,22 @@ deleteFunctionTrigger(name: string, triggerName: string)
 | name        | String | 函数名   |
 | triggerName | String | 触发器名 |
 
-**调用示例**
+### 调用示例
 
 ```javascript
 const res = await functions.deleteFunctionTrigger('app', 'newTrigger')
 ```
 
-**返回示例**
+### 响应结果
 
 ```json
 {
     "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
 }
 ```
+
+#### 字段描述
+
+| 参数名    | 类型   | 描述         |
+| --------- | ------ | ------------ |
+| RequestID | String | 请求唯一标识 |
