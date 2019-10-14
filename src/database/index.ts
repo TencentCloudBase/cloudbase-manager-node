@@ -204,6 +204,14 @@ export class DatabaseService {
     ): Promise<ICollectionInfo> {
         let { Tag } = this.getDatabaseConfig()
 
+        if (options.MgoLimit === undefined) {
+            options.MgoLimit = this.DEFAULT_MGO_LIMIT
+        }
+
+        if (options.MgoOffset === undefined) {
+            options.MgoOffset = this.DEFAULT_MGO_OFFSET
+        }
+
         const res = await this.collOpService.request('ListTables', {
             Tag,
             ...options
@@ -295,11 +303,11 @@ export class DatabaseService {
             // 调用cos接口 上传文件  todo
             await this.environment.getStorageService().uploadFile(file['FilePath'], filePath)
 
-            fileType = path.extname(filePath)
+            fileType = path.extname(filePath).substring(1)
         } else if (file['ObjectKey']) {
             delete options['ObjectKeyPrefix']
             filePath = file['ObjectKey']
-            fileType = path.extname(filePath)
+            fileType = path.extname(filePath).substring(1)
         } else {
             throw new CloudBaseError('Miss file.filePath or file.objectKey')
         }
