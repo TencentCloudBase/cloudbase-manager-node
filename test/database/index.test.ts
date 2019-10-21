@@ -129,7 +129,14 @@ test('database import and query migrateStatus', async () => {
             }
         )
 
-        res = await manager.database.migrateStatus(res.JobId)
+        const JobId = res.JobId
+
+        do {
+            res = await manager.database.migrateStatus(JobId)
+            console.log(res)
+        } while (res.Status !== 'success')
+
+        // res = await manager.database.migrateStatus(res.JobId)
     } catch (err) {
         res = err
     } finally {
@@ -142,7 +149,7 @@ test('database import and query migrateStatus', async () => {
 test('database export and query migrateStatus', async () => {
     let res
     try {
-        await recreateCollection('tcb_collection_need_export')
+        // await recreateCollection('tcb_collection_need_export')
         res = await manager.database.export(
             'tcb_collection_need_export',
             {
@@ -156,7 +163,13 @@ test('database export and query migrateStatus', async () => {
                 Limit: 1000
             }
         )
-        res = await manager.database.migrateStatus(res.JobId)
+
+        const JobId = res.JobId
+
+        do {
+            res = await manager.database.migrateStatus(JobId)
+            console.log(res)
+        } while (res.Status !== 'success')
     } catch (err) {
         res = err
     } finally {
