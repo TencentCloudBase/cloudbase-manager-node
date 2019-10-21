@@ -35,12 +35,23 @@ export class StorageService {
      */
     @preLazy()
     public async uploadFile(localPath: string, cloudPath: string): Promise<void> {
-        if (!fs.existsSync(path.resolve(localPath))) {
-            throw new CloudBaseError('文件不存在！')
+        let localFilePath = ''
+        // 如果 localPath 是一个文件夹，尝试在文件下寻找 cloudPath 文件
+        const filePath = path.resolve(localPath)
+        if (fs.existsSync(filePath) && !fs.statSync(filePath).isDirectory()) {
+            localFilePath = path.resolve(localPath)
+        }
+        // 将 cloudPath 作为路径寻找
+        const cloudAsLocalFilePath = path.resolve(cloudPath)
+        if (
+            fs.existsSync(cloudAsLocalFilePath) &&
+            !fs.statSync(cloudAsLocalFilePath).isDirectory()
+        ) {
+            localFilePath = path.resolve(cloudPath)
         }
 
-        if (fs.statSync(localPath).isDirectory()) {
-            return
+        if (!localFilePath) {
+            throw new CloudBaseError('本地文件不存在！')
         }
 
         const cos = this.getCos()
@@ -54,7 +65,7 @@ export class StorageService {
             Region: region,
             Key: cloudPath,
             StorageClass: 'STANDARD',
-            Body: fs.createReadStream(path.resolve(localPath)),
+            Body: fs.createReadStream(localFilePath),
             'x-cos-meta-fileid': cosFileId
         })
 
@@ -130,6 +141,14 @@ export class StorageService {
             throw new CloudBaseError('本地存储路径不存在！')
         }
 
+        try {
+            await this.getFileInfo(cloudDirectory)
+        } catch (e) {
+            if (e.statusCode === 404) {
+                throw new CloudBaseError(`云端路径不存在：${cloudDirectory}`)
+            }
+        }
+
         const cloudDirectoryKey = this.getCloudKey(cloudDirectory)
         const files = await this.walkCloudDir(cloudDirectoryKey)
 
@@ -190,6 +209,27 @@ export class StorageService {
 
         if (invalidData) {
             throw new CloudBaseError(`非法参数：${JSON.stringify(invalidData)}`)
+        }
+
+        const notExistsFiles = []
+
+        const checkFileRequests = files.map(file =>
+            (async () => {
+                try {
+                    await this.getFileInfo(file.cloudPath)
+                } catch (e) {
+                    if (e.statusCode === 404) {
+                        notExistsFiles.push(file.cloudPath)
+                    }
+                }
+            })()
+        )
+
+        await Promise.all(checkFileRequests)
+
+        // 文件路径不存在
+        if (notExistsFiles.length) {
+            throw new CloudBaseError(`以下文件不存在：${notExistsFiles.join(', ')}`)
         }
 
         const data = files.map(item => ({
@@ -291,6 +331,14 @@ export class StorageService {
      */
     @preLazy()
     public async deleteDirectory(cloudDirectory: string): Promise<void> {
+        try {
+            await this.getFileInfo(cloudDirectory)
+        } catch (e) {
+            if (e.statusCode === 404) {
+                throw new CloudBaseError(`云端路径不存在：${cloudDirectory}`)
+            }
+        }
+
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
         const { bucket, region } = this.getStorageConfig()
