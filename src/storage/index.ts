@@ -145,20 +145,12 @@ export class StorageService {
         }
 
         const cloudDirectoryKey = this.getCloudKey(cloudDirectory)
-
-        try {
-            await this.getFileInfo(cloudDirectoryKey)
-        } catch (e) {
-            if (e.statusCode === 404) {
-                throw new CloudBaseError(`云端路径不存在：${cloudDirectory}`)
-            }
-        }
-
         const files = await this.walkCloudDir(cloudDirectoryKey)
 
         const promises = files.map(async file => {
             const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
-            if (!fileRelativePath) {
+            // 空路径和文件夹跳过
+            if (!fileRelativePath || /\/$/g.test(fileRelativePath)) {
                 return
             }
             const localFilePath = path.join(resolveLocalPath, fileRelativePath)
@@ -340,14 +332,6 @@ export class StorageService {
     @preLazy()
     public async deleteDirectory(cloudDirectory: string): Promise<void> {
         const key = this.getCloudKey(cloudDirectory)
-
-        try {
-            await this.getFileInfo(key)
-        } catch (e) {
-            if (e.statusCode === 404) {
-                throw new CloudBaseError(`云端路径不存在：${cloudDirectory}`)
-            }
-        }
 
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)

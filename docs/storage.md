@@ -43,6 +43,8 @@ uploadFile(localPath: string, cloudPath: string): Promise<void>
 | localPath | string | 本地文件路径，建议传入绝对路径 |
 | cloudPath | string | 云端文件路径：`dir/data.txt`   |
 
+注：当 localPath 为文件夹时，SDK 会尝试在此文件夹下（一级目录，不深度遍历）寻找和 cloudPath 中所存在文件同名的文件，如 cloudPath 为 `dir/data.txt`，则会寻找 'data.txt'。
+
 ### 响应结果：void
 
 ### 调用示例
