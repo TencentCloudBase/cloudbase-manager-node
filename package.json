@@ -1,6 +1,6 @@
 {
     "name": "@cloudbase/manager-node",
-    "version": "0.1.0-7",
+    "version": "0.1.0-8",
     "description": "The node manage service api for cloudbase.",
     "main": "lib/index.js",
     "scripts": {
