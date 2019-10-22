@@ -29,6 +29,7 @@ export class StorageService {
 
     /**
      * 上传文件
+     * localPath 为文件夹时，会尝试在文件夹中寻找 cloudPath 中的文件名
      * @param {string} localPath 本地文件的绝对路径
      * @param {string} cloudPath 云端文件路径，如 img/test.png
      * @returns {Promise<void>}
@@ -36,18 +37,20 @@ export class StorageService {
     @preLazy()
     public async uploadFile(localPath: string, cloudPath: string): Promise<void> {
         let localFilePath = ''
-        // 如果 localPath 是一个文件夹，尝试在文件下寻找 cloudPath 文件
-        const filePath = path.resolve(localPath)
-        if (fs.existsSync(filePath) && !fs.statSync(filePath).isDirectory()) {
-            localFilePath = path.resolve(localPath)
+        let resolveLocalPath = path.resolve(localPath)
+        if (!fs.existsSync(resolveLocalPath)) {
+            throw new CloudBaseError(`本地路径不存在：${resolveLocalPath}`)
         }
-        // 将 cloudPath 作为路径寻找
-        const cloudAsLocalFilePath = path.resolve(cloudPath)
-        if (
-            fs.existsSync(cloudAsLocalFilePath) &&
-            !fs.statSync(cloudAsLocalFilePath).isDirectory()
-        ) {
-            localFilePath = path.resolve(cloudPath)
+
+        // 如果 localPath 是一个文件夹，尝试在文件下寻找 cloudPath 中的文件
+        if (fs.statSync(resolveLocalPath).isDirectory()) {
+            const fileName = cloudPath.split('/').pop()
+            const attemptFilePath = path.join(localPath, fileName)
+            if (fs.existsSync(attemptFilePath)) {
+                localFilePath = path.resolve(attemptFilePath)
+            }
+        } else {
+            localFilePath = resolveLocalPath
         }
 
         if (!localFilePath) {
@@ -141,19 +144,23 @@ export class StorageService {
             throw new CloudBaseError('本地存储路径不存在！')
         }
 
+        const cloudDirectoryKey = this.getCloudKey(cloudDirectory)
+
         try {
-            await this.getFileInfo(cloudDirectory)
+            await this.getFileInfo(cloudDirectoryKey)
         } catch (e) {
             if (e.statusCode === 404) {
                 throw new CloudBaseError(`云端路径不存在：${cloudDirectory}`)
             }
         }
 
-        const cloudDirectoryKey = this.getCloudKey(cloudDirectory)
         const files = await this.walkCloudDir(cloudDirectoryKey)
 
         const promises = files.map(async file => {
             const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
+            if (!fileRelativePath) {
+                return
+            }
             const localFilePath = path.join(resolveLocalPath, fileRelativePath)
             // 创建文件的父文件夹
             const fileDir = path.dirname(localFilePath)
@@ -309,6 +316,7 @@ export class StorageService {
             Region: region,
             Key: cloudPath
         })
+
         if (!headers) {
             throw new CloudBaseError(`[${cloudPath}] 获取文件信息失败`)
         }
@@ -331,8 +339,10 @@ export class StorageService {
      */
     @preLazy()
     public async deleteDirectory(cloudDirectory: string): Promise<void> {
+        const key = this.getCloudKey(cloudDirectory)
+
         try {
-            await this.getFileInfo(cloudDirectory)
+            await this.getFileInfo(key)
         } catch (e) {
             if (e.statusCode === 404) {
                 throw new CloudBaseError(`云端路径不存在：${cloudDirectory}`)
@@ -342,8 +352,6 @@ export class StorageService {
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
         const { bucket, region } = this.getStorageConfig()
-
-        const key = this.getCloudKey(cloudDirectory)
 
         const files = await this.walkCloudDir(key)
 

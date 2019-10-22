@@ -7,6 +7,7 @@ export declare class StorageService {
     constructor(environment: Environment);
     /**
      * 上传文件
+     * localPath 为文件夹时，会尝试在文件夹中寻找 cloudPath 中的文件名
      * @param {string} localPath 本地文件的绝对路径
      * @param {string} cloudPath 云端文件路径，如 img/test.png
      * @returns {Promise<void>}
