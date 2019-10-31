@@ -77,7 +77,7 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
                 }
             ]
         },
-        '/Users/hengechang/Desktop/work/cloudbase-manager-node/test/functions',
+        __dirname,
         true,
         ''
     )
@@ -143,7 +143,7 @@ test('获取函数详情: functions.getFunctionDetail', async () => {
 test('获取函数日志: functions.getFunctionLog', async () => {
     const logs = await functions.getFunctionLogs({ name: 'app' })
 
-    expect(logs.length).toBeGreaterThanOrEqual(0)
+    expect(logs.Data.length).toBeGreaterThanOrEqual(0)
 })
 
 test('更新函数配置: functions.updateFunctionConfig', async () => {
