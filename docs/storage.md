@@ -127,7 +127,10 @@ import path from 'path'
 await storage.downloadDirectory('files/music', path.resolve('./music'))
 ```
 
-**NOTE：** 此操作会遍历文件夹下的所有文件，如果文件数量过多，可能会造成执行失败。
+**NOTE：**
+- 此操作会遍历文件夹下的所有文件，如果文件数量过多，可能会造成执行失败。
+- 当 cloudDirectory 不存在时，SDK 不会下载文件，也不会抛出错误。
+
 
 ## 列出文件夹下的所有文件
 
@@ -242,6 +245,8 @@ deleteDirectory(cloudDirectory: string): Promise<void>
 ```js
 await storage.deleteDirectory('files/')
 ```
+
+**注意：** 当 cloudDirectory 不存在时，SDK 不会抛出错误。
 
 ## 获取文件临时下载链接
 

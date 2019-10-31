@@ -45,3 +45,9 @@ export interface IFunctionInvokeRes {
     BillDuration: number // 表示函数的计费耗时，单位是毫秒
     FunctionRequestId: string // 此次函数执行的Id
 }
+
+export interface IFunctionLogRes {
+    RequestId: string // 请求 Id
+    Data: []
+    TotalCount: number
+}

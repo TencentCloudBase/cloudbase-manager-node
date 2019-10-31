@@ -1,5 +1,5 @@
 import { Environment } from '../environment';
-import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionConfig, ICloudFunctionTrigger, IFunctionInvokeRes } from '../interfaces';
+import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionConfig, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes } from '../interfaces';
 export declare class FunctionService {
     private environment;
     private vpcService;
@@ -46,9 +46,9 @@ export declare class FunctionService {
      *         endTime: string
      *         requestId: string
      *     }} options
-     * @returns {Promise<Record<string, string>[]>}
+     * @returns {Promise<IFunctionLogRes>}
      */
-    getFunctionLogs(options: IFunctionLogOptions): Promise<Record<string, string>[]>;
+    getFunctionLogs(options: IFunctionLogOptions): Promise<IFunctionLogRes>;
     /**
      * 更新云函数配置
      * @param {string} name 云函数名称

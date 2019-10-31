@@ -6,7 +6,8 @@ import {
     IFunctionLogOptions,
     ICloudFunctionConfig,
     ICloudFunctionTrigger,
-    IFunctionInvokeRes
+    IFunctionInvokeRes,
+    IFunctionLogRes
 } from '../interfaces'
 import { CloudBaseError } from '../error'
 import { CloudService, preLazy } from '../utils'
@@ -256,10 +257,10 @@ export class FunctionService {
      *         endTime: string
      *         requestId: string
      *     }} options
-     * @returns {Promise<Record<string, string>[]>}
+     * @returns {Promise<IFunctionLogRes>}
      */
     @preLazy()
-    async getFunctionLogs(options: IFunctionLogOptions): Promise<Record<string, string>[]> {
+    async getFunctionLogs(options: IFunctionLogOptions): Promise<IFunctionLogRes> {
         const {
             name,
             offset = 0,
@@ -284,8 +285,8 @@ export class FunctionService {
             functionRequestId: requestId
         }
 
-        const { Data = [] }: any = await this.scfService.request('GetFunctionLogs', params)
-        return Data
+        const res: IFunctionLogRes = await this.scfService.request('GetFunctionLogs', params)
+        return res
     }
 
     /**

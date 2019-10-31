@@ -40,3 +40,8 @@ export interface IFunctionInvokeRes {
     BillDuration: number;
     FunctionRequestId: string;
 }
+export interface IFunctionLogRes {
+    RequestId: string;
+    Data: [];
+    TotalCount: number;
+}
