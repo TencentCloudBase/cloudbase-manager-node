@@ -3,20 +3,20 @@ import CloudBase from '../../src'
 
 const { functions } = new CloudBase(cloudBaseConfig)
 
-test('列出所有函数: functions.listFunction', async () => {
-    const data = await functions.listFunction()
+test('列出所有函数: functions.listFunctions', async () => {
+    const data = await functions.listFunctions()
 
     expect(data.length).toBeGreaterThanOrEqual(1)
 })
 
-test('列出所有函数: functions.listFunction(10, 1)', async () => {
-    const data = await functions.listFunction(10, 1)
+test('列出所有函数: functions.listFunctions(10, 1)', async () => {
+    const data = await functions.listFunctions(10, 1)
 
     expect(data.length).toBeGreaterThanOrEqual(0)
 })
 
 test('列出所有函数: functions.list(1)', async () => {
-    const data = await functions.listFunction(1)
+    const data = await functions.listFunctions(1)
 
     expect(data.length).toBe(1)
 })

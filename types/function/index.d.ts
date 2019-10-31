@@ -21,7 +21,7 @@ export declare class FunctionService {
      * @param {number} [offset=0]
      * @returns {Promise<Record<string, string>[]>}
      */
-    listFunction(limit?: number, offset?: number): Promise<Record<string, string>[]>;
+    listFunctions(limit?: number, offset?: number): Promise<Record<string, string>[]>;
     /**
      * 删除云函数
      * @param {string} name 云函数名称

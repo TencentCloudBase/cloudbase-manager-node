@@ -212,6 +212,8 @@ updateCollection(collectionName: string, options: array): object
 | --------- | ------ | -------- |
 | IndexName | String | 索引名称 |
 
+>更新索引支持的两种方式，创建与删除，相互独立，不可在options同时传入CreateIndexes，DropIndexes
+
 ### 调用示例
 
 创建新索引
@@ -448,9 +450,12 @@ let result = await database.checkIndexExists('collectionAlreadyExists', 'index_t
 -   导入数据需要先将文件上传到该环境（同一个 EnvId）下的对象存储中，所以会在对象存储中创建对象。
 -   因为该函数成功返回只意味着上传成功，导入操作在上传后开始，该接口无法判断导入是否完成，所以该对象用完后需要手动删除。
 
+
 ```javascript
 import(collectionName: string, file: object, options: object): object
 ```
+
+
 
 **参数说明**
 

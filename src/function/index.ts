@@ -143,7 +143,7 @@ export class FunctionService {
      * @returns {Promise<Record<string, string>[]>}
      */
     @preLazy()
-    async listFunction(limit = 20, offset = 0): Promise<Record<string, string>[]> {
+    async listFunctions(limit = 20, offset = 0): Promise<Record<string, string>[]> {
         // 获取Function 环境配置
         const { namespace } = this.getFunctionConfig()
 
