@@ -8,7 +8,8 @@ module.exports = {
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/interface-name-prefix': 'off',
         '@typescript-eslint/no-useless-constructor': 'off',
-        'no-useless-constructor': 'off'
+        'no-useless-constructor': 'off',
+        complexity: ['error', { max: 30 }]
     },
     env: {
         es6: true,
