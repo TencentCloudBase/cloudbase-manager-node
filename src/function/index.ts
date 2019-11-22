@@ -108,7 +108,7 @@ export class FunctionService {
             VpcId: (config.vpc && config.vpc.vpcId) || ''
         }
         // Node 安装依赖
-        // func.config.runtime === 'Nodejs8.9' && (params.InstallDependency = true)
+        func.config.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
 
         try {
             // 创建云函数

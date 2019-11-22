@@ -8,6 +8,7 @@ export interface ICloudFunctionConfig {
     envVariables?: Record<string, string | number | boolean>
     runtime?: string
     vpc?: IFunctionVPC
+    installDependency?: boolean
 }
 
 export interface ICloudFunctionTrigger {

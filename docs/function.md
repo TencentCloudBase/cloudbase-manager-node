@@ -16,24 +16,24 @@ const { functions } = new CloudBase({
 
 ## 目录
 
-- [获取云函数列表](#获取云函数列表)
-- [创建函数](#创建函数)
-- [更新云函数代码](#更新云函数代码)
-- [更新云函数配置](#更新云函数配置)
-- [删除云函数](#删除云函数)
-- [获取云函数详情](#获取云函数详情)
-- [调用云函数](#调用云函数)
-- [获取云函数调用日志](#获取云函数调用日志)
-- [拷贝云函数](#拷贝云函数)
-- [创建云函数触发器](#创建云函数触发器)
-- [删除云函数触发器](#删除云函数触发器)
+-   [获取云函数列表](#获取云函数列表)
+-   [创建函数](#创建函数)
+-   [更新云函数代码](#更新云函数代码)
+-   [更新云函数配置](#更新云函数配置)
+-   [删除云函数](#删除云函数)
+-   [获取云函数详情](#获取云函数详情)
+-   [调用云函数](#调用云函数)
+-   [获取云函数调用日志](#获取云函数调用日志)
+-   [拷贝云函数](#拷贝云函数)
+-   [创建云函数触发器](#创建云函数触发器)
+-   [删除云函数触发器](#删除云函数触发器)
 
 ## 获取云函数列表
 
 ### 接口定义
 
 ```javascript
-listFunctions(limit: number, offset: number) // limit 默认20 offset 默认0
+listFunctions((limit: number), (offset: number)) // limit 默认20 offset 默认0
 ```
 
 ### 参数说明
@@ -87,7 +87,12 @@ let res = await functions.listFunctions(20, 0)
 ### 接口定义
 
 ```javascript
-createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, base64Code: string)
+createFunction(
+    (func: ICloudFunction),
+    (functionRootPath: string),
+    (force: boolean),
+    (base64Code: string)
+)
 ```
 
 ### 参数说明
@@ -103,24 +108,24 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 
 #### ICloudFunction
 
-|   名称   | 是否必填 |                          类型                          |               描述                |
-| :------: | :------: | :----------------------------------------------------: | :-------------------------------: |
-|   name   |    是    |                         String                         |             函数名称              |
-|  config  |    是    |      [CloudFunctionConfig](#icloudfunctionconfig)       |           函数配置对象            |
+|   名称   | 是否必填 |                           类型                           |               描述                |
+| :------: | :------: | :------------------------------------------------------: | :-------------------------------: |
+|   name   |    是    |                          String                          |             函数名称              |
+|  config  |    是    |       [CloudFunctionConfig](#icloudfunctionconfig)       |           函数配置对象            |
 | triggers |    否    | Array of [ICloudFunctionTrigger](#icloudfunctiontrigger) |                                   |
-| handler  |    否    |                         String                         |             函数入口              |
-|  params  |    否    |                         Object                         | invoke 触发函数时，传入函数的参数 |
+| handler  |    否    |                          String                          |             函数入口              |
+|  params  |    否    |                          Object                          | invoke 触发函数时，传入函数的参数 |
 
 **注：`handler` 函数处理入口，Node 项目默认值为 index.main，入口文件只能在根目录，如 node 项目的 index.main，指向的是 index.js 文件的 main 方法**
 
 #### ICloudFunctionConfig
 
-|     名称     | 是否必填 |    类型     |                       描述                        |
-| :----------: | :------: | :---------: | :-----------------------------------------------: |
-|   timeout    |    否    |   Number    |                   函数超时时间                    |
-| envVariables |    否    |   Object    |             包含环境变量的键值对对象              |
+|     名称     | 是否必填 |             类型              |                       描述                        |
+| :----------: | :------: | :---------------------------: | :-----------------------------------------------: |
+|   timeout    |    否    |            Number             |                   函数超时时间                    |
+| envVariables |    否    |            Object             |             包含环境变量的键值对对象              |
 |     vpc      |    否    | [IFunctionVPC](#ifunctionvpc) |                   私有网络配置                    |
-|   runtime    |    否    |   String    | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
+|   runtime    |    否    |            String             | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
 
 **注：`runtime` 默认为 `Nodejs8.9`，使用 Node 运行时可不填，使用 Php 和 Java 则必填。**
 
@@ -139,7 +144,7 @@ createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, b
 |  vpcId   |    是    | String |   VPC Id    |
 | subnetId |    是    | String | VPC 子网 Id |
 
-> ⚠️请在测试时在云开发控制台确认函数创建并部署成功，有可能创建成功，`createFunction` 成功返回，但是部署失败，部署失败的原因通常为 `handler` 参数与源码包不对应。
+> ⚠️ 请在测试时在云开发控制台确认函数创建并部署成功，有可能创建成功，`createFunction` 成功返回，但是部署失败，部署失败的原因通常为 `handler` 参数与源码包不对应。
 
 ### 调用示例
 
@@ -187,7 +192,7 @@ void
 ### 接口定义
 
 ```javascript
-updateFunctionCode(func: ICloudFunction, functionRootPath: string, base64Code: string)
+updateFunctionCode((func: ICloudFunction), (functionRootPath: string), (base64Code: string))
 ```
 
 ### 参数说明
@@ -232,7 +237,7 @@ let res = await functions.updateFunctionCode(
 ### 接口定义
 
 ```javascript
-updateFunctionConfig(name: string, config: ICloudFunctionConfig)
+updateFunctionConfig((name: string), (config: ICloudFunctionConfig))
 ```
 
 ### 参数说明
@@ -271,7 +276,7 @@ let res = await functions.updateFunctionConfig('app', {
 ### 接口定义
 
 ```javascript
-deleteFunction(name: string)
+deleteFunction((name: string))
 ```
 
 ### 参数说明
@@ -305,7 +310,7 @@ let res = await functions.deleteFunction('functionName')
 ### 接口定义
 
 ```javascript
-getFunctionDetail(name: string)
+getFunctionDetail((name: string))
 ```
 
 ### 参数说明
@@ -375,7 +380,7 @@ let res = await functions.getFunctionDetail('functionName')
 ### 接口定义
 
 ```javascript
-invokeFunction(name: string, params: object)
+invokeFunction((name: string), (params: object))
 ```
 
 ### 参数说明
@@ -431,13 +436,13 @@ const res = await functions.invokeFunction('app', {
 ### 接口定义
 
 ```javascript
-getFunctionLogs(options: IFunctionLogOptions)
+getFunctionLogs((options: IFunctionLogOptions))
 ```
 
 ### 参数说明
 
-| 参数名  | 类型                | 描述         |
-| ------- | ------------------- | ------------ |
+| 参数名  | 类型                                        | 描述         |
+| ------- | ------------------------------------------- | ------------ |
 | options | [IFunctionLogOptions](#ifunctionlogoptions) | 日志查询选项 |
 
 ### IFunctionLogOptions
@@ -505,7 +510,7 @@ const logs = await functions.getFunctionLogs({ name: 'app' })
 ### 接口定义
 
 ```javascript
-copyFunction(name: string, newFunctionName: string, targetEnvId: string, force = false)
+copyFunction((name: string), (newFunctionName: string), (targetEnvId: string), (force = false))
 ```
 
 ### 参数说明
@@ -542,14 +547,14 @@ const logs = await functions.copyFunction()
 ### 接口定义
 
 ```javascript
-createFunctionTriggers(name: string, triggers: ICloudFunctionTrigger[])
+createFunctionTriggers((name: string), (triggers: ICloudFunctionTrigger[]))
 ```
 
 ### 参数说明
 
-| 参数名   | 类型                    | 描述           |
-| -------- | ----------------------- | -------------- |
-| name     | String                  | 函数名         |
+| 参数名   | 类型                                            | 描述           |
+| -------- | ----------------------------------------------- | -------------- |
+| name     | String                                          | 函数名         |
 | triggers | [ICloudFunctionTrigger](#icloudfunctiontrigger) | 触发器配置数组 |
 
 ### 调用示例
@@ -586,7 +591,7 @@ const res = await functions.createFunctionTriggers('app', [
 ### 接口定义
 
 ```javascript
-deleteFunctionTrigger(name: string, triggerName: string)
+deleteFunctionTrigger((name: string), (triggerName: string))
 ```
 
 ### 参数说明
