@@ -5,13 +5,6 @@ import { CloudBaseError } from '../error'
 import { CloudBaseContext } from '../context'
 import { fetch } from './http-request'
 
-interface ManagerConfig {
-    secretId?: string
-    secretKey?: string
-    token?: string
-    envId?: string
-}
-
 function isObject(x) {
     return typeof x === 'object' && !Array.isArray(x) && x !== null
 }
@@ -84,9 +77,10 @@ export class CloudService {
         this.cloudBaseContext = context
     }
 
-    getUrl() {
+    get baseUrl() {
+        const tcb = process.env.TCB_BASE_URL || 'https://tcb.tencentcloudapi.com'
         const urlMap = {
-            tcb: 'https://tcb.tencentcloudapi.com',
+            tcb,
             scf: 'https://scf.tencentcloudapi.com',
             flexdb: 'https://flexdb.ap-shanghai.tencentcloudapi.com'
         }
@@ -98,7 +92,7 @@ export class CloudService {
         this.data = deepRemoveVoid({ ...data, ...this.baseParams })
         this.method = method
 
-        this.url = this.getUrl()
+        this.url = this.baseUrl
 
         const { secretId, secretKey, token } = this.cloudBaseContext
 
