@@ -4,6 +4,7 @@ import { StorageService } from './storage'
 
 import { EnvService } from './env'
 import { CloudBaseContext } from './context'
+import { CloudBaseError } from './error'
 
 export class Environment {
     public inited = false
@@ -32,6 +33,9 @@ export class Environment {
             const envConfig = this.envService
             return envConfig.getEnvInfo().then(envInfo => {
                 this.lazyEnvironmentConfig = envInfo.EnvInfo
+                if (!this.lazyEnvironmentConfig.EnvId) {
+                    throw new CloudBaseError(`Environment ${this.envId} not found`)
+                }
 
                 this.inited = true
                 return this.lazyEnvironmentConfig

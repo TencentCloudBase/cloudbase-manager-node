@@ -321,6 +321,43 @@ export class StorageService {
     }
 
     /**
+     * 删除文件，可以指定 Bucket 和 Region
+     * @param {string[]} cloudPathList
+     * @param {string} bucket
+     * @param {string} region
+     * @returns {Promise<void>}
+     */
+    @preLazy()
+    public async deleteFileCustom(
+        cloudPathList: string[],
+        bucket: string,
+        region: string
+    ): Promise<void> {
+        if (!cloudPathList || !Array.isArray(cloudPathList)) {
+            throw new CloudBaseError('fileList必须是非空的数组')
+        }
+
+        const hasInvalidFileId = cloudPathList.some(file => !file || typeof file !== 'string')
+        if (hasInvalidFileId) {
+            throw new CloudBaseError('fileList的元素必须是非空的字符串')
+        }
+
+        const cos = this.getCos()
+        const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
+
+        const promises = cloudPathList.map(
+            async file =>
+                await deleteObject({
+                    Bucket: bucket,
+                    Region: region,
+                    Key: file
+                })
+        )
+
+        await Promise.all(promises)
+    }
+
+    /**
      * 获取文件信息
      * @param {string} cloudPath 云端文件路径
      * @returns {Promise<FileInfo>}
@@ -359,11 +396,28 @@ export class StorageService {
      */
     @preLazy()
     public async deleteDirectory(cloudDirectory: string): Promise<void> {
+        const { bucket, region } = this.getStorageConfig()
+
+        await this.deleteDirectoryCustom(cloudDirectory, bucket, region)
+    }
+
+    /**
+     * 删除文件，可以指定 bucket 和 region
+     * @param {string} cloudDirectory
+     * @param {string} bucket
+     * @param {string} region
+     * @returns {Promise<void>}
+     */
+    @preLazy()
+    public async deleteDirectoryCustom(
+        cloudDirectory: string,
+        bucket: string,
+        region: string
+    ): Promise<void> {
         const key = this.getCloudKey(cloudDirectory)
 
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
-        const { bucket, region } = this.getStorageConfig()
 
         const files = await this.walkCloudDir(key)
 
@@ -434,10 +488,28 @@ export class StorageService {
      */
     @preLazy()
     public async walkCloudDir(prefix: string, marker?: string): Promise<IListFileInfo[]> {
+        const { bucket, region } = this.getStorageConfig()
+        return this.walkCloudDirCustom(prefix, bucket, region, marker)
+    }
+
+    /**
+     * 遍历云端文件夹，支持自定义 Bucket 和 Region
+     * @param {string} prefix
+     * @param {string} [marker]
+     * @param {string} bucket
+     * @param {string} region
+     * @returns {Promise<IListFileInfo[]>}
+     */
+    @preLazy()
+    public async walkCloudDirCustom(
+        prefix: string,
+        bucket: string,
+        region: string,
+        marker?: string
+    ): Promise<IListFileInfo[]> {
         let fileList = []
         const cos = this.getCos()
         const getBucket = Util.promisify(cos.getBucket).bind(cos)
-        const { bucket, region } = this.getStorageConfig()
 
         const prefixKey = this.getCloudKey(prefix)
 
