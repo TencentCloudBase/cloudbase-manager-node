@@ -82,9 +82,14 @@ export class CloudService {
         const urlMap = {
             tcb,
             scf: 'https://scf.tencentcloudapi.com',
+            vpc: 'https://vpc.tencentcloudapi.com',
             flexdb: 'https://flexdb.ap-shanghai.tencentcloudapi.com'
         }
-        return urlMap[this.service]
+        if (urlMap[this.service]) {
+            return urlMap[this.service]
+        } else {
+            return `https://${this.service}.tencentcloudapi.com`
+        }
     }
 
     async request(action: string, data: Record<string, any> = {}, method: 'POST' | 'GET' = 'POST') {
