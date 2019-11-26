@@ -66,6 +66,14 @@ export declare class StorageService {
      */
     deleteFile(cloudPathList: string[]): Promise<void>;
     /**
+     * 删除文件，可以指定 Bucket 和 Region
+     * @param {string[]} cloudPathList
+     * @param {string} bucket
+     * @param {string} region
+     * @returns {Promise<void>}
+     */
+    deleteFileCustom(cloudPathList: string[], bucket: string, region: string): Promise<void>;
+    /**
      * 获取文件信息
      * @param {string} cloudPath 云端文件路径
      * @returns {Promise<FileInfo>}
@@ -77,6 +85,14 @@ export declare class StorageService {
      * @returns {Promise<void>}
      */
     deleteDirectory(cloudDirectory: string): Promise<void>;
+    /**
+     * 删除文件，可以指定 bucket 和 region
+     * @param {string} cloudDirectory
+     * @param {string} bucket
+     * @param {string} region
+     * @returns {Promise<void>}
+     */
+    deleteDirectoryCustom(cloudDirectory: string, bucket: string, region: string): Promise<void>;
     /**
      * 获取文件存储权限
      * READONLY：所有用户可读，仅创建者和管理员可写
@@ -103,6 +119,15 @@ export declare class StorageService {
      * @returns {Promise<IListFileInfo[]>}
      */
     walkCloudDir(prefix: string, marker?: string): Promise<IListFileInfo[]>;
+    /**
+     * 遍历云端文件夹，支持自定义 Bucket 和 Region
+     * @param {string} prefix
+     * @param {string} [marker]
+     * @param {string} bucket
+     * @param {string} region
+     * @returns {Promise<IListFileInfo[]>}
+     */
+    walkCloudDirCustom(prefix: string, bucket: string, region: string, marker?: string): Promise<IListFileInfo[]>;
     /**
      * 获取文件上传链接属性
      */
