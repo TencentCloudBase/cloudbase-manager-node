@@ -57,7 +57,12 @@ test('env UpdateLoginConfig', async () => {
 // 创建新环境
 test('env createEnv', async () => {
     // 忽略此方法
-    // const res = await manager.env.createEnv('aaa')
+    try {
+        const res = await manager.env.createEnv('aaa')
+    } catch (err) {
+        // console.log(err)
+        expect(err)
+    }
     // expect(res.Status).toBeTruthy()
 })
 

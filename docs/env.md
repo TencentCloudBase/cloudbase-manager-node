@@ -16,16 +16,16 @@ const { env } = new CloudBase({
 
 ## 目录
 
-- [获取所有环境信息](#获取所有环境信息)
-- [创建环境](#创建环境)
-- [获取合法域名列表](#获取合法域名列表)
-- [添加环境安全域名](#添加环境安全域名)
-- [删除环境安全域名](#删除环境安全域名)
-- [获取环境信息](#获取环境信息)
-- [修改环境别名](#修改环境别名)
-- [拉取登录配置列表](#拉取登录配置列表)
-- [创建登录方式](#创建登录方式)
-- [更新登录方式配置](#更新登录方式配置)
+-   [获取所有环境信息](#获取所有环境信息)
+-   [创建环境](#创建环境)
+-   [获取合法域名列表](#获取合法域名列表)
+-   [添加环境安全域名](#添加环境安全域名)
+-   [删除环境安全域名](#删除环境安全域名)
+-   [获取环境信息](#获取环境信息)
+-   [修改环境别名](#修改环境别名)
+-   [拉取登录配置列表](#拉取登录配置列表)
+-   [创建登录方式](#创建登录方式)
+-   [更新登录方式配置](#更新登录方式配置)
 
 ## 获取所有环境信息
 
@@ -73,8 +73,10 @@ const res = await env.listEnvs()
 
 ### 接口定义
 
+> ⚠️ 该接口暂时不可用
+
 ```javascript
-createEnv(name: string)
+createEnv((name: string))
 ```
 
 ### 参数说明
@@ -147,7 +149,7 @@ const envs = await env.getEnvAuthDomains()
 ### 接口定义
 
 ```javascript
-createEnvDomain(domains: string[])
+createEnvDomain((domains: string[]))
 ```
 
 ### 参数说明
@@ -175,13 +177,13 @@ const res = await env.createEnvDomain(['luke.com'])
 ### 接口定义
 
 ```javascript
-deleteEnvDomain(domains: string[])
+deleteEnvDomain((domains: string[]))
 ```
 
 ### 参数说明
 
-| 参数名    | 类型     | 描述             |
-| --------- | -------- | ---------------- |
+| 参数名  | 类型     | 描述         |
+| ------- | -------- | ------------ |
 | domains | String[] | 安全域名数组 |
 
 ### 调用示例
@@ -244,7 +246,7 @@ const res = await env.getEnvInfo()
 ### 接口定义
 
 ```javascript
-updateEnvInfo(alias: string)
+updateEnvInfo((alias: string))
 ```
 
 ### 参数说明
@@ -296,11 +298,7 @@ const res = await env.getLoginConfigList()
 ### 接口定义
 
 ```javascript
-createLoginConfig(
-        platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC',
-        appId: string,
-        appSecret: string
-    )
+createLoginConfig((platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC'), (appId: string), (appSecret: string))
 ```
 
 ### 参数说明
@@ -330,12 +328,7 @@ const res = await env.createLoginConfig('WECHAT-OPEN', 'appId', 'appSecret')
 ### 接口定义
 
 ```javascript
-updateLoginConfig(
-        configId: string,
-        status = 'ENABLE',
-        appId = '',
-        appSecret = ''
-    )
+updateLoginConfig((configId: string), (status = 'ENABLE'), (appId = ''), (appSecret = ''))
 ```
 
 ### 参数说明
