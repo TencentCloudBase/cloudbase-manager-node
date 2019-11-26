@@ -56,7 +56,7 @@ export async function cloudBaseRequest(options: {
             body: JSON.stringify(requestBody),
             headers: requestHeaders
         },
-        proxy
+        process.env.TCB_ADMIN_PROXY || proxy
     )
 
     return res

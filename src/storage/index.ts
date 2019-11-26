@@ -36,6 +36,25 @@ export class StorageService {
      */
     @preLazy()
     public async uploadFile(localPath: string, cloudPath: string): Promise<void> {
+        const { bucket, region } = this.getStorageConfig()
+
+        await this.uploadFileCustom(localPath, cloudPath, bucket, region)
+    }
+
+    /**
+     * 上传文件，支持自定义 Bucket 和 Region
+     * @param {string} localPath
+     * @param {string} cloudPath
+     * @param {string} bucket
+     * @param {string} region
+     */
+    @preLazy()
+    public async uploadFileCustom(
+        localPath: string,
+        cloudPath: string,
+        bucket: string,
+        region: string
+    ) {
         let localFilePath = ''
         let resolveLocalPath = path.resolve(localPath)
         if (!fs.existsSync(resolveLocalPath)) {
@@ -59,7 +78,7 @@ export class StorageService {
 
         const cos = this.getCos()
         const putObject = Util.promisify(cos.putObject).bind(cos)
-        const { bucket, region } = this.getStorageConfig()
+
         // cosFileId 是必须的，否则无法获取下载连接
         const { cosFileId } = await this.getUploadMetadata(cloudPath)
 
@@ -88,6 +107,20 @@ export class StorageService {
         // TODO: 支持忽略文件/文件夹
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
+        const { bucket, region } = this.getStorageConfig()
+        await this.uploadDirectoryCustom(source, cloudDirectory, bucket, region)
+    }
+
+    @preLazy()
+    public async uploadDirectoryCustom(
+        source: string,
+        cloudDirectory: string,
+        bucket: string,
+        region: string
+    ): Promise<void> {
+        // TODO: 支持忽略文件/文件夹
+        // 此处不检查路径是否存在
+        // 绝对路径 /var/blog/xxxx
         const localPath = path.resolve(source)
         const filePaths = await this.walkLocalDir(localPath)
 
@@ -100,7 +133,7 @@ export class StorageService {
             .map(filePath => {
                 const fileKeyPath = filePath.replace(localPath, '')
                 const cloudPath = path.join(cloudDirectory, fileKeyPath)
-                return this.uploadFile(filePath, cloudPath)
+                return this.uploadFileCustom(filePath, cloudPath, bucket, region)
             })
 
         await Promise.all(promises)
@@ -166,17 +199,12 @@ export class StorageService {
     /**
      * 列出文件夹下的文件
      * @link https://cloud.tencent.com/document/product/436/7734
-     * @param {string} cloudDirectory 云端文件夹
+     * @param {string} cloudDirectory 云端文件夹，如果为空字符串，则表示根目录
      * @returns {Promise<ListFileInfo[]>}
      */
     @preLazy()
     public async listDirectoryFiles(cloudDirectory: string): Promise<IListFileInfo[]> {
-        if (!cloudDirectory) {
-            throw new CloudBaseError('目录不能为空！')
-        }
-
-        const key = this.getCloudKey(cloudDirectory)
-        const files = await this.walkCloudDir(key)
+        const files = await this.walkCloudDir(cloudDirectory)
 
         return files
     }
@@ -458,11 +486,13 @@ export class StorageService {
      * 获取 COS 配置
      */
     private getCos() {
-        const { secretId, secretKey, token } = this.getAuthConfig()
+        const { secretId, secretKey, token, proxy } = this.getAuthConfig()
+        const cosProxy = process.env.TCB_COS_PROXY
         if (!token) {
             return new COS({
                 SecretId: secretId,
-                SecretKey: secretKey
+                SecretKey: secretKey,
+                Proxy: cosProxy || proxy
             })
         }
 
@@ -472,7 +502,8 @@ export class StorageService {
                     TmpSecretId: secretId,
                     TmpSecretKey: secretKey,
                     XCosSecurityToken: token,
-                    ExpiredTime: 3600 * 1000
+                    ExpiredTime: 3600 * 1000,
+                    Proxy: cosProxy || proxy
                 })
             }
         })
@@ -498,6 +529,9 @@ export class StorageService {
      * 将 cloudPath 转换成 cloudPath/ 形式
      */
     private getCloudKey(cloudPath: string): string {
+        if (!cloudPath) {
+            return ''
+        }
         return cloudPath[cloudPath.length - 1] === '/' ? cloudPath : `${cloudPath}/`
     }
 
@@ -516,10 +550,12 @@ export class StorageService {
         const envConfig = this.environment.lazyEnvironmentConfig
         const storageConfig = envConfig.Storages && envConfig.Storages[0]
         const { Region, Bucket } = storageConfig
+        const region = process.env.TCB_COS_REGION || Region
+
         return {
-            env: envConfig.EnvId,
-            region: Region,
-            bucket: Bucket
+            region,
+            bucket: Bucket,
+            env: envConfig.EnvId
         }
     }
 

@@ -14,12 +14,21 @@ export declare class StorageService {
      */
     uploadFile(localPath: string, cloudPath: string): Promise<void>;
     /**
+     * 上传文件，支持自定义 Bucket 和 Region
+     * @param {string} localPath
+     * @param {string} cloudPath
+     * @param {string} bucket
+     * @param {string} region
+     */
+    uploadFileCustom(localPath: string, cloudPath: string, bucket: string, region: string): Promise<void>;
+    /**
      * 上传文件夹
      * @param {string} source 本地文件夹
      * @param {string} cloudDirectory 云端文件夹
      * @returns {Promise<void>}
      */
     uploadDirectory(source: string, cloudDirectory: string): Promise<void>;
+    uploadDirectoryCustom(source: string, cloudDirectory: string, bucket: string, region: string): Promise<void>;
     /**
      * 下载文件
      * @param {string} cloudPath 云端文件路径
@@ -37,7 +46,7 @@ export declare class StorageService {
     /**
      * 列出文件夹下的文件
      * @link https://cloud.tencent.com/document/product/436/7734
-     * @param {string} cloudDirectory 云端文件夹
+     * @param {string} cloudDirectory 云端文件夹，如果为空字符串，则表示根目录
      * @returns {Promise<ListFileInfo[]>}
      */
     listDirectoryFiles(cloudDirectory: string): Promise<IListFileInfo[]>;
