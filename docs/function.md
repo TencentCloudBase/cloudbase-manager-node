@@ -127,7 +127,8 @@ createFunction(
 |     vpc      |    否    | [IFunctionVPC](#ifunctionvpc) |                   私有网络配置                    |
 |   runtime    |    否    |            String             | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
 
-**注：`runtime` 默认为 `Nodejs8.9`，使用 Node 运行时可不填，使用 Php 和 Java 则必填。**
+**注：如果使用在线安装依赖 Node 运行时 `runtime` 必须设置为 `Nodejs8.9`，且必须在入口文件同级目录设置 package.json，在线安装依赖暂不支持其他运行时**
+**如果不使用在线安装依赖，Node 运行时无需填 `runtime` （默认`Nodejs8.9`），但使用 Php 和 Java 则必填`runtime` 。**
 
 #### ICloudFunctionTrigger
 
@@ -161,7 +162,8 @@ const res = await functions.createFunction(
             envVariables: {
                 key: 'value',
                 akey: 'c'
-            }
+            },
+            runtime: 'Nodejs8.9'
         },
         // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
         triggers: [
