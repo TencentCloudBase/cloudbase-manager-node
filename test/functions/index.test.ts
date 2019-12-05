@@ -21,7 +21,7 @@ test('列出所有函数: functions.list(1)', async () => {
     expect(data.length).toBe(1)
 })
 
-test('创建云函数-本地文件上传：functions.createFunction', async () => {
+test.only('创建云函数-本地文件上传：functions.createFunction', async () => {
     const res = await functions.createFunction(
         {
             // functions 文件夹下函数文件夹的名称，即函数名
@@ -33,7 +33,9 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
                 // 环境变量
                 envVariables: {},
                 // 运行时
-                runtime: 'Nodejs8.9'
+                runtime: 'Nodejs8.9',
+                // 安装依赖
+                installDependency: true
             },
             // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
             triggers: [
@@ -45,7 +47,8 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
                     // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
                     config: '0 0 2 1 * * *'
                 }
-            ]
+            ],
+            ignore: []
         },
         './test/functions/',
         true,

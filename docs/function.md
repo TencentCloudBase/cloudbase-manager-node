@@ -108,24 +108,26 @@ createFunction(
 
 #### ICloudFunction
 
-|   名称   | 是否必填 |                           类型                           |               描述                |
-| :------: | :------: | :------------------------------------------------------: | :-------------------------------: |
-|   name   |    是    |                          String                          |             函数名称              |
-|  config  |    是    |       [CloudFunctionConfig](#icloudfunctionconfig)       |           函数配置对象            |
-| triggers |    否    | Array of [ICloudFunctionTrigger](#icloudfunctiontrigger) |                                   |
-| handler  |    否    |                          String                          |             函数入口              |
-|  params  |    否    |                          Object                          | invoke 触发函数时，传入函数的参数 |
+|   名称   | 是否必填 |                           类型                           |                    描述                    |
+| :------: | :------: | :------------------------------------------------------: | :----------------------------------------: |
+|   name   |    是    |                          String                          |                  函数名称                  |
+|  config  |    是    |       [CloudFunctionConfig](#icloudfunctionconfig)       |                函数配置对象                |
+| triggers |    否    | Array of [ICloudFunctionTrigger](#icloudfunctiontrigger) |                                            |
+| handler  |    否    |                          String                          |                  函数入口                  |
+|  params  |    否    |                          Object                          |     invoke 触发函数时，传入函数的参数      |
+|  ignore  |    否    |                    String 或 String[]                    | 上传函数代码时忽略的文件，以 Glob 模式匹配 |
 
 **注：`handler` 函数处理入口，Node 项目默认值为 index.main，入口文件只能在根目录，如 node 项目的 index.main，指向的是 index.js 文件的 main 方法**
 
 #### ICloudFunctionConfig
 
-|     名称     | 是否必填 |             类型              |                       描述                        |
-| :----------: | :------: | :---------------------------: | :-----------------------------------------------: |
-|   timeout    |    否    |            Number             |                   函数超时时间                    |
-| envVariables |    否    |            Object             |             包含环境变量的键值对对象              |
-|     vpc      |    否    | [IFunctionVPC](#ifunctionvpc) |                   私有网络配置                    |
-|   runtime    |    否    |            String             | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
+|       名称        | 是否必填 |             类型              |                       描述                        |
+| :---------------: | :------: | :---------------------------: | :-----------------------------------------------: |
+|      timeout      |    否    |            Number             |                   函数超时时间                    |
+|   envVariables    |    否    |            Object             |             包含环境变量的键值对对象              |
+|        vpc        |    否    | [IFunctionVPC](#ifunctionvpc) |                   私有网络配置                    |
+|      runtime      |    否    |            String             | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
+| installDependency |    否    |            Boolean            |            是否安装依赖，仅 Node 有效             |
 
 **注：`runtime` 默认为 `Nodejs8.9`，使用 Node 运行时可不填，使用 Php 和 Java 则必填。**
 

@@ -10,7 +10,7 @@ export * from './cloudbase-request'
 export * from './http-request'
 export * from './envLazy'
 
-export async function zipDir(dirPath, outputPath) {
+export async function zipDir(dirPath, outputPath, ignore?: string | string[]) {
     return new Promise((resolve, reject) => {
         const output = fs.createWriteStream(outputPath)
         const archive = archiver('zip')
@@ -27,7 +27,13 @@ export async function zipDir(dirPath, outputPath) {
         })
 
         archive.pipe(output)
-        archive.directory(dirPath, '')
+        // append files from a glob pattern
+        archive.glob('**/*', {
+            // 目标路径
+            cwd: dirPath,
+            ignore: ignore,
+            dot: true
+        })
         archive.finalize()
     })
 }

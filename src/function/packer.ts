@@ -26,10 +26,13 @@ export class FunctionPacker {
     funcDistPath: string
     // 临时目录
     tmpPath: string
+    // 忽略文件模式
+    ignore: string | string[]
 
-    constructor(root: string, name: string) {
+    constructor(root: string, name: string, ignore: string | string[]) {
         this.name = name
         this.root = root
+        this.ignore = ignore
         this.funcPath = path.resolve(path.join(root, name))
     }
 
@@ -49,7 +52,7 @@ export class FunctionPacker {
         // 生成 zip 文件
         await makeDir(this.funcDistPath)
         const zipPath = path.resolve(this.funcDistPath, 'dist.zip')
-        await zipDir(this.funcPath, zipPath)
+        await zipDir(this.funcPath, zipPath, this.ignore)
         // 将 zip 文件转换成 base64
         const base64 = fs.readFileSync(zipPath).toString('base64')
         // 清除打包文件
@@ -77,9 +80,7 @@ export class FunctionPacker {
                 return code
             } catch (error) {
                 this.clean()
-                throw new CloudBaseError(
-                    `函数代码打包失败：\n ${error.message}`
-                )
+                throw new CloudBaseError(`函数代码打包失败：\n ${error.message}`)
             }
         }
 
@@ -89,9 +90,7 @@ export class FunctionPacker {
                 return code
             } catch (error) {
                 this.clean()
-                throw new CloudBaseError(
-                    `函数代码打包失败：\n ${error.message}`
-                )
+                throw new CloudBaseError(`函数代码打包失败：\n ${error.message}`)
             }
         }
     }

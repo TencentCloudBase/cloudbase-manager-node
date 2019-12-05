@@ -23,6 +23,7 @@ export interface ICloudFunction {
     triggers?: ICloudFunctionTrigger[]
     params?: Record<string, string>
     handler?: string
+    ignore?: string | string[]
 }
 
 export interface IFunctionLogOptions {

@@ -49,20 +49,34 @@ export class FunctionService {
         let base64
         let packer: FunctionPacker
         const funcName = func.name
+        const { config = {} } = func
 
         // 校验运行时
         const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
-        if (func.config.runtime && !validRuntime.includes(func.config.runtime)) {
+        if (config.runtime && !validRuntime.includes(config.runtime)) {
             throw new CloudBaseError(
                 `${funcName} Invalid runtime value：${
-                    func.config.runtime
+                    config.runtime
                 }. Now only support: ${validRuntime.join(', ')}`
             )
         }
 
+        let installDependency
+        // Node 8.9 默认安装依赖
+        installDependency = config.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
+        // 是否安装依赖，选项可以覆盖
+        if (typeof config.installDependency !== 'undefined') {
+            installDependency = config.installDependency ? 'TRUE' : 'FALSE'
+        }
+
         // CLI 从本地读取
         if (!base64Code) {
-            packer = new FunctionPacker(functionRootPath, funcName)
+            // 云端安装依赖，自动忽略 node_modules 目录
+            const ignore =
+                installDependency === 'TRUE'
+                    ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
+                    : [...(func.ignore || [])]
+            packer = new FunctionPacker(functionRootPath, funcName, ignore)
             const type: CodeType =
                 func.config.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             base64 = await packer.build(type)
@@ -92,7 +106,6 @@ export class FunctionService {
             Stamp: 'MINI_QCBASE'
         }
 
-        const { config } = func
         // 修复参数存在 undefined 字段时，会出现鉴权失败的情况
         // Environment 为覆盖式修改，不保留已有字段
         envVariables.length && (params.Environment = { Variables: envVariables })
@@ -107,12 +120,8 @@ export class FunctionService {
             SubnetId: (config.vpc && config.vpc.subnetId) || '',
             VpcId: (config.vpc && config.vpc.vpcId) || ''
         }
-        // Node 8.9 默认 安装依赖
-        func.config.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
-        // 是否安装依赖，选项可以覆盖
-        if (typeof config.installDependency !== 'undefined') {
-            params.InstallDependency = config.installDependency ? 'TRUE' : 'FALSE'
-        }
+        // 自动安装依赖
+        params.InstallDependency = installDependency
 
         try {
             // 创建云函数
@@ -122,12 +131,10 @@ export class FunctionService {
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
-                // 更新函数配置和代码
-                await this.updateFunctionConfig(func.name, func.config)
-
                 // 更新函数代码
                 await this.updateFunctionCode(func, functionRootPath, base64)
-
+                // 更新函数配置和代码
+                await this.updateFunctionConfig(func.name, func.config)
                 // 创建函数触发器
                 await this.createFunctionTriggers(funcName, func.triggers)
                 return
@@ -327,7 +334,7 @@ export class FunctionService {
             SubnetId: (config.vpc && config.vpc.subnetId) || '',
             VpcId: (config.vpc && config.vpc.vpcId) || ''
         }
-        // Node 8.9 默认 安装依赖
+        // Node 8.9 默认安装依赖
         config.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
         // 是否安装依赖，选项可以覆盖
         if (typeof config.installDependency !== 'undefined') {
@@ -354,6 +361,7 @@ export class FunctionService {
         let base64
         let packer
         const funcName = func.name
+        const { config = {} } = func
 
         const { namespace } = this.getFunctionConfig()
 
@@ -367,9 +375,21 @@ export class FunctionService {
             )
         }
 
+        let installDependency
+        // Node 8.9 默认安装依赖
+        installDependency = config.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
+        // 是否安装依赖，选项可以覆盖
+        if (typeof config.installDependency !== 'undefined') {
+            installDependency = config.installDependency ? 'TRUE' : 'FALSE'
+        }
+
         // CLI 从本地读取
         if (!base64Code) {
-            packer = new FunctionPacker(functionRootPath, funcName)
+            const ignore =
+                installDependency === 'TRUE'
+                    ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
+                    : [...(func.ignore || [])]
+            packer = new FunctionPacker(functionRootPath, funcName, ignore)
             const type: CodeType =
                 func.config.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             base64 = await packer.build(type)
