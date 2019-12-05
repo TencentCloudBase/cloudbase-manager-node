@@ -131,12 +131,12 @@ export class FunctionService {
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
-                // 更新函数代码
-                await this.updateFunctionCode(func, functionRootPath, base64)
-                // 更新函数配置和代码
-                await this.updateFunctionConfig(func.name, func.config)
                 // 创建函数触发器
                 await this.createFunctionTriggers(funcName, func.triggers)
+                // 更新函数配置和代码
+                await this.updateFunctionConfig(func.name, func.config)
+                // 更新函数代码
+                await this.updateFunctionCode(func, functionRootPath, base64)
                 return
             }
 
