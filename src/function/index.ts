@@ -107,8 +107,12 @@ export class FunctionService {
             SubnetId: (config.vpc && config.vpc.subnetId) || '',
             VpcId: (config.vpc && config.vpc.vpcId) || ''
         }
-        // Node 安装依赖
+        // Node 8.9 默认 安装依赖
         func.config.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
+        // 是否安装依赖，选项可以覆盖
+        if (typeof config.installDependency !== 'undefined') {
+            params.InstallDependency = config.installDependency ? 'TRUE' : 'FALSE'
+        }
 
         try {
             // 创建云函数
@@ -119,8 +123,10 @@ export class FunctionService {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
                 // 更新函数配置和代码
-                this.updateFunctionConfig(func.name, func.config)
-                await this.updateFunctionCode(func, functionRootPath, base64Code)
+                await this.updateFunctionConfig(func.name, func.config)
+
+                // 更新函数代码
+                await this.updateFunctionCode(func, functionRootPath, base64)
 
                 // 创建函数触发器
                 await this.createFunctionTriggers(funcName, func.triggers)
@@ -321,6 +327,12 @@ export class FunctionService {
             SubnetId: (config.vpc && config.vpc.subnetId) || '',
             VpcId: (config.vpc && config.vpc.vpcId) || ''
         }
+        // Node 8.9 默认 安装依赖
+        config.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
+        // 是否安装依赖，选项可以覆盖
+        if (typeof config.installDependency !== 'undefined') {
+            params.InstallDependency = config.installDependency ? 'TRUE' : 'FALSE'
+        }
 
         return this.scfService.request('UpdateFunctionConfiguration', params)
     }
@@ -455,6 +467,7 @@ export class FunctionService {
         name: string,
         triggers: ICloudFunctionTrigger[] = []
     ): Promise<IResponseInfo> {
+        if (!triggers || !triggers.length) return null
         const { namespace } = this.getFunctionConfig()
 
         const parsedTriggers = triggers.map(item => {

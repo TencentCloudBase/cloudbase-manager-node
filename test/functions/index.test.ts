@@ -31,7 +31,9 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
                 // 超时时间
                 timeout: 5,
                 // 环境变量
-                envVariables: {}
+                envVariables: {},
+                // 运行时
+                runtime: 'Nodejs8.9'
             },
             // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
             triggers: [

@@ -72,16 +72,34 @@ export class FunctionPacker {
 
     async build(type: CodeType) {
         if (type === CodeType.JavaFile) {
-            return this.getJavaFileCode()
+            try {
+                const code = await this.getJavaFileCode()
+                return code
+            } catch (error) {
+                this.clean()
+                throw new CloudBaseError(
+                    `函数代码打包失败：\n ${error.message}`
+                )
+            }
         }
 
         if (type === CodeType.File) {
-            return await this.getFileCode()
+            try {
+                const code = await this.getFileCode()
+                return code
+            } catch (error) {
+                this.clean()
+                throw new CloudBaseError(
+                    `函数代码打包失败：\n ${error.message}`
+                )
+            }
         }
     }
 
     async clean(): Promise<void> {
-        del.sync([this.funcDistPath, this.tmpPath])
+        // allow deleting the current working directory and outside
+        this.funcDistPath && del.sync([this.funcDistPath], { force: true })
+        this.tmpPath && del.sync([this.tmpPath], { force: true })
         return
     }
 }
