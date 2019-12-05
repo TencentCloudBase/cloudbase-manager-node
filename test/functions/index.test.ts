@@ -21,7 +21,7 @@ test('列出所有函数: functions.list(1)', async () => {
     expect(data.length).toBe(1)
 })
 
-test.only('创建云函数-本地文件上传：functions.createFunction', async () => {
+test('创建云函数-本地文件上传：functions.createFunction', async () => {
     const res = await functions.createFunction(
         {
             // functions 文件夹下函数文件夹的名称，即函数名
