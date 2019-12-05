@@ -63,11 +63,12 @@ export class EnvService {
             Source: 'qcloud'
         }
 
-        try {
-            return this.cloudService.request('CreateEnvAndResource', params)
-        } catch (e) {
-            throw new CloudBaseError(`创建环境失败：${e.message}`)
-        }
+        throw new CloudBaseError(`创建环境失败：当前接口暂不可使用`)
+        // try {
+        //     return this.cloudService.request('CreateEnvAndResource', params)
+        // } catch (e) {
+        //     throw new CloudBaseError(`创建环境失败：${e.message}`)
+        // }
     }
 
     /**
