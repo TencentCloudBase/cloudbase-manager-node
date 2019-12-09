@@ -5,13 +5,7 @@ import makeDir from 'make-dir'
 import walkdir from 'walkdir'
 import micromatch from 'micromatch'
 import COS from 'cos-nodejs-sdk-v5'
-import {
-    cloudBaseRequest,
-    CloudService,
-    fetchStream,
-    preLazy,
-    isDirectory
-} from '../utils'
+import { cloudBaseRequest, CloudService, fetchStream, preLazy, isDirectory } from '../utils'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
 
@@ -581,7 +575,7 @@ export class StorageService {
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
 
-        const files = await this.walkCloudDir(key)
+        const files = await this.walkCloudDirCustom(key, bucket, region)
 
         const promises = files.map(
             async file =>
@@ -687,7 +681,7 @@ export class StorageService {
 
         let moreFiles = []
         if (res.IsTruncated === 'true' || res.IsTruncated === true) {
-            moreFiles = await this.walkCloudDir(prefixKey, res.NextMarker)
+            moreFiles = await this.walkCloudDirCustom(prefixKey, bucket, region, res.NextMarker)
         }
 
         fileList.push(...moreFiles)
