@@ -9,6 +9,7 @@ export * from './auth'
 export * from './cloudbase-request'
 export * from './http-request'
 export * from './envLazy'
+export * from './fs'
 
 export async function zipDir(dirPath, outputPath, ignore?: string | string[]) {
     return new Promise((resolve, reject) => {

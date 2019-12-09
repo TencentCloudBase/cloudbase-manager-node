@@ -1,6 +1,19 @@
 import { Environment } from '../environment';
 import { IListFileInfo, IFileInfo, ITempUrlInfo, IResponseInfo } from '../interfaces';
+export interface IProgressData {
+    loaded: number;
+    total: number;
+    speed: number;
+    percent: number;
+}
+export interface IOptions {
+    onProgress?: OnProgress;
+    onFileFinish?: OnProgress;
+    ignore?: string | string[];
+    fileId?: boolean;
+}
 declare type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY';
+declare type OnProgress = (progressData: IProgressData) => void;
 export declare class StorageService {
     private environment;
     private tcbService;
@@ -12,7 +25,7 @@ export declare class StorageService {
      * @param {string} cloudPath 云端文件路径，如 img/test.png
      * @returns {Promise<void>}
      */
-    uploadFile(localPath: string, cloudPath: string): Promise<void>;
+    uploadFile(localPath: string, cloudPath: string, onProgress?: OnProgress): Promise<void>;
     /**
      * 上传文件，支持自定义 Bucket 和 Region
      * @param {string} localPath
@@ -20,15 +33,37 @@ export declare class StorageService {
      * @param {string} bucket
      * @param {string} region
      */
-    uploadFileCustom(localPath: string, cloudPath: string, bucket: string, region: string): Promise<void>;
+    uploadFileCustom(localPath: string, cloudPath: string, bucket: string, region: string, options?: IOptions): Promise<void>;
     /**
      * 上传文件夹
      * @param {string} source 本地文件夹
      * @param {string} cloudDirectory 云端文件夹
+     * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
-    uploadDirectory(source: string, cloudDirectory: string): Promise<void>;
-    uploadDirectoryCustom(source: string, cloudDirectory: string, bucket: string, region: string): Promise<void>;
+    uploadDirectory(source: string, cloudDirectory: string, options?: IOptions): Promise<void>;
+    /**
+     * 上传文件夹，支持自定义 Region 和 Bucket
+     * @param {string} source
+     * @param {string} cloudDirectory
+     * @param {string} bucket
+     * @param {string} region
+     * @param {IOptions} options
+     * @returns {Promise<void>}
+     */
+    uploadDirectoryCustom(source: string, cloudDirectory: string, bucket: string, region: string, options?: IOptions): Promise<void>;
+    /**
+     * 创建一个空的文件夹
+     * @param {string} cloudPath
+     */
+    createCloudDirectroy(cloudPath: string): Promise<void>;
+    /**
+     * 创建一个空的文件夹，支持自定义 Region 和 Bucket
+     * @param {string} cloudPath
+     * @param {string} bucket
+     * @param {string} region
+     */
+    createCloudDirectroyCustom(cloudPath: string, bucket: string, region: string): Promise<void>;
     /**
      * 下载文件
      * @param {string} cloudPath 云端文件路径
@@ -154,6 +189,11 @@ export declare class StorageService {
     private getStorageConfig;
     /**
      * 遍历本地文件夹
+     * 忽略不包含 dir 路径，即如果 ignore 匹配 dir，dir 也不会被忽略
+     * @private
+     * @param {string} dir
+     * @param {(string | string[])} [ignore]
+     * @returns
      */
     private walkLocalDir;
 }

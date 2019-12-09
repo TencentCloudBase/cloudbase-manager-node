@@ -3,8 +3,15 @@ import Util from 'util'
 import path from 'path'
 import makeDir from 'make-dir'
 import walkdir from 'walkdir'
+import micromatch from 'micromatch'
 import COS from 'cos-nodejs-sdk-v5'
-import { cloudBaseRequest, CloudService, fetchStream, preLazy } from '../utils'
+import {
+    cloudBaseRequest,
+    CloudService,
+    fetchStream,
+    preLazy,
+    isDirectory
+} from '../utils'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
 
@@ -16,7 +23,24 @@ import {
     IResponseInfo
 } from '../interfaces'
 
+export interface IProgressData {
+    loaded: number // 已经上传的部分 字节
+    total: number // 整个文件的大小 字节
+    speed: number // 文件上传速度 字节/秒
+    percent: number // 百分比 小数 0 - 1
+}
+
+export interface IOptions {
+    onProgress?: OnProgress
+    onFileFinish?: OnProgress
+    ignore?: string | string[]
+    fileId?: boolean
+}
+
 type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY'
+type OnProgress = (progressData: IProgressData) => void
+
+const BIG_FILE_SIZE = 5242880 // 5MB 1024*1024*5
 
 export class StorageService {
     private environment: Environment
@@ -35,10 +59,14 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async uploadFile(localPath: string, cloudPath: string): Promise<void> {
+    public async uploadFile(
+        localPath: string,
+        cloudPath: string,
+        onProgress?: OnProgress
+    ): Promise<void> {
         const { bucket, region } = this.getStorageConfig()
 
-        await this.uploadFileCustom(localPath, cloudPath, bucket, region)
+        await this.uploadFileCustom(localPath, cloudPath, bucket, region, { onProgress })
     }
 
     /**
@@ -53,8 +81,10 @@ export class StorageService {
         localPath: string,
         cloudPath: string,
         bucket: string,
-        region: string
+        region: string,
+        options: IOptions = {}
     ) {
+        const { onProgress, fileId = true } = options
         let localFilePath = ''
         let resolveLocalPath = path.resolve(localPath)
         if (!fs.existsSync(resolveLocalPath)) {
@@ -62,7 +92,8 @@ export class StorageService {
         }
 
         // 如果 localPath 是一个文件夹，尝试在文件下寻找 cloudPath 中的文件
-        if (fs.statSync(resolveLocalPath).isDirectory()) {
+        const fileStats = fs.statSync(resolveLocalPath)
+        if (fileStats.isDirectory()) {
             const fileName = cloudPath.split('/').pop()
             const attemptFilePath = path.join(localPath, fileName)
             if (fs.existsSync(attemptFilePath)) {
@@ -78,18 +109,43 @@ export class StorageService {
 
         const cos = this.getCos()
         const putObject = Util.promisify(cos.putObject).bind(cos)
+        const sliceUploadFile = Util.promisify(cos.sliceUploadFile).bind(cos)
+        let cosFileId
 
-        // cosFileId 是必须的，否则无法获取下载连接
-        const { cosFileId } = await this.getUploadMetadata(cloudPath)
+        // 针对静态托管，fileId 不是必须的
+        if (fileId) {
+            // 针对文件存储，cosFileId 是必须的，区分上传人员，否则无法获取下载连接
+            const res = await this.getUploadMetadata(cloudPath)
+            cosFileId = res.cosFileId
+        }
 
-        const res = await putObject({
-            Bucket: bucket,
-            Region: region,
-            Key: cloudPath,
-            StorageClass: 'STANDARD',
-            Body: fs.createReadStream(localFilePath),
-            'x-cos-meta-fileid': cosFileId
-        })
+        let res
+
+        // 小文件，直接上传
+        if (fileStats.size < BIG_FILE_SIZE) {
+            res = await putObject({
+                onProgress,
+                Bucket: bucket,
+                Region: region,
+                Key: cloudPath,
+                StorageClass: 'STANDARD',
+                ContentLength: fileStats.size,
+                Body: fs.createReadStream(localFilePath),
+                'x-cos-meta-fileid': cosFileId
+            })
+        } else {
+            // 大文件，分块上传
+            res = await sliceUploadFile({
+                Bucket: bucket,
+                Region: region,
+                Key: cloudPath,
+                FilePath: localFilePath,
+                StorageClass: 'STANDARD',
+                AsyncLimit: 3,
+                onProgress,
+                'x-cos-meta-fileid': cosFileId
+            })
+        }
 
         if (res.statusCode !== 200) {
             throw new CloudBaseError(`上传文件错误：${JSON.stringify(res)}`)
@@ -100,43 +156,149 @@ export class StorageService {
      * 上传文件夹
      * @param {string} source 本地文件夹
      * @param {string} cloudDirectory 云端文件夹
+     * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async uploadDirectory(source: string, cloudDirectory: string): Promise<void> {
-        // TODO: 支持忽略文件/文件夹
+    public async uploadDirectory(
+        source: string,
+        cloudDirectory: string,
+        options: IOptions = {}
+    ): Promise<void> {
+        const { ignore, onProgress, onFileFinish } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
         const { bucket, region } = this.getStorageConfig()
-        await this.uploadDirectoryCustom(source, cloudDirectory, bucket, region)
+        await this.uploadDirectoryCustom(source, cloudDirectory, bucket, region, {
+            ignore,
+            onProgress,
+            onFileFinish
+        })
     }
 
+    /**
+     * 上传文件夹，支持自定义 Region 和 Bucket
+     * @param {string} source
+     * @param {string} cloudDirectory
+     * @param {string} bucket
+     * @param {string} region
+     * @param {IOptions} options
+     * @returns {Promise<void>}
+     */
     @preLazy()
     public async uploadDirectoryCustom(
         source: string,
         cloudDirectory: string,
         bucket: string,
-        region: string
+        region: string,
+        options: IOptions = {}
     ): Promise<void> {
-        // TODO: 支持忽略文件/文件夹
+        const { onProgress, onFileFinish, ignore, fileId = true } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
-        const localPath = path.resolve(source)
-        const filePaths = await this.walkLocalDir(localPath)
+        const resolvePath = path.resolve(source)
+        // 在路径结尾加上 '/'
+        const localPath = path.join(resolvePath, path.sep)
+        const filePaths = await this.walkLocalDir(localPath, ignore)
 
         if (!filePaths || !filePaths.length) {
             return
         }
 
-        const promises = filePaths
-            .filter(filePath => !fs.statSync(filePath).isDirectory())
-            .map(filePath => {
-                const fileKeyPath = filePath.replace(localPath, '')
-                const cloudPath = path.join(cloudDirectory, fileKeyPath)
-                return this.uploadFileCustom(filePath, cloudPath, bucket, region)
+        const fileStatsList = filePaths.map(filePath => {
+            const fileKeyPath = filePath.replace(localPath, '')
+            let cloudPath = path.join(cloudDirectory, fileKeyPath)
+            if (isDirectory(filePath)) {
+                cloudPath = this.getCloudKey(cloudPath)
+                return {
+                    filePath,
+                    cloudPath,
+                    isDir: true
+                }
+            } else {
+                return {
+                    filePath,
+                    cloudPath,
+                    isDir: false
+                }
+            }
+        })
+
+        // 创建文件夹对象
+        const createDirs = fileStatsList
+            .filter(info => info.isDir)
+            .map(info => {
+                // 如果是文件夹，则创建空文件夹对象
+                return this.createCloudDirectroyCustom(info.cloudPath, bucket, region)
             })
 
-        await Promise.all(promises)
+        await Promise.all(createDirs)
+
+        // 上传文件对象
+        const promises = fileStatsList
+            .filter(stats => !stats.isDir)
+            .map(async stats => {
+                let cosFileId
+                if (fileId) {
+                    const res = await this.getUploadMetadata(stats.cloudPath)
+                    cosFileId = res.cosFileId
+                }
+
+                return {
+                    Bucket: bucket,
+                    Region: region,
+                    Key: stats.cloudPath,
+                    FilePath: stats.filePath,
+                    'x-cos-meta-fileid': cosFileId
+                }
+            })
+
+        const files = await Promise.all(promises)
+
+        const cos = this.getCos()
+        const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
+
+        await uploadFiles({
+            files,
+            SliceSize: BIG_FILE_SIZE,
+            onProgress,
+            onFileFinish
+        })
+    }
+
+    /**
+     * 创建一个空的文件夹
+     * @param {string} cloudPath
+     */
+    @preLazy()
+    public async createCloudDirectroy(cloudPath: string) {
+        const { bucket, region } = this.getStorageConfig()
+        await this.createCloudDirectroyCustom(cloudPath, bucket, region)
+    }
+
+    /**
+     * 创建一个空的文件夹，支持自定义 Region 和 Bucket
+     * @param {string} cloudPath
+     * @param {string} bucket
+     * @param {string} region
+     */
+    @preLazy()
+    public async createCloudDirectroyCustom(cloudPath: string, bucket: string, region: string) {
+        const cos = this.getCos()
+        const putObject = Util.promisify(cos.putObject).bind(cos)
+
+        const dirKey = this.getCloudKey(cloudPath)
+
+        const res = await putObject({
+            Bucket: bucket,
+            Region: region,
+            Key: dirKey,
+            Body: ''
+        })
+
+        if (res.statusCode !== 200) {
+            throw new CloudBaseError(`创建文件夹失败：${JSON.stringify(res)}`)
+        }
     }
 
     /**
@@ -633,10 +795,21 @@ export class StorageService {
 
     /**
      * 遍历本地文件夹
+     * 忽略不包含 dir 路径，即如果 ignore 匹配 dir，dir 也不会被忽略
+     * @private
+     * @param {string} dir
+     * @param {(string | string[])} [ignore]
+     * @returns
      */
-    private async walkLocalDir(dir: string) {
+    private async walkLocalDir(dir: string, ignore?: string | string[]) {
         try {
-            return walkdir.async(dir)
+            return walkdir.async(dir, {
+                filter: (dir: string, files: string[]) => {
+                    // NOTE: ignore 为空数组时会忽略全部文件
+                    if (!ignore || !ignore.length) return files
+                    return micromatch.not(files, ignore)
+                }
+            })
         } catch (e) {
             throw new CloudBaseError(e.message)
         }
