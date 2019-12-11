@@ -47,3 +47,8 @@ export interface IFunctionLogRes {
     Data: [];
     TotalCount: number;
 }
+export interface IFunctionDownloadUrlRes {
+    Url: string;
+    RequestId: string;
+    CodeSha256: string;
+}

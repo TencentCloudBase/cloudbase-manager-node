@@ -1,5 +1,5 @@
 import { Environment } from '../environment';
-import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionConfig, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes } from '../interfaces';
+import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionConfig, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes, IFunctionDownloadUrlRes } from '../interfaces';
 export declare class FunctionService {
     private environment;
     private vpcService;
@@ -95,6 +95,13 @@ export declare class FunctionService {
      * @returns {Promise<IResponseInfo>}
      */
     deleteFunctionTrigger(name: string, triggerName: string): Promise<IResponseInfo>;
+    /**
+     * 获取 云函数代码下载链接
+     * @param {string} functionName
+     * @returns {Promise<IFunctionDownloadUrlRes>}
+     * @memberof FunctionService
+     */
+    getFunctionDownloadUrl(functionName: string): Promise<IFunctionDownloadUrlRes>;
     private getFunctionConfig;
     /**
      * 获取 vpc 信息
