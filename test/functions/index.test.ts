@@ -74,25 +74,23 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
                 timeout: 5,
                 // 环境变量
                 envVariables: {}
-            }
+            },
             // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
-            // triggers: [
-            //     {
-            //         // name: 触发器的名字
-            //         name: 'myTrigger',
-            //         // type: 触发器类型，目前仅支持 timer （即定时触发器）
-            //         type: 'timer',
-            //         // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
-            //         config: '0 0 2 1 * * *'
-            //     }
-            // ]
+            triggers: [
+                {
+                    // name: 触发器的名字
+                    name: 'myTrigger',
+                    // type: 触发器类型，目前仅支持 timer （即定时触发器）
+                    type: 'timer',
+                    // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+                    config: '0 0 2 1 * * *'
+                }
+            ]
         },
         __dirname,
         true,
         ''
     )
-
-    console.log(res)
 
     expect(res).toBe(undefined)
 })
