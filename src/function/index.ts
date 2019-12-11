@@ -7,7 +7,8 @@ import {
     ICloudFunctionConfig,
     ICloudFunctionTrigger,
     IFunctionInvokeRes,
-    IFunctionLogRes
+    IFunctionLogRes,
+    IFunctionDownloadUrlRes
 } from '../interfaces'
 import { CloudBaseError } from '../error'
 import { CloudService, preLazy } from '../utils'
@@ -527,6 +528,30 @@ export class FunctionService {
             TriggerName: triggerName,
             Type: 'timer'
         })
+    }
+
+    /**
+     * 获取 云函数代码下载链接
+     * @param {string} functionName
+     * @returns {Promise<IFunctionDownloadUrlRes>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async getFunctionDownloadUrl(functionName: string): Promise<IFunctionDownloadUrlRes> {
+        const { namespace } = this.getFunctionConfig()
+
+        try {
+            const { Url, CodeSha256, RequestId } = await this.scfService.request(
+                'GetFunctionAddress',
+                {
+                    FunctionName: functionName,
+                    Namespace: namespace
+                }
+            )
+            return { Url, RequestId, CodeSha256 }
+        } catch (e) {
+            throw new CloudBaseError(`[${functionName}] 获取函数代码下载链接失败：\n${e.message}`)
+        }
     }
 
     private getFunctionConfig() {
