@@ -7,7 +7,8 @@ import {
     ICloudFunctionConfig,
     ICloudFunctionTrigger,
     IFunctionInvokeRes,
-    IFunctionLogRes
+    IFunctionLogRes,
+    IFunctionDownloadUrlRes
 } from '../interfaces'
 import { CloudBaseError } from '../error'
 import { CloudService, preLazy } from '../utils'
@@ -532,11 +533,11 @@ export class FunctionService {
     /**
      * 获取 云函数代码下载链接
      * @param {string} functionName
-     * @returns
+     * @returns {Promise<IFunctionDownloadUrlRes>}
      * @memberof FunctionService
      */
     @preLazy()
-    public async getFunctionDownloadUrl(functionName: string) {
+    public async getFunctionDownloadUrl(functionName: string): Promise<IFunctionDownloadUrlRes> {
         const { namespace } = this.getFunctionConfig()
 
         try {
