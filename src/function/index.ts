@@ -529,6 +529,30 @@ export class FunctionService {
         })
     }
 
+    /**
+     * 获取云函数下载地址
+     *
+     * @private
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async getFunctionDownloadUrl(functionName: string) {
+        const { namespace } = this.getFunctionConfig()
+
+        try {
+            const { Url, CodeSha256, RequestId } = await this.scfService.request(
+                'GetFunctionAddress',
+                {
+                    FunctionName: functionName,
+                    Namespace: namespace
+                }
+            )
+            return { Url, RequestId, CodeSha256 }
+        } catch (e) {
+            throw new CloudBaseError(`[${functionName}] 获取函数代码下载链接失败：\n${e.message}`)
+        }
+    }
+
     private getFunctionConfig() {
         const envConfig = this.environment.lazyEnvironmentConfig
         const namespace = envConfig.Functions[0].Namespace

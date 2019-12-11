@@ -27,6 +27,7 @@ const { functions } = new CloudBase({
 -   [拷贝云函数](#拷贝云函数)
 -   [创建云函数触发器](#创建云函数触发器)
 -   [删除云函数触发器](#删除云函数触发器)
+-   [获取云函数代码下载链接](#获取云函数代码下载链接)
 
 ## 获取云函数列表
 
@@ -624,3 +625,41 @@ const res = await functions.deleteFunctionTrigger('app', 'newTrigger')
 | 参数名    | 类型   | 描述         |
 | --------- | ------ | ------------ |
 | RequestID | String | 请求唯一标识 |
+
+## 获取云函数代码下载链接
+
+### 接口定义
+
+```javascript
+getFunctionDownloadUrl((functionName:string)
+```
+
+### 参数说明
+
+| 参数名       | 类型   | 描述   |
+| ------------ | ------ | ------ |
+| functionName | String | 函数名 |
+
+### 调用示例
+
+```javascript
+const res = await functions.getFunctionDownloadUrl('sum')
+```
+
+### 响应结果
+
+```json
+{
+    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a",
+    "Url": "https://lambdash-1253665819.cos.ap-shanghai.myqcloud.com/1259218801/luke-87pns/sum/sum_LATEST.zip?xxxxx",
+    "CodeSha256": "5077f5203547b225b532434dd6fcf7c9897025d7581a9f3d474a7afee88bc696"
+}
+```
+
+#### 字段描述
+
+| 参数名     | 类型   | 描述             |
+| ---------- | ------ | ---------------- |
+| RequestID  | String | 请求唯一标识     |
+| Url        | String | 函数代码下载链接 |
+| CodeSha256 | String | 函数的 SHA256 编 |
