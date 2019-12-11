@@ -530,9 +530,9 @@ export class FunctionService {
     }
 
     /**
-     * 获取云函数下载地址
-     *
-     * @private
+     * 获取 云函数代码下载链接
+     * @param {string} functionName
+     * @returns
      * @memberof FunctionService
      */
     @preLazy()
