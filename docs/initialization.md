@@ -13,6 +13,9 @@ const app = CloudBase.init({
 })
 ```
 
+> 若当前账户为子账户，请先通过主账户授权开通 QcloudTCBFullAccess(云开发全读写访问), QcloudAccessForTCBRole(云开发对云资源的访问权限)
+> [子账户权限设置指引](https://cloud.tencent.com/document/product/598/36256)
+
 初始化后得到一个 CloudBase 实例。（该实例是单例的，多次调用 CloudBase.init 只会初始化一次。）
 
 > ⚠️ 需要提前开通云开发服务并创建环境，否则无法使用。

@@ -1,3 +1,4 @@
+import { IResponseInfo } from './base.interface';
 export interface EndUserInfo {
     UUId?: string;
     WXOpenId?: string;
@@ -269,4 +270,7 @@ export interface CommParam {
     OpenId: string;
     EnvName?: string;
     Module?: string;
+}
+export interface ICreatePostpayRes extends IResponseInfo {
+    TranId: string;
 }

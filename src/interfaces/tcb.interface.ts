@@ -1,3 +1,5 @@
+import { IResponseInfo } from './base.interface'
+
 export interface EndUserInfo {
     // 用户唯一ID
     UUId?: string
@@ -599,4 +601,8 @@ export interface CommParam {
     // <li>storage</li>
     // <li>database</li>
     Module?: string
+}
+
+export interface ICreatePostpayRes extends IResponseInfo {
+    TranId: string
 }

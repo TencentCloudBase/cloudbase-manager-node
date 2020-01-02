@@ -1,9 +1,13 @@
 import { Environment } from '../environment';
-import { IResponseInfo, AuthDomain, EnvInfo, LoginConfigItem } from '../interfaces';
-interface ICreateEnvRes {
-    Status: 'NORMAL' | 'NOINITIALIZE' | 'INITIALIZING';
-    RequestId: string;
+import { IResponseInfo, AuthDomain, EnvInfo, LoginConfigItem, ICheckTcbServiceRes, ICreatePostpayRes } from '../interfaces';
+interface ICreateEnvParam {
+    name: string;
+    paymentMode?: PAYMENT_MODE;
+    channel?: QCLOUD_CHANNEL;
 }
+declare type PAYMENT_MODE = 'prepay' | 'postpay';
+declare type SOURCE = 'miniapp' | 'qcloud';
+declare type QCLOUD_CHANNEL = 'web' | 'cocos' | 'qq' | 'cloudgame';
 interface IDeleteDomainRes {
     RequestId: string;
     Deleted: number;
@@ -24,6 +28,8 @@ export declare class EnvService {
     private environment;
     private envId;
     private cloudService;
+    private camService;
+    private billService;
     constructor(environment: Environment);
     /**
      * 列出所有环境
@@ -35,7 +41,9 @@ export declare class EnvService {
      * @param {string} name 环境名称
      * @returns {Promise<ICreateEnvRes>}
      */
-    createEnv(name: string): Promise<ICreateEnvRes>;
+    createEnv(param: ICreateEnvParam): Promise<{
+        envId: string;
+    }>;
     /**
      * 拉取安全域名列表
      * @returns {Promise<IAuthDomainsRes>}
@@ -53,6 +61,33 @@ export declare class EnvService {
      * @returns {Promise<IDeleteDomainRes>}
      */
     deleteEnvDomain(domains: string[]): Promise<IDeleteDomainRes>;
+    /**
+     * 检查tcb服务是否开通
+     * @returns {Promise<ICheckTcbServiceRes>}
+     * @memberof CamService
+     */
+    checkTcbService(): Promise<ICheckTcbServiceRes>;
+    /**
+     * 初始化TCB
+     * @returns {Promise<IResponseInfo>}
+     * @memberof EnvService
+     */
+    initTcb(): Promise<IResponseInfo>;
+    /**
+     * 开通后付费套餐
+     * @param {string} envId
+     * @param {SOURCE} [source]
+     * @returns {Promise<ICreatePostpayRes>}
+     * @memberof EnvService
+     */
+    CreatePostpayPackage(envId: string, source?: SOURCE): Promise<ICreatePostpayRes>;
+    /**
+     * 销毁环境
+     * @param {string} envId
+     * @returns {Promise<IResponseInfo>}
+     * @memberof EnvService
+     */
+    destroyEnv(envId: string): Promise<IResponseInfo>;
     /**
      * 获取环境信息
      * @returns {Promise<IEnvInfoRes>}

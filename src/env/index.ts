@@ -1,9 +1,26 @@
 import COS from 'cos-nodejs-sdk-v5'
 import Util from 'util'
 import { Environment } from '../environment'
-import { IResponseInfo, AuthDomain, EnvInfo, LoginConfigItem } from '../interfaces'
+import {
+    IResponseInfo,
+    AuthDomain,
+    EnvInfo,
+    LoginConfigItem,
+    ICheckTcbServiceRes,
+    ICreatePostpayRes
+} from '../interfaces'
 import { CloudBaseError } from '../error'
 import { guid6, rsaEncrypt, CloudService, preLazy } from '../utils'
+import { CamService } from '../cam'
+import { ROLE_NAME } from '../constant'
+import { create } from 'domain'
+import { BillingService } from '../billing'
+
+interface ICreateEnvParam {
+    name: string
+    paymentMode?: PAYMENT_MODE
+    channel?: QCLOUD_CHANNEL
+}
 
 interface ICreateEnvRes {
     // 环境当前状态：NORMAL：正常可用 NOINITIALIZE：尚未初始化 INITIALIZING：初始化过程中
@@ -11,6 +28,10 @@ interface ICreateEnvRes {
     // 唯一请求 ID，每次请求都会返回。定位问题时需要提供该次请求的 RequestId。
     RequestId: string
 }
+
+type PAYMENT_MODE = 'prepay' | 'postpay'
+type SOURCE = 'miniapp' | 'qcloud'
+type QCLOUD_CHANNEL = 'web' | 'cocos' | 'qq' | 'cloudgame'
 
 interface IDeleteDomainRes {
     RequestId: string
@@ -36,11 +57,15 @@ export class EnvService {
     private environment: Environment
     private envId: string
     private cloudService: CloudService
+    private camService: CamService
+    private billService: BillingService
 
     constructor(environment: Environment) {
         this.environment = environment
         this.envId = environment.getEnvId()
         this.cloudService = new CloudService(environment.cloudBaseContext, 'tcb', '2018-06-08')
+        this.camService = new CamService(environment.cloudBaseContext)
+        this.billService = new BillingService(environment.cloudBaseContext)
     }
 
     /**
@@ -56,19 +81,230 @@ export class EnvService {
      * @param {string} name 环境名称
      * @returns {Promise<ICreateEnvRes>}
      */
-    async createEnv(name: string): Promise<ICreateEnvRes> {
-        const params = {
+    async createEnv(
+        param: ICreateEnvParam
+    ): Promise<{
+        envId: string
+    }> {
+        // 1. 检查是否开通过TCB服务,若未开通，跳2检查角色  开通则跳5 创建环境
+        // 2. 查询tcb 角色是否绑定该账户
+        // 3. 若未绑定，则创建角色并绑定角色
+        // 4. 开通TCB服务
+        // 5. 创建环境
+        // 6. 购买环境，选择预付费 或 后付费 套餐
+        // 7. 若购买失败，将当前环境销毁，若购买成功，返回envId
+        const { name, paymentMode, channel } = param
+
+        // 1. 检查TCB服务是否开通
+        const { Initialized } = await this.checkTcbService()
+        console.log('Initialized:', Initialized)
+
+        if (!Initialized) {
+            // 跳2 查询TCB角色是否绑定
+            let hasTcbRole = false
+            try {
+                const res = await this.camService.getRole(ROLE_NAME.TCB)
+                hasTcbRole = true
+            } catch (e) {
+                // 判断是否为角色不存在错误
+                if (e.code !== 'InvalidParameter.RoleNotExist') {
+                    throw e
+                }
+            }
+
+            console.log('hasTcbRole:', hasTcbRole)
+            if (!hasTcbRole) {
+                // 3. 当前账户没有tcbRole，创建角色并绑定
+
+                // 创建角色
+                const createRoleResult = await this.camService.createRole({
+                    RoleName: ROLE_NAME.TCB,
+                    Description:
+                        '云开发(TCB)操作权限含在访问管理(CAM)创建角色，新增角色载体，给角色绑定策略；含读写对象存储(COS)数据；含读写无服务器云函数(SCF)数据；含读取云监控(Monitor)数据。',
+                    PolicyDocument:
+                        '{"version":"2.0","statement":[{"action":"sts:AssumeRole","effect":"allow","principal":{"service":["scf.qcloud.com","tcb.cloud.tencent.com"]}}]}'
+                })
+
+                console.log('createRoleResult:', createRoleResult)
+
+                const { RoleId } = createRoleResult
+
+                // 绑定角色策略
+                await this.camService.attachRolePolicy({
+                    PolicyId: 8825032,
+                    AttachRoleName: ROLE_NAME.TCB
+                })
+
+                console.log('绑定策略完成')
+            }
+
+            // 4. 未开通则初始化TCB
+            await this.initTcb()
+            console.log('TCB 初始化完成')
+        }
+
+        // 5. 创建环境
+
+        const params: any = {
             Alias: name,
             EnvId: `${name}-${guid6()}`,
             Source: 'qcloud'
         }
 
-        throw new CloudBaseError(`创建环境失败：当前接口暂不可使用`)
-        // try {
-        //     return this.cloudService.request('CreateEnvAndResource', params)
-        // } catch (e) {
-        //     throw new CloudBaseError(`创建环境失败：${e.message}`)
-        // }
+        if (channel) {
+            params.Channel = channel
+        }
+
+        const { EnvId } = await this.cloudService.request('CreateEnv', params)
+
+        console.log('环境创建完成:', EnvId)
+
+        const realPaymentMode = paymentMode ? paymentMode : 'postpay'
+        // 6. 购买环境
+
+        let prepayCreateDeal = false
+        let prepayPayDeal = false
+        let postpayDeal = false
+        let payError = null
+
+        if (realPaymentMode === 'prepay') {
+            // 预付费
+            // 1. 创建订单
+            // 2. 支付订单
+
+            const goods = [
+                {
+                    GoodsCategoryId: 101183,
+                    // action: 'purchase',
+                    // currency: 'CNY',
+                    RegionId: 1,
+                    ZoneId: 0,
+                    GoodsNum: 1,
+                    ProjectId: 0,
+                    PayMode: 1,
+                    Platform: 1,
+                    GoodsDetail: JSON.stringify({
+                        productCode: 'p_tcb',
+                        subProductCode: 'sp_tcb_basic',
+                        resourceId: EnvId,
+                        pid: 16677,
+                        timeUnit: 'm',
+                        timeSpan: 1,
+                        tcb_cos: 1,
+                        tcb_cdn: 1,
+                        tcb_scf: 1,
+                        tcb_mongodb: 1,
+                        region: 'ap-shanghai',
+                        zone: 'ap-shanghai-1',
+                        source: 'qcloud',
+                        envId: EnvId,
+                        packageId: 'basic',
+                        isAutoRenew: 'true',
+                        tranType: 1,
+                        productInfo: [
+                            {
+                                name: '套餐版本',
+                                value: '基础版 1'
+                            },
+                            {
+                                name: '存储空间',
+                                value: '5GB'
+                            },
+                            {
+                                name: 'CDN流量',
+                                value: '5GB'
+                            },
+                            {
+                                name: '云函数资源使用量',
+                                value: '4万GBs'
+                            },
+                            {
+                                name: '数据库容量',
+                                value: '2GB'
+                            },
+                            {
+                                name: '数据库同时连接数',
+                                value: '20个'
+                            }
+                        ]
+                    })
+                }
+            ]
+
+            let OrderIdsList = []
+            try {
+                const { OrderIds } = await this.billService.GenerateDeals(goods)
+                OrderIdsList = OrderIds
+                prepayCreateDeal = true
+            } catch (e) {
+                // 预付费下单失败
+                payError = e
+            }
+
+            if (prepayCreateDeal) {
+                // 下单成功
+                try {
+                    // 购买环境套餐
+                    const { OrderIds: succOrderIds } = await this.billService.PayDeals(OrderIdsList)
+
+                    // 判断订单是否支付成功
+                    if (succOrderIds[0] === OrderIdsList[0]) {
+                        prepayPayDeal = true
+                    } else {
+                        throw new CloudBaseError('支付成功的订单号不一致')
+                    }
+                } catch (e) {
+                    // 预付费订单支付失败
+                    payError = new CloudBaseError(
+                        '预付费订单支付失败，请进入订单管理页面(https://console.cloud.tencent.com/deal)重新支付',
+                        {
+                            original: e
+                        }
+                    )
+                }
+            }
+        }
+
+        if (realPaymentMode === 'postpay') {
+            // 后付费
+            try {
+                const { TranId } = await this.CreatePostpayPackage(EnvId)
+                console.log(TranId)
+                postpayDeal = true
+            } catch (e) {
+                payError = e
+            }
+        }
+
+        // 检查支付状态
+        // 1. 预付费下单失败 删除环境
+        // 2. 预付费下单成功过，支付订单失败，提示用户
+        // 3. 后付费开通失败 删除环境
+        if (realPaymentMode === 'prepay') {
+            if (!prepayCreateDeal) {
+                // 情形1
+                await this.destroyEnv(EnvId)
+                throw payError
+            } else {
+                if (!prepayPayDeal) {
+                    // 情形2
+                    throw payError
+                }
+            }
+        }
+
+        if (realPaymentMode === 'postpay') {
+            if (!postpayDeal) {
+                // 情形3
+                await this.destroyEnv(EnvId)
+                throw payError
+            }
+        }
+
+        // 成功返回envId
+        return {
+            envId: EnvId
+        }
     }
 
     /**
@@ -119,6 +355,55 @@ export class EnvService {
             this.modifyCosCorsDomain(domain, true)
         })
         await Promise.all(promises)
+        return res
+    }
+
+    /**
+     * 检查tcb服务是否开通
+     * @returns {Promise<ICheckTcbServiceRes>}
+     * @memberof CamService
+     */
+    public async checkTcbService(): Promise<ICheckTcbServiceRes> {
+        const res = await this.cloudService.request('CheckTcbService', {})
+        return res
+    }
+
+    /**
+     * 初始化TCB
+     * @returns {Promise<IResponseInfo>}
+     * @memberof EnvService
+     */
+    public async initTcb(): Promise<IResponseInfo> {
+        const res = await this.cloudService.request('InitTcb', {})
+        return res
+    }
+
+    /**
+     * 开通后付费套餐
+     * @param {string} envId
+     * @param {SOURCE} [source]
+     * @returns {Promise<ICreatePostpayRes>}
+     * @memberof EnvService
+     */
+    public async CreatePostpayPackage(envId: string, source?: SOURCE): Promise<ICreatePostpayRes> {
+        const realSource = source ? source : 'qcloud'
+        const res = this.cloudService.request('CreatePostpayPackage', {
+            EnvId: envId,
+            Source: realSource
+        })
+        return res
+    }
+
+    /**
+     * 销毁环境
+     * @param {string} envId
+     * @returns {Promise<IResponseInfo>}
+     * @memberof EnvService
+     */
+    public async destroyEnv(envId: string): Promise<IResponseInfo> {
+        const res = await this.cloudService.request('DestroyEnv', {
+            EnvId: envId
+        })
         return res
     }
 

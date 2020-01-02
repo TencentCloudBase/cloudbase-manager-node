@@ -44,3 +44,6 @@ bgILIJe9UB8e9dvFqgqH2oA8Vqwi0YqDcvFLFJk2BJbm/0QYtZ563FumW8LEXAgu
 UeHi/0OZN9vQ33jWMQIDAQAB
 -----END PUBLIC KEY-----
 `
+export const ROLE_NAME = {
+    TCB: 'TCB_QcsRole'
+}

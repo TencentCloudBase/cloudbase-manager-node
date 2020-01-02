@@ -58,12 +58,15 @@ test('env UpdateLoginConfig', async () => {
 test('env createEnv', async () => {
     // 忽略此方法
     try {
-        const res = await manager.env.createEnv('aaa')
+        const res = await manager.env.createEnv({
+            name: 'aaa',
+            paymentMode: 'postpay'
+        })
+        console.log('createEnv ', res)
+        expect(res.envId !== undefined).toBe(true)
     } catch (err) {
-        // console.log(err)
-        expect(err)
+        console.log(err)
     }
-    // expect(res.Status).toBeTruthy()
 })
 
 // 拉取环境列表信息

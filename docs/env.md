@@ -73,40 +73,42 @@ const res = await env.listEnvs()
 
 ### 接口定义
 
-> ⚠️ 该接口暂时不可用
+> ⚠️ 该接口支持 SDK 内闭环完成环境创建，目前只支持创建 web 端云开发环境，主账户可操作，子账户需主账户授权后再创建环境
+
+子账户创建环境流程:
+
+-   主账户开通云开发
+-   子账户创建环境还需 开通 QCloudFinanceFullAccess(财务权限)
+-   子账户使用当前接口完成环境创建
+
+> ⚠️ 若你想创建预付费的环境，本 API 目前仅支持创建预付费的免费环境，每个主账户最多有一个免费环境。如果该账户已经创建过免费环境，调用本 API 创建预付费环境会返回商品下单异常错误，请到云开发控制台创建更多预付费环境。
 
 ```javascript
-createEnv((name: string))
+createEnv(((name: string), (paymentMode: string)))
 ```
 
 ### 参数说明
 
-| 参数名 | 类型   | 描述   |
-| ------ | ------ | ------ |
-| name   | String | 环境名 |
+| 参数名 | 是否必填 | 类型   | 描述                                                                                  |
+| ------ | -------- | ------ | ------------------------------------------------------------------------------------- |
+| name   | 是       | String | 环境名                                                                                |
+| name   | 否       | String | 环境套餐类型: 预付费(包年包月) prepay, 后付费(按量付费) postpay，不传默认使用 postpay |
 
 ### 调用示例
 
 ```javascript
-const res = await env.createEnv('aaa')
+const res = await env.createEnv('aaa', 'postpay')
 ```
 
 ### 返回示例
 
 ```json
 {
-    "Status": "INITIALIZING",
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+    "envId": "test-fsdaffds"
 }
 ```
 
-> ⚠️Status 为环境当前状态
->
-> -   NORMAL：正常可用
-> -   NOINITIALIZE：尚未初始化
-> -   INITIALIZING：初始化过程中
-
-**NOTE**：因为创建环境是一个异步操作，所以创建环境返回成功，并不代表创建环境成功，环境可能任处于初始化状态中，可能会因为某些原因初始化失败，请根据环境状态判断环境是否创建成功！
+**NOTE**：因为创建环境是一个异步操作，所以创建环境接口返回成功时，仍需等待环境资源的初始化，一般需 3~5 分钟
 
 ## 获取合法域名列表
 
