@@ -28,6 +28,7 @@ const { functions } = new CloudBase({
 -   [创建云函数触发器](#创建云函数触发器)
 -   [删除云函数触发器](#删除云函数触发器)
 -   [获取云函数代码下载链接](#获取云函数代码下载链接)
+-   [增量上传云函数代码](#增量上传云函数代码)
 
 ## 获取云函数列表
 
@@ -124,12 +125,13 @@ createFunction((funcParam: ICreateFunctionParam))
 |       name        |    是    |                          String                          |                     函数名称                      |
 |      timeout      |    否    |                          Number                          |                   函数超时时间                    |
 |   envVariables    |    否    |                          Object                          |             包含环境变量的键值对对象              |
-|        vpc        |    否    |              [IFunctionVPC](#ifunctionvpc)               |                   私有网络配置                    |
+|        vpc        |    否    |              [IFunctionVPC](#IFunctionVPC)               |                   私有网络配置                    |
 |      runtime      |    否    |                          String                          | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
 | installDependency |    否    |                         Boolean                          |            是否安装依赖，仅 Node 有效             |
-|     triggers      |    否    | Array of [ICloudFunctionTrigger](#icloudfunctiontrigger) |                                                   |
+|     triggers      |    否    | Array of [ICloudFunctionTrigger](#ICloudFunctionTrigger) |                                                   |
 |      handler      |    否    |                          String                          |                     函数入口                      |
-|      ignore       |    否    |                    String 或 String[]                    |    上传函数代码时忽略的文件，以 Glob 模式匹配     |
+|      ignore       |    否    |              String 或 Array.&lt;String&gt;              |    上传函数代码时忽略的文件，以 Glob 模式匹配     |
+|   isWaitInstall   |    否    |                         Boolean                          |               是否等待依赖安装完成                |
 
 **注：`handler` 函数处理入口，Node 项目默认值为 index.main，入口文件只能在根目录，如 node 项目的 index.main，指向的是 index.js 文件的 main 方法**
 
@@ -672,3 +674,83 @@ const res = await functions.getFunctionDownloadUrl('sum')
 | RequestID  | String | 请求唯一标识     |
 | Url        | String | 函数代码下载链接 |
 | CodeSha256 | String | 函数的 SHA256 编 |
+
+## 增量上传云函数代码
+
+### 接口定义
+
+```typescript
+updateFunctionIncrementalCode((funcParam: IUpdateFunctionIncrementalCodeParam))
+```
+
+### 参数说明
+
+| 参数名    | 是否必填 | 类型                                       | 描述           |
+| --------- | -------- | ------------------------------------------ | -------------- |
+| funcParam | 是       | IUpdateFunctionIncrementalCodeParam 结构体 | 增量更新函数项 |
+
+### IUpdateFunctionIncrementalCodeParam 结构体
+
+| 参数名           | 是否必填 | 类型                 | 描述                                                                                       |
+| ---------------- | -------- | -------------------- | ------------------------------------------------------------------------------------------ |
+| func             | 是       | ICloudFunction       | 函数配置项，针对增量更新，目前只支持 name，runTime 字段设置(runTime 目前 仅支持 Nodejs8.9) |
+| functionRootPath | 是       | String               | 用户本地函数文件目录                                                                       |
+| deleteFiles      | 否       | Array.&lt;String&gt; | 要删除的文件，目录的列表，使用相对路径， 删除目录时必须以/结尾                             |
+| addFiles         | 否       | String               | 新增或修改的文件/目录 对应的 glob 匹配模式，目前支持 新增或修改 单个文件 或单个文件夹      |
+
+> ⚠️ 填写路径时请注意 Linux 及 Windows 下的区别（'/'与'\\'）
+> ⚠️ 增量更新 package.json 并不会触发依赖安装
+
+### 调用示例
+
+```javascript
+// 本地存在sum 函数文件夹，新增test/index.js 文件 (index.js相对路径为 sum/test/index.js)
+const res = await functions.updateFunctionIncrementalCode({
+    func: {
+        name: 'sum',
+        runTime: 'Nodejs8.9'
+    },
+    addFiles: 'test/index.js'
+})
+
+// 本地存在sum 函数文件夹，新增test/目录 (test相对路径为 sum/test/)
+const res = await functions.updateFunctionIncrementalCode({
+    func: {
+        name: 'sum',
+        runTime: 'Nodejs8.9'
+    },
+    addFiles: 'test/*' // 匹配test目录下所有文件, 这里采用 glob 匹配模式 而非相对路径
+})
+
+// 本地存在sum 函数文件夹，删除test/index.js (index.js相对路径为 sum/test/index.js)
+const res = await functions.updateFunctionIncrementalCode({
+    func: {
+        name: 'sum',
+        runTime: 'Nodejs8.9'
+    },
+    deleteFiles: ['test/index.js']
+})
+
+// 本地存在sum 函数文件夹，删除test/ 目录 (test相对路径为 sum/test/)
+const res = await functions.updateFunctionIncrementalCode({
+    func: {
+        name: 'sum',
+        runTime: 'Nodejs8.9'
+    },
+    deleteFiles: ['test/'] // 删除目录时必须以 /结尾
+})
+```
+
+### 响应结果
+
+```json
+{
+    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+}
+```
+
+#### 字段描述
+
+| 参数名    | 类型   | 描述         |
+| --------- | ------ | ------------ |
+| RequestID | String | 请求唯一标识 |

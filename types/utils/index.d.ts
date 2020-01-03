@@ -5,8 +5,14 @@ export * from './cloudbase-request';
 export * from './http-request';
 export * from './envLazy';
 export * from './fs';
-export declare function zipDir(dirPath: any, outputPath: any, ignore?: string | string[]): Promise<unknown>;
+interface IZipOption {
+    dirPath: string;
+    outputPath: string;
+    ignore?: string | string[];
+    pattern?: string;
+}
+export declare function zipDir(option: IZipOption): Promise<unknown>;
 export declare function getRuntime(): string;
 export declare function getEnvVar(envName: string): string;
 export declare function rsaEncrypt(data: string): string;
-export declare function sleep(timeout: number): Promise<void>;
+export declare function sleep(time: number): Promise<void>;

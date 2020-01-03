@@ -1,5 +1,7 @@
 import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src'
+import { sleep } from '../../src/utils/index'
+import { SCF_STATUS } from '../../src/constant'
 
 const { functions } = new CloudBase(cloudBaseConfig)
 
@@ -21,16 +23,11 @@ test('列出所有函数: functions.list(1)', async () => {
     expect(data.length).toBe(1)
 })
 
-test('获取函数代码的下载链接: functions.getFunctionDownloadUrl', async () => {
-    const res = await functions.getFunctionDownloadUrl('sum', 'lukekke')
-    expect(res.Url !== undefined).toBe(true)
-})
-
 test('创建云函数-本地文件上传：functions.createFunction', async () => {
     const res = await functions.createFunction({
         func: {
             // functions 文件夹下函数文件夹的名称，即函数名
-            name: 'sum',
+            name: 'sumFunction',
             timeout: 5,
             // 环境变量
             envVariables: {},
@@ -41,16 +38,17 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
 
             // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
             triggers: [
-                {
-                    // name: 触发器的名字
-                    name: 'myTrigger',
-                    // type: 触发器类型，目前仅支持 timer （即定时触发器）
-                    type: 'timer',
-                    // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
-                    config: '0 0 2 1 * * *'
-                }
+                // {
+                //     // name: 触发器的名字
+                //     name: 'myTrigger',
+                //     // type: 触发器类型，目前仅支持 timer （即定时触发器）
+                //     type: 'timer',
+                //     // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+                //     config: '0 0 2 1 * * *'
+                // }
             ],
-            ignore: []
+            ignore: [],
+            isWaitInstall: true
         },
         functionRootPath: './test/functions/',
         force: true,
@@ -60,11 +58,16 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
     expect(res).toBe(undefined)
 })
 
+test('获取函数代码的下载链接: functions.getFunctionDownloadUrl', async () => {
+    const res = await functions.getFunctionDownloadUrl('sumFunction')
+    expect(res.Url !== undefined).toBe(true)
+})
+
 test('创建云函数-本地文件上传 加代码保护 验证getFunctionDetail，getFunctionDownloadUrl', async () => {
     const res = await functions.createFunction({
         func: {
             // functions 文件夹下函数文件夹的名称，即函数名
-            name: 'sum',
+            name: 'sumWithCodeSecret',
             // 超时时间
             timeout: 5,
             // 环境变量
@@ -93,30 +96,67 @@ test('创建云函数-本地文件上传 加代码保护 验证getFunctionDetail
         codeSecret: 'lukekke'
     })
 
+    // 检查函数状态
+    let status
+    do {
+        const { Status } = await functions.getFunctionDetail('sumWithCodeSecret', 'lukekke')
+        await sleep(1000)
+        status = Status
+        console.log(status)
+    } while (status !== SCF_STATUS.ACTIVE)
+
     expect(res).toBe(undefined)
 
     // 验证不加code 调用 getFunctionDetail
     try {
-        const res = await functions.getFunctionDetail('sum')
+        const res = await functions.getFunctionDetail('sumWithCodeSecret')
     } catch (err) {
         expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
     }
 
     // 验证不加code 调用 getFunctionDownloadUrl
     try {
-        const res = await functions.getFunctionDownloadUrl('sum')
+        const res = await functions.getFunctionDownloadUrl('sumWithCodeSecret')
     } catch (err) {
         expect(!!err).toBe(true) // 这里报错未返回错误码
         // expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
     }
 
     // 验证加code调用 getFunctionDetail
-    const res1 = await functions.getFunctionDetail('sum', 'lukekke')
-    expect(res1.FunctionName).toEqual('sum')
+    const res1 = await functions.getFunctionDetail('sumWithCodeSecret', 'lukekke')
+    expect(res1.FunctionName).toEqual('sumWithCodeSecret')
 
     // 验证加code调用 getFunctionDownloadUrl
-    const res2 = await functions.getFunctionDownloadUrl('sum', 'lukekke')
+    const res2 = await functions.getFunctionDownloadUrl('sumWithCodeSecret', 'lukekke')
     expect(res2.Url !== undefined).toBe(true)
+})
+
+test('增量更新云函数代码 新增文件夹: functions.updateFunctionIncrementalCode', async () => {
+    const res = await functions.updateFunctionIncrementalCode({
+        func: {
+            name: 'sumFunction',
+            runtime: 'Nodejs8.9'
+        },
+        functionRootPath: './test/functions',
+        addFiles: 'test/*'
+    })
+
+    console.log(res)
+    expect(res.RequestId !== undefined).toBe(true)
+})
+
+test('增量更新云函数代码 删除文件夹: functions.updateFunctionIncrementalCode', async () => {
+    const res = await functions.updateFunctionIncrementalCode({
+        func: {
+            name: 'sumFunction',
+            runtime: 'Nodejs8.9'
+        },
+        functionRootPath: './test/functions',
+        deleteFiles: ['test/']
+    })
+
+    console.log(res)
+    expect(res.RequestId !== undefined).toBe(true)
 })
 
 test('更新云函数代码：functions.updateFunctionCode 加代码保护 验证 getFunctionDeatil getFunctionDownloadUrl', async () => {
@@ -161,7 +201,7 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
     const res = await functions.createFunction({
         func: {
             // functions 文件夹下函数文件夹的名称，即函数名
-            name: 'sum',
+            name: 'sumFunction',
             // 超时时间
             timeout: 5,
             // 环境变量

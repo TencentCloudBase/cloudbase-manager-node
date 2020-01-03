@@ -29,3 +29,8 @@ export declare const PUBLIC_RSA_KEY = "\n-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSq
 export declare const ROLE_NAME: {
     TCB: string;
 };
+export declare const SCF_STATUS: {
+    ACTIVE: string;
+    CREATING: string;
+    UPDATING: string;
+};

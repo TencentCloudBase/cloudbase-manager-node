@@ -28,12 +28,15 @@ export class FunctionPacker {
     tmpPath: string
     // 忽略文件模式
     ignore: string | string[]
+    // 指定增量文件路径
+    incrementalPath: string
 
-    constructor(root: string, name: string, ignore: string | string[]) {
+    constructor(root: string, name: string, ignore: string | string[], incrementalPath?: string) {
         this.name = name
         this.root = root
         this.ignore = ignore
         this.funcPath = path.resolve(path.join(root, name))
+        this.incrementalPath = incrementalPath
     }
 
     validPath(path: string) {
@@ -52,10 +55,21 @@ export class FunctionPacker {
         // 生成 zip 文件
         await makeDir(this.funcDistPath)
         const zipPath = path.resolve(this.funcDistPath, 'dist.zip')
-        await zipDir(this.funcPath, zipPath, this.ignore)
-        // 将 zip 文件转换成 base64
+
+        const zipOption: any = {
+            dirPath: this.funcPath,
+            outputPath: zipPath,
+            ignore: this.ignore
+        }
+
+        if (this.incrementalPath) {
+            zipOption.pattern = this.incrementalPath
+        }
+
+        await zipDir(zipOption)
+        // // 将 zip 文件转换成 base64
         const base64 = fs.readFileSync(zipPath).toString('base64')
-        // 清除打包文件
+        // // 清除打包文件
         await this.clean()
         return base64
     }

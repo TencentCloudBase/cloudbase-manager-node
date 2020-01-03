@@ -11,7 +11,8 @@ import {
     IFunctionDownloadUrlRes
 } from '../interfaces'
 import { CloudBaseError } from '../error'
-import { CloudService, preLazy } from '../utils'
+import { CloudService, preLazy, sleep } from '../utils'
+import { SCF_STATUS } from '../constant'
 
 interface ICreateFunctionParam {
     func: ICloudFunction // 云函数信息
@@ -28,6 +29,13 @@ interface IUpdateFunctionCodeParam {
     codeSecret?: string // 代码保护密钥
 }
 
+interface IUpdateFunctionIncrementalCodeParam {
+    func: ICloudFunction
+    functionRootPath: string // 必选
+    deleteFiles?: Array<string> // 要删除的文件和目录列表
+    addFiles?: string // 新增或修改的文件路径 （指定单个文件或单个文件夹）
+}
+
 export class FunctionService {
     private environment: Environment
     private vpcService: CloudService
@@ -42,6 +50,57 @@ export class FunctionService {
         this.environment = environment
         this.scfService = new CloudService(environment.cloudBaseContext, 'scf', '2018-04-16')
         this.vpcService = new CloudService(environment.cloudBaseContext, 'vpc', '2017-03-12')
+    }
+
+    /**
+     * 增量更新函数代码
+     * @param {IUpdateFunctionIncrementalCodeParam} funcParam
+     * @returns {Promise<void>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async updateFunctionIncrementalCode(
+        funcParam: IUpdateFunctionIncrementalCodeParam
+    ): Promise<IResponseInfo> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionRootPath, func, deleteFiles, addFiles } = funcParam
+        const { name, runtime } = func
+        const params: any = {
+            FunctionName: name,
+            Namespace: namespace
+        }
+
+        let packer: FunctionPacker
+        let base64
+
+        // 校验运行时 待确认 php7 Java8 环境是否支持增量更新
+        const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
+        if (func && func.runtime && !validRuntime.includes(func.runtime)) {
+            throw new CloudBaseError(
+                `${name} Invalid runtime value：${
+                    func.runtime
+                }. Now only support: ${validRuntime.join(', ')}`
+            )
+        }
+
+        if (deleteFiles) {
+            params.DeleteFiles = deleteFiles
+        }
+
+        if (addFiles) {
+            // 将选中的增量文件或增量文件夹  转base64
+            packer = new FunctionPacker(functionRootPath, name, [], addFiles)
+            const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
+            base64 = await packer.build(type)
+            if (!base64) {
+                throw new CloudBaseError('函数不存在！')
+            }
+
+            params.AddFiles = base64
+        }
+
+        const res = await this.scfService.request('UpdateFunctionIncrementalCode', params)
+        return res
     }
 
     /**
@@ -141,6 +200,11 @@ export class FunctionService {
             await this.scfService.request('CreateFunction', params)
             // 创建函数触发器
             await this.createFunctionTriggers(funcName, func.triggers)
+
+            // 如果选择自动安装依赖，且等待依赖安装
+            if (params.InstallDependency && func.isWaitInstall === true) {
+                await this.waitFunctionActive(funcName)
+            }
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
@@ -384,7 +448,7 @@ export class FunctionService {
         const { namespace } = this.getFunctionConfig()
 
         // 校验运行时
-        const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
+        const validRuntime = ['Nodejs8.9']
         if (func && func.runtime && !validRuntime.includes(func.runtime)) {
             throw new CloudBaseError(
                 `${funcName} 非法的运行环境：${func.runtime}，当前支持环境：${validRuntime.join(
@@ -431,7 +495,11 @@ export class FunctionService {
 
         try {
             // 更新云函数代码
-            return this.scfService.request('UpdateFunctionCode', params)
+            const res = await this.scfService.request('UpdateFunctionCode', params)
+            if (installDependency && func.isWaitInstall === true) {
+                await this.waitFunctionActive(funcName)
+            }
+            return res
         } catch (e) {
             throw new CloudBaseError(`[${funcName}] 函数代码更新失败： ${e.message}`, {
                 code: e.code
@@ -624,5 +692,15 @@ export class FunctionService {
             ]
         })
         return SubnetSet
+    }
+
+    private async waitFunctionActive(funcName: string) {
+        // 检查函数状态
+        let status
+        do {
+            const { Status } = await this.getFunctionDetail(funcName)
+            await sleep(1000)
+            status = Status
+        } while (status === SCF_STATUS.CREATING || status === SCF_STATUS.UPDATING)
     }
 }

@@ -15,7 +15,8 @@ export declare class FunctionPacker {
     funcDistPath: string;
     tmpPath: string;
     ignore: string | string[];
-    constructor(root: string, name: string, ignore: string | string[]);
+    incrementalPath: string;
+    constructor(root: string, name: string, ignore: string | string[], incrementalPath?: string);
     validPath(path: string): void;
     getFileCode(): Promise<string>;
     getJavaFileCode(): string;

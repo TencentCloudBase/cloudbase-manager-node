@@ -47,3 +47,9 @@ UeHi/0OZN9vQ33jWMQIDAQAB
 export const ROLE_NAME = {
     TCB: 'TCB_QcsRole'
 }
+
+export const SCF_STATUS = {
+    ACTIVE: 'Active',
+    CREATING: 'Creating',
+    UPDATING: 'Updating'
+}

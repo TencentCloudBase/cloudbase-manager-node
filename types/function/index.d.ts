@@ -13,12 +13,25 @@ interface IUpdateFunctionCodeParam {
     base64Code?: string;
     codeSecret?: string;
 }
+interface IUpdateFunctionIncrementalCodeParam {
+    func: ICloudFunction;
+    functionRootPath: string;
+    deleteFiles?: Array<string>;
+    addFiles?: string;
+}
 export declare class FunctionService {
     private environment;
     private vpcService;
     private scfService;
     private tcbRole;
     constructor(environment: Environment);
+    /**
+     * 增量更新函数代码
+     * @param {IUpdateFunctionIncrementalCodeParam} funcParam
+     * @returns {Promise<void>}
+     * @memberof FunctionService
+     */
+    updateFunctionIncrementalCode(funcParam: IUpdateFunctionIncrementalCodeParam): Promise<IResponseInfo>;
     /**
      *
      * @param {ICreateFunctionParam} funcParam
@@ -129,5 +142,6 @@ export declare class FunctionService {
      * @returns
      */
     private getSubnets;
+    private waitFunctionActive;
 }
 export {};

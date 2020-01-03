@@ -11,7 +11,16 @@ export * from './http-request'
 export * from './envLazy'
 export * from './fs'
 
-export async function zipDir(dirPath, outputPath, ignore?: string | string[]) {
+interface IZipOption {
+    dirPath: string
+    outputPath: string
+    ignore?: string | string[]
+    pattern?: string
+}
+
+export async function zipDir(option: IZipOption) {
+    const { dirPath, outputPath, ignore, pattern = '**/*' } = option
+
     return new Promise((resolve, reject) => {
         const output = fs.createWriteStream(outputPath)
         const archive = archiver('zip')
@@ -29,7 +38,7 @@ export async function zipDir(dirPath, outputPath, ignore?: string | string[]) {
 
         archive.pipe(output)
         // append files from a glob pattern
-        archive.glob('**/*', {
+        archive.glob(pattern, {
             // 目标路径
             cwd: dirPath,
             ignore: ignore,
@@ -59,10 +68,10 @@ export function rsaEncrypt(data: string): string {
     return encrypted.toString('base64')
 }
 
-export function sleep(timeout: number): Promise<void> {
+export function sleep(time: number): Promise<void> {
     return new Promise(resolve => {
         setTimeout(() => {
             resolve()
-        }, timeout)
+        }, time)
     })
 }

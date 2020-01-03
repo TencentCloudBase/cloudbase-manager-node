@@ -24,6 +24,7 @@ export interface ICloudFunction {
     triggers?: ICloudFunctionTrigger[];
     handler?: string;
     ignore?: string | string[];
+    isWaitInstall?: boolean;
 }
 export interface IFunctionLogOptions {
     name: string;
