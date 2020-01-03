@@ -13,6 +13,21 @@ import {
 import { CloudBaseError } from '../error'
 import { CloudService, preLazy } from '../utils'
 
+interface ICreateFunctionParam {
+    func: ICloudFunction // 云函数信息
+    functionRootPath: string // 云函数根目录
+    force: boolean // 是否覆盖同名云函数
+    base64Code: string
+    codeSecret?: string // 代码保护密钥
+}
+
+interface IUpdateFunctionCodeParam {
+    func: ICloudFunction // 云函数信息
+    functionRootPath?: string // 云函数的目录路径（可选） functionRootPath 与 base64Code 可任选其中一个
+    base64Code?: string // 云函数 ZIP 文件的 base64 编码（可选）
+    codeSecret?: string // 代码保护密钥
+}
+
 export class FunctionService {
     private environment: Environment
     private vpcService: CloudService
@@ -30,44 +45,37 @@ export class FunctionService {
     }
 
     /**
-     * 创建云函数
-     * @param {ICloudFunction} func 云函数信息
-     * @param {string} functionRootPath 云函数根目录
-     * @param {boolean} [force=false] 是否覆盖同名云函数
-     * @param {string} base64Code
+     *
+     * @param {ICreateFunctionParam} funcParam
      * @returns {Promise<void>}
+     * @memberof FunctionService
      */
     @preLazy()
-    public async createFunction(
-        func: ICloudFunction,
-        functionRootPath: string,
-        force = false,
-        base64Code: string
-    ): Promise<void> {
+    public async createFunction(funcParam: ICreateFunctionParam): Promise<void> {
         // TODO: 优化处理逻辑
         const { namespace } = this.getFunctionConfig()
-
+        const { func, functionRootPath, force = false, base64Code, codeSecret } = funcParam
         let base64
         let packer: FunctionPacker
         const funcName = func.name
-        const { config = {} } = func
+        // const { config = {} } = func
 
         // 校验运行时
         const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
-        if (config.runtime && !validRuntime.includes(config.runtime)) {
+        if (func && func.runtime && !validRuntime.includes(func.runtime)) {
             throw new CloudBaseError(
                 `${funcName} Invalid runtime value：${
-                    config.runtime
+                    func.runtime
                 }. Now only support: ${validRuntime.join(', ')}`
             )
         }
 
         let installDependency
         // Node 8.9 默认安装依赖
-        installDependency = config.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
+        installDependency = func.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
         // 是否安装依赖，选项可以覆盖
-        if (typeof config.installDependency !== 'undefined') {
-            installDependency = config.installDependency ? 'TRUE' : 'FALSE'
+        if (typeof func.installDependency !== 'undefined') {
+            installDependency = func.installDependency ? 'TRUE' : 'FALSE'
         }
 
         // CLI 从本地读取
@@ -78,8 +86,7 @@ export class FunctionService {
                     ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
                     : [...(func.ignore || [])]
             packer = new FunctionPacker(functionRootPath, funcName, ignore)
-            const type: CodeType =
-                func.config.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
+            const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             base64 = await packer.build(type)
 
             if (!base64) {
@@ -90,9 +97,9 @@ export class FunctionService {
         }
 
         // 转换环境变量
-        const envVariables = Object.keys(func.config.envVariables || {}).map(key => ({
+        const envVariables = Object.keys(func.envVariables || {}).map(key => ({
             Key: key,
-            Value: func.config.envVariables[key]
+            Value: func.envVariables[key]
         }))
 
         const params: any = {
@@ -113,16 +120,21 @@ export class FunctionService {
         // 处理入口
         params.Handler = func.handler || 'index.main'
         // 默认超时时间为 20S
-        params.Timeout = Number(config.timeout) || 20
+        params.Timeout = Number(func.timeout) || 20
         // 默认运行环境 Nodejs8.9
-        params.Runtime = config.runtime || 'Nodejs8.9'
+        params.Runtime = func.runtime || 'Nodejs8.9'
         // VPC 网络
         params.VpcConfig = {
-            SubnetId: (config.vpc && config.vpc.subnetId) || '',
-            VpcId: (config.vpc && config.vpc.vpcId) || ''
+            SubnetId: (func.vpc && func.vpc.subnetId) || '',
+            VpcId: (func.vpc && func.vpc.vpcId) || ''
         }
         // 自动安装依赖
         params.InstallDependency = installDependency
+
+        // 代码保护
+        if (codeSecret) {
+            params.CodeSecret = codeSecret
+        }
 
         try {
             // 创建云函数
@@ -135,9 +147,14 @@ export class FunctionService {
                 // 创建函数触发器
                 await this.createFunctionTriggers(funcName, func.triggers)
                 // 更新函数配置和代码
-                await this.updateFunctionConfig(func.name, func.config)
+                await this.updateFunctionConfig(func)
                 // 更新函数代码
-                await this.updateFunctionCode(func, functionRootPath, base64)
+                await this.updateFunctionCode({
+                    func,
+                    functionRootPath,
+                    base64Code: base64,
+                    codeSecret: codeSecret
+                })
                 return
             }
 
@@ -203,14 +220,20 @@ export class FunctionService {
      * @returns {Promise<Record<string, string>>}
      */
     @preLazy()
-    async getFunctionDetail(name: string): Promise<Record<string, string>> {
+    async getFunctionDetail(name: string, codeSecret?: string): Promise<Record<string, string>> {
         const { namespace } = this.getFunctionConfig()
 
-        const res = await this.scfService.request('GetFunction', {
+        const params: any = {
             FunctionName: name,
             Namespace: namespace,
             ShowCode: 'TRUE'
-        })
+        }
+
+        if (codeSecret) {
+            params.CodeSecret = codeSecret
+        }
+
+        const res = await this.scfService.request('GetFunction', params)
 
         const data: Record<string, any> = {}
         // 提取信息的键
@@ -305,21 +328,20 @@ export class FunctionService {
 
     /**
      * 更新云函数配置
-     * @param {string} name 云函数名称
-     * @param {ICloudFunctionConfig} config 云函数配置
+     * @param {ICloudFunction} func 云函数配置
      * @returns {Promise<IResponseInfo>}
      */
     @preLazy()
-    async updateFunctionConfig(name: string, config: ICloudFunctionConfig): Promise<IResponseInfo> {
+    async updateFunctionConfig(func: ICloudFunction): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
 
-        const envVariables = Object.keys(config.envVariables || {}).map(key => ({
+        const envVariables = Object.keys(func.envVariables || {}).map(key => ({
             Key: key,
-            Value: config.envVariables[key]
+            Value: func.envVariables[key]
         }))
 
         const params: any = {
-            FunctionName: name,
+            FunctionName: func.name,
             Namespace: namespace
         }
 
@@ -327,61 +349,56 @@ export class FunctionService {
         // Environment 为覆盖式修改，不保留已有字段
         envVariables.length && (params.Environment = { Variables: envVariables })
         // 不设默认超时时间，防止覆盖已有配置
-        config.timeout && (params.Timeout = config.timeout)
+        func.timeout && (params.Timeout = func.timeout)
         // 运行时
-        config.runtime && (params.Runtime = config.runtime)
+        func.runtime && (params.Runtime = func.runtime)
         // VPC 网络
         params.VpcConfig = {
-            SubnetId: (config.vpc && config.vpc.subnetId) || '',
-            VpcId: (config.vpc && config.vpc.vpcId) || ''
+            SubnetId: (func.vpc && func.vpc.subnetId) || '',
+            VpcId: (func.vpc && func.vpc.vpcId) || ''
         }
         // Node 8.9 默认安装依赖
-        config.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
+        func.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
         // 是否安装依赖，选项可以覆盖
-        if (typeof config.installDependency !== 'undefined') {
-            params.InstallDependency = config.installDependency ? 'TRUE' : 'FALSE'
+        if (typeof func.installDependency !== 'undefined') {
+            params.InstallDependency = func.installDependency ? 'TRUE' : 'FALSE'
         }
 
         return this.scfService.request('UpdateFunctionConfiguration', params)
     }
 
     /**
-     * 更新云函数代码
-     * functionRootPath 与 base64Code 可任选其中一个
-     * @param {ICloudFunction} func 云函数信息
-     * @param {string} functionRootPath 云函数的目录路径（可选）
-     * @param {string} base64Code 云函数 ZIP 文件的 base64 编码（可选）
+     *
+     * @param {IUpdateFunctionCodeParam} funcParam
      * @returns {Promise<IResponseInfo>}
+     * @memberof FunctionService
      */
     @preLazy()
-    async updateFunctionCode(
-        func: ICloudFunction,
-        functionRootPath: string,
-        base64Code: string
-    ): Promise<IResponseInfo> {
+    async updateFunctionCode(funcParam: IUpdateFunctionCodeParam): Promise<IResponseInfo> {
         let base64
         let packer
+        const { func, functionRootPath, base64Code, codeSecret } = funcParam
         const funcName = func.name
-        const { config = {} } = func
+        // const { config = {} } = func
 
         const { namespace } = this.getFunctionConfig()
 
         // 校验运行时
         const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
-        if (func.config && func.config.runtime && !validRuntime.includes(func.config.runtime)) {
+        if (func && func.runtime && !validRuntime.includes(func.runtime)) {
             throw new CloudBaseError(
-                `${funcName} 非法的运行环境：${
-                    func.config.runtime
-                }，当前支持环境：${validRuntime.join(', ')}`
+                `${funcName} 非法的运行环境：${func.runtime}，当前支持环境：${validRuntime.join(
+                    ', '
+                )}`
             )
         }
 
         let installDependency
         // Node 8.9 默认安装依赖
-        installDependency = config.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
+        installDependency = func.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
         // 是否安装依赖，选项可以覆盖
-        if (typeof config.installDependency !== 'undefined') {
-            installDependency = config.installDependency ? 'TRUE' : 'FALSE'
+        if (typeof func.installDependency !== 'undefined') {
+            installDependency = func.installDependency ? 'TRUE' : 'FALSE'
         }
 
         // CLI 从本地读取
@@ -391,8 +408,7 @@ export class FunctionService {
                     ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
                     : [...(func.ignore || [])]
             packer = new FunctionPacker(functionRootPath, funcName, ignore)
-            const type: CodeType =
-                func.config.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
+            const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             base64 = await packer.build(type)
 
             if (!base64) {
@@ -407,6 +423,10 @@ export class FunctionService {
             Namespace: namespace,
             ZipFile: base64,
             Handler: func.handler || 'index.main'
+        }
+
+        if (codeSecret) {
+            params.CodeSecret = codeSecret
         }
 
         try {
@@ -531,22 +551,32 @@ export class FunctionService {
     }
 
     /**
-     * 获取 云函数代码下载链接
+     * 获取云函数代码下载 链接
      * @param {string} functionName
+     * @param {string} [codeSecret]
      * @returns {Promise<IFunctionDownloadUrlRes>}
      * @memberof FunctionService
      */
     @preLazy()
-    public async getFunctionDownloadUrl(functionName: string): Promise<IFunctionDownloadUrlRes> {
+    public async getFunctionDownloadUrl(
+        functionName: string,
+        codeSecret?: string
+    ): Promise<IFunctionDownloadUrlRes> {
         const { namespace } = this.getFunctionConfig()
+
+        const params: any = {
+            FunctionName: functionName,
+            Namespace: namespace
+        }
+
+        if (codeSecret) {
+            params.CodeSecret = codeSecret
+        }
 
         try {
             const { Url, CodeSha256, RequestId } = await this.scfService.request(
                 'GetFunctionAddress',
-                {
-                    FunctionName: functionName,
-                    Namespace: namespace
-                }
+                params
             )
             return { Url, RequestId, CodeSha256 }
         } catch (e) {
@@ -554,6 +584,12 @@ export class FunctionService {
         }
     }
 
+    /**
+     *
+     * @private
+     * @returns
+     * @memberof FunctionService
+     */
     private getFunctionConfig() {
         const envConfig = this.environment.lazyEnvironmentConfig
         const namespace = envConfig.Functions[0].Namespace

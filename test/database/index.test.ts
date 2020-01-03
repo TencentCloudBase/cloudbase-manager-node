@@ -1,6 +1,7 @@
 import path from 'path'
 import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src/index'
+import { sleep } from '../../src/utils/index'
 
 let manager = new CloudBase(cloudBaseConfig)
 
@@ -13,10 +14,10 @@ async function recreateCollection(collName: string) {
 test('database createCollection', async () => {
     let res
     try {
-        res = await manager.database.createCollection('rooms51')
+        res = await recreateCollection('rooms51')
+        expect(res).toBe(undefined)
     } catch (err) {
         res = err
-    } finally {
         expect(res.code).toBeFalsy()
     }
 })
@@ -133,6 +134,7 @@ test('database import and query migrateStatus', async () => {
 
         do {
             res = await manager.database.migrateStatus(JobId)
+            await sleep(1000)
             console.log(res)
         } while (res.Status !== 'success')
 
@@ -168,6 +170,7 @@ test('database export and query migrateStatus', async () => {
 
         do {
             res = await manager.database.migrateStatus(JobId)
+            await sleep(1000)
             console.log(res)
         } while (res.Status !== 'success')
     } catch (err) {

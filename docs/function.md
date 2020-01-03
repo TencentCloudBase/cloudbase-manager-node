@@ -88,37 +88,24 @@ let res = await functions.listFunctions(20, 0)
 ### 接口定义
 
 ```javascript
-createFunction(
-    (func: ICloudFunction),
-    (functionRootPath: string),
-    (force: boolean),
-    (base64Code: string)
-)
+createFunction((funcParam: ICreateFunctionParam))
 ```
 
-### 参数说明
+> ⚠️ 本接口从 2.0.0 版本后，请求参数由( func: ICloudFunction, functionRootPath: string, force: boolean, base64Code: string ) 转换为 (funcParam: ICreateFunctionParam)，属于不兼容变更
 
-| 参数名           | 类型           | 描述                   |
-| ---------------- | -------------- | ---------------------- |
-| func             | ICloudFunction | 函数配置               |
-| functionRootPath | string         | 用户本地函数文件目录   |
-| force            | boolean        | 是否覆盖同名函数       |
-| base64Code       | string         | 函数文件的 base64 编码 |
+### ICreateFunctionParam 结构体
+
+| 参数名           | 是否必填 | 类型           | 描述                   |
+| ---------------- | -------- | -------------- | ---------------------- |
+| func             | 是       | ICloudFunction | 函数配置               |
+| functionRootPath | 否       | string         | 用户本地函数文件目录   |
+| force            | 是       | boolean        | 是否覆盖同名函数       |
+| base64Code       | 否       | string         | 函数文件的 base64 编码 |
+| codeSecret       | 否       | string         | 代码保护密钥           |
 
 **注：createFunction 支持两种方式创建函数，1. 用户指定本地的函数文件根目录(绝对地址); 2. 用户将函数代码包压缩为 zip 文件后进行 base64 转码，传入 base64Code 参数**
 
-#### ICloudFunction
-
-|   名称   | 是否必填 |                           类型                           |                    描述                    |
-| :------: | :------: | :------------------------------------------------------: | :----------------------------------------: |
-|   name   |    是    |                          String                          |                  函数名称                  |
-|  config  |    是    |       [CloudFunctionConfig](#icloudfunctionconfig)       |                函数配置对象                |
-| triggers |    否    | Array of [ICloudFunctionTrigger](#icloudfunctiontrigger) |                                            |
-| handler  |    否    |                          String                          |                  函数入口                  |
-|  params  |    否    |                          Object                          |     invoke 触发函数时，传入函数的参数      |
-|  ignore  |    否    |                    String 或 String[]                    | 上传函数代码时忽略的文件，以 Glob 模式匹配 |
-
-**注：`handler` 函数处理入口，Node 项目默认值为 index.main，入口文件只能在根目录，如 node 项目的 index.main，指向的是 index.js 文件的 main 方法**
+**注：`ICloudFunctionConfig` 为旧参数结构体**
 
 #### ICloudFunctionConfig
 
@@ -129,6 +116,22 @@ createFunction(
 |        vpc        |    否    | [IFunctionVPC](#ifunctionvpc) |                   私有网络配置                    |
 |      runtime      |    否    |            String             | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
 | installDependency |    否    |            Boolean            |            是否安装依赖，仅 Node 有效             |
+
+#### ICloudFunction
+
+|       名称        | 是否必填 |                           类型                           |                       描述                        |
+| :---------------: | :------: | :------------------------------------------------------: | :-----------------------------------------------: |
+|       name        |    是    |                          String                          |                     函数名称                      |
+|      timeout      |    否    |                          Number                          |                   函数超时时间                    |
+|   envVariables    |    否    |                          Object                          |             包含环境变量的键值对对象              |
+|        vpc        |    否    |              [IFunctionVPC](#ifunctionvpc)               |                   私有网络配置                    |
+|      runtime      |    否    |                          String                          | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
+| installDependency |    否    |                         Boolean                          |            是否安装依赖，仅 Node 有效             |
+|     triggers      |    否    | Array of [ICloudFunctionTrigger](#icloudfunctiontrigger) |                                                   |
+|      handler      |    否    |                          String                          |                     函数入口                      |
+|      ignore       |    否    |                    String 或 String[]                    |    上传函数代码时忽略的文件，以 Glob 模式匹配     |
+
+**注：`handler` 函数处理入口，Node 项目默认值为 index.main，入口文件只能在根目录，如 node 项目的 index.main，指向的是 index.js 文件的 main 方法**
 
 **注：如果使用在线安装依赖 Node 运行时 `runtime` 必须设置为 `Nodejs8.9`，且必须在入口文件同级目录设置 package.json，在线安装依赖暂不支持其他运行时**
 **如果不使用在线安装依赖，Node 运行时无需填 `runtime` （默认`Nodejs8.9`），但使用 Php 和 Java 则必填`runtime` 。**
@@ -153,21 +156,18 @@ createFunction(
 ### 调用示例
 
 ```javascript
-const res = await functions.createFunction(
-    {
+const res = await functions.createFunction({
+    func: {
         // functions 文件夹下函数文件夹的名称，即函数名
         name: 'app',
-        // 函数配置
-        config: {
-            // 超时时间
-            timeout: 5,
-            // 环境变量
-            envVariables: {
-                key: 'value',
-                akey: 'c'
-            },
-            runtime: 'Nodejs8.9'
+        // 超时时间
+        timeout: 5,
+        // 环境变量
+        envVariables: {
+            key: 'value',
+            akey: 'c'
         },
+        runtime: 'Nodejs8.9',
         // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
         triggers: [
             {
@@ -180,10 +180,11 @@ const res = await functions.createFunction(
             }
         ]
     },
-    '',
-    true,
-    'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-)
+    functionRootPath: '',
+    force: true,
+    base64Code:
+        'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+})
 ```
 
 ### 响应结果
@@ -197,30 +198,34 @@ void
 ### 接口定义
 
 ```javascript
-updateFunctionCode((func: ICloudFunction), (functionRootPath: string), (base64Code: string))
+updateFunctionCode((funcParam: IUpdateFunctionCodeParam))
 ```
 
-### 参数说明
+> ⚠️ 本接口从 2.0.0 版本后，请求参数由( func: ICloudFunction, functionRootPath: string, base64Code: string ) 转换为 (funcParam: IUpdateFunctionCodeParam)，属于不兼容变更
 
-| 参数名           | 类型           | 描述                   |
-| ---------------- | -------------- | ---------------------- |
-| func             | ICloudFunction | 函数配置               |
-| functionRootPath | string         | 用户本地函数文件目录   |
-| base64Code       | string         | 函数文件的 base64 编码 |
+### IUpdateFunctionCodeParam 结构体说明
+
+| 参数名           | 是否必填 | 类型           | 描述                   |
+| ---------------- | -------- | -------------- | ---------------------- |
+| func             | 是       | ICloudFunction | 函数配置               |
+| functionRootPath | 否       | string         | 用户本地函数文件目录   |
+| base64Code       | 否       | string         | 函数文件的 base64 编码 |
+| codeSecret       | 否       | string         | 函数文件的 base64 编码 |
 
 [ICloudFunction 结构体](#ICloudFunction)
 
 ### 调用示例
 
 ```javascript
-let res = await functions.updateFunctionCode(
-    {
+let res = await functions.updateFunctionCode({
+    func: {
         // functions 文件夹下函数文件夹的名称，即函数名
         name: 'app'
     },
-    '',
-    'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-)
+    functionRootPath: '',
+    base64Code:
+        'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+})
 ```
 
 ### 响应结果
@@ -242,22 +247,24 @@ let res = await functions.updateFunctionCode(
 ### 接口定义
 
 ```javascript
-updateFunctionConfig((name: string), (config: ICloudFunctionConfig))
+updateFunctionConfig((funcParam: ICloudFunction)
 ```
+
+> ⚠️ 本接口从 2.0.0 版本后，请求参数由( name: string, config: ICloudFunctionConfig ) 转换为 (funcParam: ICloudFunction)，属于不兼容变更
 
 ### 参数说明
 
-| 参数名 | 类型                 | 描述           |
-| ------ | -------------------- | -------------- |
-| name   | String               | 函数名称       |
-| config | ICloudFunctionConfig | 云函数配置子项 |
+| 参数名    | 类型           | 描述     |
+| --------- | -------------- | -------- |
+| funcParam | ICloudFunction | 函数配置 |
 
-[ICloudFunctionConfig 结构体](#ICloudFunctionConfig)
+[ICloudFunction 结构体](#ICloudFunction)
 
 ### 调用示例
 
 ```javascript
-let res = await functions.updateFunctionConfig('app', {
+let res = await functions.updateFunctionConfig({
+    name: 'app',
     timeout: 6
 })
 ```
@@ -315,14 +322,15 @@ let res = await functions.deleteFunction('functionName')
 ### 接口定义
 
 ```javascript
-getFunctionDetail((name: string))
+getFunctionDetail((name: string, codeSecret?: string))
 ```
 
 ### 参数说明
 
-| 参数名 | 类型   | 描述     |
-| ------ | ------ | -------- |
-| name   | String | 函数名称 |
+| 参数名     | 是否必填 | 类型   | 描述         |
+| ---------- | -------- | ------ | ------------ |
+| name       | 是       | String | 函数名称     |
+| codeSecret | 否       | String | 代码保护密钥 |
 
 ### 调用示例
 
@@ -630,15 +638,16 @@ const res = await functions.deleteFunctionTrigger('app', 'newTrigger')
 
 ### 接口定义
 
-```javascript
-getFunctionDownloadUrl((functionName:string)
+```typescript
+getFunctionDownloadUrl((functionName:string, codeSecret?: string)）
 ```
 
 ### 参数说明
 
-| 参数名       | 类型   | 描述   |
-| ------------ | ------ | ------ |
-| functionName | String | 函数名 |
+| 参数名       | 是否必填 | 类型   | 描述         |
+| ------------ | -------- | ------ | ------------ |
+| functionName | 是       | String | 函数名       |
+| codeSecret   | 否       | String | 代码保护密钥 |
 
 ### 调用示例
 

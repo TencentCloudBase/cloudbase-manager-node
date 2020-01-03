@@ -21,27 +21,24 @@ test('列出所有函数: functions.list(1)', async () => {
     expect(data.length).toBe(1)
 })
 
-test.only('获取函数代码的下载链接: functions.getFunctionDownloadUrl', async () => {
-    const res = await functions.getFunctionDownloadUrl('sum')
+test('获取函数代码的下载链接: functions.getFunctionDownloadUrl', async () => {
+    const res = await functions.getFunctionDownloadUrl('sum', 'lukekke')
     expect(res.Url !== undefined).toBe(true)
 })
 
 test('创建云函数-本地文件上传：functions.createFunction', async () => {
-    const res = await functions.createFunction(
-        {
+    const res = await functions.createFunction({
+        func: {
             // functions 文件夹下函数文件夹的名称，即函数名
             name: 'sum',
-            // 函数配置
-            config: {
-                // 超时时间
-                timeout: 5,
-                // 环境变量
-                envVariables: {},
-                // 运行时
-                runtime: 'Nodejs8.9',
-                // 安装依赖
-                installDependency: true
-            },
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
+            // 运行时
+            runtime: 'Nodejs8.9',
+            // 安装依赖
+            installDependency: true,
+
             // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
             triggers: [
                 {
@@ -55,26 +52,120 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
             ],
             ignore: []
         },
-        './test/functions/',
-        true,
-        ''
-    )
+        functionRootPath: './test/functions/',
+        force: true,
+        base64Code: ''
+    })
 
     expect(res).toBe(undefined)
 })
 
-test('创建云函数-本地文件上传：functions.createFunction', async () => {
-    const res = await functions.createFunction(
-        {
+test('创建云函数-本地文件上传 加代码保护 验证getFunctionDetail，getFunctionDownloadUrl', async () => {
+    const res = await functions.createFunction({
+        func: {
             // functions 文件夹下函数文件夹的名称，即函数名
             name: 'sum',
-            // 函数配置
-            config: {
-                // 超时时间
-                timeout: 5,
-                // 环境变量
-                envVariables: {}
-            },
+            // 超时时间
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
+            // 运行时
+            runtime: 'Nodejs8.9',
+            // 安装依赖
+            installDependency: true,
+
+            // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
+            triggers: [
+                {
+                    // name: 触发器的名字
+                    name: 'myTrigger',
+                    // type: 触发器类型，目前仅支持 timer （即定时触发器）
+                    type: 'timer',
+                    // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+                    config: '0 0 2 1 * * *'
+                }
+            ],
+            ignore: []
+        },
+        functionRootPath: './test/functions/',
+        force: true,
+        base64Code: '',
+        codeSecret: 'lukekke'
+    })
+
+    expect(res).toBe(undefined)
+
+    // 验证不加code 调用 getFunctionDetail
+    try {
+        const res = await functions.getFunctionDetail('sum')
+    } catch (err) {
+        expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
+    }
+
+    // 验证不加code 调用 getFunctionDownloadUrl
+    try {
+        const res = await functions.getFunctionDownloadUrl('sum')
+    } catch (err) {
+        expect(!!err).toBe(true) // 这里报错未返回错误码
+        // expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
+    }
+
+    // 验证加code调用 getFunctionDetail
+    const res1 = await functions.getFunctionDetail('sum', 'lukekke')
+    expect(res1.FunctionName).toEqual('sum')
+
+    // 验证加code调用 getFunctionDownloadUrl
+    const res2 = await functions.getFunctionDownloadUrl('sum', 'lukekke')
+    expect(res2.Url !== undefined).toBe(true)
+})
+
+test('更新云函数代码：functions.updateFunctionCode 加代码保护 验证 getFunctionDeatil getFunctionDownloadUrl', async () => {
+    const res = await functions.updateFunctionCode({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'app'
+        },
+        functionRootPath: '',
+        base64Code:
+            'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA',
+        codeSecret: 'llluke'
+    })
+
+    expect(res.RequestId).toBeTruthy()
+
+    // 验证不加code 调用 getFunctionDetail
+    try {
+        const res = await functions.getFunctionDetail('app')
+    } catch (err) {
+        expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
+    }
+
+    // 验证不加code 调用 getFunctionDownloadUrl
+    try {
+        const res = await functions.getFunctionDownloadUrl('app')
+    } catch (err) {
+        expect(!!err).toBe(true) // 这里报错未返回错误码
+        // expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
+    }
+
+    // 验证加code调用 getFunctionDetail
+    const res1 = await functions.getFunctionDetail('app', 'llluke')
+    expect(res1.FunctionName).toEqual('app')
+
+    // 验证加code调用 getFunctionDownloadUrl
+    const res2 = await functions.getFunctionDownloadUrl('app', 'llluke')
+    expect(res2.Url !== undefined).toBe(true)
+})
+
+test('创建云函数-本地文件上传：functions.createFunction', async () => {
+    const res = await functions.createFunction({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'sum',
+            // 超时时间
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
             // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
             triggers: [
                 {
@@ -87,28 +178,25 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
                 }
             ]
         },
-        __dirname,
-        true,
-        ''
-    )
+        functionRootPath: __dirname,
+        force: true,
+        base64Code: ''
+    })
 
     expect(res).toBe(undefined)
 })
 
 test('创建云函数：functions.createFunction', async () => {
-    const res = await functions.createFunction(
-        {
+    const res = await functions.createFunction({
+        func: {
             // functions 文件夹下函数文件夹的名称，即函数名
             name: 'app',
-            // 函数配置
-            config: {
-                // 超时时间
-                timeout: 5,
-                // 环境变量
-                envVariables: {
-                    key: 'value',
-                    akey: 'c'
-                }
+            // 超时时间
+            timeout: 5,
+            // 环境变量
+            envVariables: {
+                key: 'value',
+                akey: 'c'
             },
             // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
             triggers: [
@@ -122,23 +210,24 @@ test('创建云函数：functions.createFunction', async () => {
                 }
             ]
         },
-        '',
-        true,
-        'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-    )
-
+        functionRootPath: '',
+        force: true,
+        base64Code:
+            'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+    })
     expect(res).toBe(undefined)
 })
 
 test('更新云函数代码：functions.updateFunctionCode', async () => {
-    const res = await functions.updateFunctionCode(
-        {
+    const res = await functions.updateFunctionCode({
+        func: {
             // functions 文件夹下函数文件夹的名称，即函数名
             name: 'app'
         },
-        '',
-        'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-    )
+        functionRootPath: '',
+        base64Code:
+            'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+    })
 
     expect(res.RequestId).toBeTruthy()
 })
@@ -157,7 +246,8 @@ test('获取函数日志: functions.getFunctionLog', async () => {
 })
 
 test('更新函数配置: functions.updateFunctionConfig', async () => {
-    const res = await functions.updateFunctionConfig('app', {
+    const res = await functions.updateFunctionConfig({
+        name: 'app',
         timeout: 6
     })
     expect(res.RequestId).toBeTruthy()

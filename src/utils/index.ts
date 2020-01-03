@@ -58,3 +58,11 @@ export function rsaEncrypt(data: string): string {
     )
     return encrypted.toString('base64')
 }
+
+export function sleep(timeout: number): Promise<void> {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve()
+        }, timeout)
+    })
+}

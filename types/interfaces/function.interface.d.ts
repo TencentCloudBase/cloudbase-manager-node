@@ -16,9 +16,12 @@ export interface ICloudFunctionTrigger {
 }
 export interface ICloudFunction {
     name: string;
-    config?: ICloudFunctionConfig;
+    timeout?: number;
+    envVariables?: Record<string, string | number | boolean>;
+    runtime?: string;
+    vpc?: IFunctionVPC;
+    installDependency?: boolean;
     triggers?: ICloudFunctionTrigger[];
-    params?: Record<string, string>;
     handler?: string;
     ignore?: string | string[];
 }

@@ -1,5 +1,18 @@
 import { Environment } from '../environment';
-import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionConfig, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes, IFunctionDownloadUrlRes } from '../interfaces';
+import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes, IFunctionDownloadUrlRes } from '../interfaces';
+interface ICreateFunctionParam {
+    func: ICloudFunction;
+    functionRootPath: string;
+    force: boolean;
+    base64Code: string;
+    codeSecret?: string;
+}
+interface IUpdateFunctionCodeParam {
+    func: ICloudFunction;
+    functionRootPath?: string;
+    base64Code?: string;
+    codeSecret?: string;
+}
 export declare class FunctionService {
     private environment;
     private vpcService;
@@ -7,14 +20,12 @@ export declare class FunctionService {
     private tcbRole;
     constructor(environment: Environment);
     /**
-     * 创建云函数
-     * @param {ICloudFunction} func 云函数信息
-     * @param {string} functionRootPath 云函数根目录
-     * @param {boolean} [force=false] 是否覆盖同名云函数
-     * @param {string} base64Code
+     *
+     * @param {ICreateFunctionParam} funcParam
      * @returns {Promise<void>}
+     * @memberof FunctionService
      */
-    createFunction(func: ICloudFunction, functionRootPath: string, force: boolean, base64Code: string): Promise<void>;
+    createFunction(funcParam: ICreateFunctionParam): Promise<void>;
     /**
      * 列出函数
      * @param {number} [limit=20]
@@ -33,7 +44,7 @@ export declare class FunctionService {
      * @param {string} name 云函数名称
      * @returns {Promise<Record<string, string>>}
      */
-    getFunctionDetail(name: string): Promise<Record<string, string>>;
+    getFunctionDetail(name: string, codeSecret?: string): Promise<Record<string, string>>;
     /**
      * 获取函数日志
      * @param {{
@@ -51,20 +62,17 @@ export declare class FunctionService {
     getFunctionLogs(options: IFunctionLogOptions): Promise<IFunctionLogRes>;
     /**
      * 更新云函数配置
-     * @param {string} name 云函数名称
-     * @param {ICloudFunctionConfig} config 云函数配置
+     * @param {ICloudFunction} func 云函数配置
      * @returns {Promise<IResponseInfo>}
      */
-    updateFunctionConfig(name: string, config: ICloudFunctionConfig): Promise<IResponseInfo>;
+    updateFunctionConfig(func: ICloudFunction): Promise<IResponseInfo>;
     /**
-     * 更新云函数代码
-     * functionRootPath 与 base64Code 可任选其中一个
-     * @param {ICloudFunction} func 云函数信息
-     * @param {string} functionRootPath 云函数的目录路径（可选）
-     * @param {string} base64Code 云函数 ZIP 文件的 base64 编码（可选）
+     *
+     * @param {IUpdateFunctionCodeParam} funcParam
      * @returns {Promise<IResponseInfo>}
+     * @memberof FunctionService
      */
-    updateFunctionCode(func: ICloudFunction, functionRootPath: string, base64Code: string): Promise<IResponseInfo>;
+    updateFunctionCode(funcParam: IUpdateFunctionCodeParam): Promise<IResponseInfo>;
     /**
      * 调用云函数
      * @param {string} name 云函数名称
@@ -96,12 +104,19 @@ export declare class FunctionService {
      */
     deleteFunctionTrigger(name: string, triggerName: string): Promise<IResponseInfo>;
     /**
-     * 获取 云函数代码下载链接
+     * 获取云函数代码下载 链接
      * @param {string} functionName
+     * @param {string} [codeSecret]
      * @returns {Promise<IFunctionDownloadUrlRes>}
      * @memberof FunctionService
      */
-    getFunctionDownloadUrl(functionName: string): Promise<IFunctionDownloadUrlRes>;
+    getFunctionDownloadUrl(functionName: string, codeSecret?: string): Promise<IFunctionDownloadUrlRes>;
+    /**
+     *
+     * @private
+     * @returns
+     * @memberof FunctionService
+     */
     private getFunctionConfig;
     /**
      * 获取 vpc 信息
@@ -115,3 +130,4 @@ export declare class FunctionService {
      */
     private getSubnets;
 }
+export {};

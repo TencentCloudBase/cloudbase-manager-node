@@ -9,3 +9,4 @@ export declare function zipDir(dirPath: any, outputPath: any, ignore?: string | 
 export declare function getRuntime(): string;
 export declare function getEnvVar(envName: string): string;
 export declare function rsaEncrypt(data: string): string;
+export declare function sleep(timeout: number): Promise<void>;
