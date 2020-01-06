@@ -301,7 +301,10 @@ export class DatabaseService {
             filePath = path.join(temp, path.basename(file['FilePath']))
 
             // 调用cos接口 上传文件  todo
-            await this.environment.getStorageService().uploadFile(file['FilePath'], filePath)
+            await this.environment.getStorageService().uploadFile({
+                localPath: file['FilePath'],
+                cloudPath: filePath
+            })
 
             fileType = path.extname(filePath).substring(1)
         } else if (file['ObjectKey']) {

@@ -20,26 +20,40 @@ beforeEach(() => {
 })
 
 test('上传文件 storage.uploadFile', async () => {
-    await storage.uploadFile(filePath, cloudFilePath)
+    await storage.uploadFile({
+        localPath: filePath,
+        cloudPath: cloudFilePath
+    })
     const info = await storage.getFileInfo(cloudFilePath)
 
     expect(info).toBeTruthy()
 }, 10000)
 
 test('下载文件 storage.downloadFile', async () => {
-    await storage.downloadFile(cloudFilePath, path.join(path.resolve(dirPath), 'data.txt'))
+    await storage.downloadFile({
+        cloudPath: cloudFilePath,
+        localPath: path.join(path.resolve(dirPath), 'data.txt')
+    })
 })
 
 test('上传文件夹 storage.uploadDirectory', async () => {
-    await storage.uploadDirectory(dirPath, cloudDirPath)
+    await storage.uploadDirectory({
+        localPath: dirPath,
+        cloudPath: cloudDirPath
+    })
 })
 
 test('下载文件夹 storage.downloadDirectory', async () => {
-    await storage.downloadDirectory(cloudDirPath, downloadLocalPath)
+    await storage.downloadDirectory({
+        cloudPath: cloudDirPath,
+        localPath: downloadLocalPath
+    })
 })
 
 test('获取文件临时下载链接 storage.getTemporaryUrl', async () => {
     const res = await storage.getTemporaryUrl([cloudFilePath])
+
+    console.log(res)
 
     expect(res.length).toBeGreaterThanOrEqual(1)
     expect(res[0].url).toBeTruthy()
@@ -47,7 +61,6 @@ test('获取文件临时下载链接 storage.getTemporaryUrl', async () => {
 
 test('获取文件信息 storage.getFileInfo', async () => {
     const info = await storage.getFileInfo(cloudFilePath)
-
     expect(info).toBeTruthy()
 })
 

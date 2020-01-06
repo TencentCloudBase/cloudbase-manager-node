@@ -28,7 +28,25 @@ export interface IOptions {
     onProgress?: OnProgress
     onFileFinish?: OnProgress
     ignore?: string | string[]
+    // 是否获取文件 fileId
     fileId?: boolean
+}
+
+export interface IFileOptions extends IOptions {
+    localPath: string
+    cloudPath?: string
+}
+
+export interface ICustomOptions {
+    bucket: string
+    region: string
+}
+
+export interface IWalkCloudDirOptions {
+    prefix: string
+    bucket: string
+    region: string
+    marker?: string
 }
 
 type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY'
@@ -53,14 +71,17 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async uploadFile(
-        localPath: string,
-        cloudPath = '',
-        onProgress?: OnProgress
-    ): Promise<void> {
+    public async uploadFile(options: IFileOptions): Promise<void> {
+        const { localPath, cloudPath = '', onProgress } = options
         const { bucket, region } = this.getStorageConfig()
 
-        await this.uploadFileCustom(localPath, cloudPath, bucket, region, { onProgress })
+        await this.uploadFileCustom({
+            localPath,
+            cloudPath,
+            bucket,
+            region,
+            onProgress
+        })
     }
 
     /**
@@ -71,14 +92,8 @@ export class StorageService {
      * @param {string} region
      */
     @preLazy()
-    public async uploadFileCustom(
-        localPath: string,
-        cloudPath: string,
-        bucket: string,
-        region: string,
-        options: IOptions = {}
-    ) {
-        const { onProgress, fileId = true } = options
+    public async uploadFileCustom(options: IFileOptions & ICustomOptions) {
+        const { localPath, cloudPath, bucket, region, onProgress, fileId = true } = options
         let localFilePath = ''
         let resolveLocalPath = path.resolve(localPath)
         if (!fs.existsSync(resolveLocalPath)) {
@@ -148,22 +163,22 @@ export class StorageService {
 
     /**
      * 上传文件夹
-     * @param {string} source 本地文件夹
-     * @param {string} cloudDirectory 云端文件夹
+     * @param {string} localPath 本地文件夹路径
+     * @param {string} cloudPath 云端文件夹
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async uploadDirectory(
-        source: string,
-        cloudDirectory = '',
-        options: IOptions = {}
-    ): Promise<void> {
-        const { ignore, onProgress, onFileFinish } = options
+    public async uploadDirectory(options: IFileOptions): Promise<void> {
+        const { localPath, cloudPath = '', ignore, onProgress, onFileFinish } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
         const { bucket, region } = this.getStorageConfig()
-        await this.uploadDirectoryCustom(source, cloudDirectory, bucket, region, {
+        await this.uploadDirectoryCustom({
+            localPath,
+            cloudPath,
+            bucket,
+            region,
             ignore,
             onProgress,
             onFileFinish
@@ -172,28 +187,31 @@ export class StorageService {
 
     /**
      * 上传文件夹，支持自定义 Region 和 Bucket
-     * @param {string} source
-     * @param {string} cloudDirectory
+     * @param {string} localPath
+     * @param {string} cloudPath
      * @param {string} bucket
      * @param {string} region
      * @param {IOptions} options
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async uploadDirectoryCustom(
-        source: string,
-        cloudDirectory: string,
-        bucket: string,
-        region: string,
-        options: IOptions = {}
-    ): Promise<void> {
-        const { onProgress, onFileFinish, ignore, fileId = true } = options
+    public async uploadDirectoryCustom(options: IFileOptions & ICustomOptions): Promise<void> {
+        const {
+            localPath,
+            cloudPath,
+            bucket,
+            region,
+            onProgress,
+            onFileFinish,
+            ignore,
+            fileId = true
+        } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
-        const resolvePath = path.resolve(source)
+        const resolvePath = path.resolve(localPath)
         // 在路径结尾加上 '/'
-        const localPath = path.join(resolvePath, path.sep)
-        const filePaths = await this.walkLocalDir(localPath, ignore)
+        const resolveLocalPath = path.join(resolvePath, path.sep)
+        const filePaths = await this.walkLocalDir(resolveLocalPath, ignore)
 
         if (!filePaths || !filePaths.length) {
             return
@@ -201,20 +219,21 @@ export class StorageService {
 
         const fileStatsList = filePaths.map(filePath => {
             // 处理 windows 路径
-            const fileKeyPath = filePath.replace(localPath, '').replace(/\\/g, '/')
-            let cloudPath = path.join(cloudDirectory, fileKeyPath).replace(/\\/g, '/')
+            const fileKeyPath = filePath.replace(resolveLocalPath, '').replace(/\\/g, '/')
+            // 解析 cloudPath
+            let cloudFileKey = path.join(cloudPath, fileKeyPath).replace(/\\/g, '/')
 
             if (isDirectory(filePath)) {
-                cloudPath = this.getCloudKey(cloudPath)
+                cloudFileKey = this.getCloudKey(cloudFileKey)
                 return {
                     filePath,
-                    cloudPath,
+                    cloudFileKey,
                     isDir: true
                 }
             } else {
                 return {
                     filePath,
-                    cloudPath,
+                    cloudFileKey,
                     isDir: false
                 }
             }
@@ -225,7 +244,11 @@ export class StorageService {
             .filter(info => info.isDir)
             .map(info => {
                 // 如果是文件夹，则创建空文件夹对象
-                return this.createCloudDirectroyCustom(info.cloudPath, bucket, region)
+                return this.createCloudDirectroyCustom({
+                    cloudPath: info.cloudFileKey,
+                    bucket,
+                    region
+                })
             })
 
         await Promise.all(createDirs)
@@ -236,14 +259,14 @@ export class StorageService {
             .map(async stats => {
                 let cosFileId
                 if (fileId) {
-                    const res = await this.getUploadMetadata(stats.cloudPath)
+                    const res = await this.getUploadMetadata(stats.cloudFileKey)
                     cosFileId = res.cosFileId
                 }
 
                 return {
                     Bucket: bucket,
                     Region: region,
-                    Key: stats.cloudPath,
+                    Key: stats.cloudFileKey,
                     FilePath: stats.filePath,
                     'x-cos-meta-fileid': cosFileId
                 }
@@ -269,7 +292,11 @@ export class StorageService {
     @preLazy()
     public async createCloudDirectroy(cloudPath: string) {
         const { bucket, region } = this.getStorageConfig()
-        await this.createCloudDirectroyCustom(cloudPath, bucket, region)
+        await this.createCloudDirectroyCustom({
+            cloudPath,
+            bucket,
+            region
+        })
     }
 
     /**
@@ -279,7 +306,8 @@ export class StorageService {
      * @param {string} region
      */
     @preLazy()
-    public async createCloudDirectroyCustom(cloudPath: string, bucket: string, region: string) {
+    public async createCloudDirectroyCustom(options: ICustomOptions & { cloudPath: string }) {
+        const { cloudPath, bucket, region } = options
         const cos = this.getCos()
         const putObject = Util.promisify(cos.putObject).bind(cos)
 
@@ -304,7 +332,8 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async downloadFile(cloudPath: string, localPath): Promise<void> {
+    public async downloadFile(options: IFileOptions): Promise<void> {
+        const { cloudPath, localPath } = options
         const resolveLocalPath = path.resolve(localPath)
         const fileDir = path.dirname(localPath)
 
@@ -323,19 +352,20 @@ export class StorageService {
 
     /**
      * 下载文件夹
-     * @param {string} cloudDirectory 云端文件路径
+     * @param {string} cloudPath 云端文件路径
      * @param {string} localPath 本地文件夹存储路径
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async downloadDirectory(cloudDirectory: string, localPath: string): Promise<void> {
+    public async downloadDirectory(options: IFileOptions): Promise<void> {
+        const { cloudPath, localPath } = options
         const resolveLocalPath = path.resolve(localPath)
 
         if (!fs.existsSync(resolveLocalPath)) {
             throw new CloudBaseError('本地存储路径不存在！')
         }
 
-        const cloudDirectoryKey = this.getCloudKey(cloudDirectory)
+        const cloudDirectoryKey = this.getCloudKey(cloudPath)
         const files = await this.walkCloudDir(cloudDirectoryKey)
 
         const promises = files.map(async file => {
@@ -348,7 +378,10 @@ export class StorageService {
             // 创建文件的父文件夹
             const fileDir = path.dirname(localFilePath)
             await makeDir(fileDir)
-            await this.downloadFile(file.Key, localFilePath)
+            await this.downloadFile({
+                cloudPath: file.Key,
+                localPath: localFilePath
+            })
         })
 
         await Promise.all(promises)
@@ -357,12 +390,12 @@ export class StorageService {
     /**
      * 列出文件夹下的文件
      * @link https://cloud.tencent.com/document/product/436/7734
-     * @param {string} cloudDirectory 云端文件夹，如果为空字符串，则表示根目录
+     * @param {string} cloudPath 云端文件夹，如果为空字符串，则表示根目录
      * @returns {Promise<ListFileInfo[]>}
      */
     @preLazy()
-    public async listDirectoryFiles(cloudDirectory: string): Promise<IListFileInfo[]> {
-        const files = await this.walkCloudDir(cloudDirectory)
+    public async listDirectoryFiles(cloudPath: string): Promise<IListFileInfo[]> {
+        const files = await this.walkCloudDir(cloudPath)
 
         return files
     }
@@ -549,35 +582,42 @@ export class StorageService {
 
     /**
      * 删除文件夹
-     * @param {string} cloudDirectory 云端文件夹
+     * @param {string} cloudPath 云端文件夹路径
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async deleteDirectory(cloudDirectory: string): Promise<void> {
+    public async deleteDirectory(cloudPath: string): Promise<void> {
         const { bucket, region } = this.getStorageConfig()
 
-        await this.deleteDirectoryCustom(cloudDirectory, bucket, region)
+        await this.deleteDirectoryCustom({
+            cloudPath,
+            bucket,
+            region
+        })
     }
 
     /**
      * 删除文件，可以指定 bucket 和 region
-     * @param {string} cloudDirectory
+     * @param {string} cloudPath
      * @param {string} bucket
      * @param {string} region
      * @returns {Promise<void>}
      */
     @preLazy()
     public async deleteDirectoryCustom(
-        cloudDirectory: string,
-        bucket: string,
-        region: string
+        options: { cloudPath: string } & ICustomOptions
     ): Promise<void> {
-        const key = this.getCloudKey(cloudDirectory)
+        const { cloudPath, bucket, region } = options
+        const key = this.getCloudKey(cloudPath)
 
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
 
-        const files = await this.walkCloudDirCustom(key, bucket, region)
+        const files = await this.walkCloudDirCustom({
+            bucket,
+            region,
+            prefix: key
+        })
 
         const promises = files.map(
             async file =>
@@ -647,7 +687,12 @@ export class StorageService {
     @preLazy()
     public async walkCloudDir(prefix: string, marker?: string): Promise<IListFileInfo[]> {
         const { bucket, region } = this.getStorageConfig()
-        return this.walkCloudDirCustom(prefix, bucket, region, marker)
+        return this.walkCloudDirCustom({
+            prefix,
+            bucket,
+            region,
+            marker
+        })
     }
 
     /**
@@ -659,12 +704,8 @@ export class StorageService {
      * @returns {Promise<IListFileInfo[]>}
      */
     @preLazy()
-    public async walkCloudDirCustom(
-        prefix: string,
-        bucket: string,
-        region: string,
-        marker?: string
-    ): Promise<IListFileInfo[]> {
+    public async walkCloudDirCustom(options: IWalkCloudDirOptions): Promise<IListFileInfo[]> {
+        const { prefix, bucket, region, marker = '/' } = options
         let fileList = []
         const cos = this.getCos()
         const getBucket = Util.promisify(cos.getBucket).bind(cos)
@@ -683,7 +724,12 @@ export class StorageService {
 
         let moreFiles = []
         if (res.IsTruncated === 'true' || res.IsTruncated === true) {
-            moreFiles = await this.walkCloudDirCustom(prefixKey, bucket, region, res.NextMarker)
+            moreFiles = await this.walkCloudDirCustom({
+                bucket,
+                region,
+                prefix: prefixKey,
+                marker: res.NextMarker
+            })
         }
 
         fileList.push(...moreFiles)

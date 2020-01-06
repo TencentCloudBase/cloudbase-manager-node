@@ -28,20 +28,27 @@ const { storage } = new CloudBase({
 - [获取文件存储权限](#获取文件存储权限)
 - [设置文件存储权限](#设置文件存储权限)
 
-## 上传文件
+## 上传文件（v2.x 与 v1.x 不兼容 ）
 
 ### 接口定义
 
 ```js
+// 2.x 版本
+uploadFile(options): Promise<void>
+```
+
+```js
+// 1.x 版本
 uploadFile(localPath: string, cloudPath: string): Promise<void>
 ```
 
-### 参数说明
+### 参数 Options 说明
 
-| 参数名    | 类型   | 描述                           |
-| --------- | ------ | ------------------------------ |
-| localPath | string | 本地文件路径，建议传入绝对路径 |
-| cloudPath | string | 云端文件路径：`dir/data.txt`   |
+| 参数名     | 类型     | 描述                           |
+| ---------- | -------- | ------------------------------ |
+| localPath  | string   | 本地文件路径，建议传入绝对路径 |
+| cloudPath  | string   | 云端文件路径：`dir/data.txt`   |
+| onProgress | Function | 上传进度回调函数               |
 
 注：当 localPath 为文件夹时，SDK 会尝试在此文件夹下（一级目录，不深度遍历）寻找和 cloudPath 中所存在文件同名的文件，如 cloudPath 为 `dir/data.txt`，则会寻找 'data.txt'。
 
@@ -52,23 +59,34 @@ uploadFile(localPath: string, cloudPath: string): Promise<void>
 ```js
 import path from 'path'
 
-await storage.upload(path.resolve('./data.txt'), 'files/data.txt')
+await storage.upload({
+    localPath: path.resolve('./data.txt'),
+    cloudPath: 'files/data.txt',
+    onProgress: data => {}
+})
 ```
 
-## 上传文件夹
+## 上传文件夹（v2.x 与 v1.x 不兼容）
 
 此接口会遍历目标文件夹下所有的文件并上传，同时保持文件夹结构。
 
 ```js
-uploadDirectory(source: string, cloudDirectory: string): Promise<void>
+// 2.x 版本
+uploadDirectory(options): Promise<void>
 ```
 
-### 参数说明
+```js
+// 1.x 版本
+uploadDirectory(source: string, cloudPath: string): Promise<void>
+```
 
-| 参数名         | 类型   | 描述           |
-| -------------- | ------ | -------------- |
-| source         | string | 本地文件夹路径 |
-| cloudDirectory | string | 云端文件夹路径 |
+### 参数 options 说明
+
+| 参数名     | 类型     | 描述             |
+| ---------- | -------- | ---------------- |
+| localPath  | string   | 本地文件夹路径   |
+| cloudPath  | string   | 云端文件夹路径   |
+| onProgress | Function | 上传进度回调函数 |
 
 ### 响应结果：void
 
@@ -76,18 +94,28 @@ uploadDirectory(source: string, cloudDirectory: string): Promise<void>
 
 ```js
 import path from 'path'
-await storage.uploadDirectory(path.resolve('./files'))
+await storage.uploadDirectory({
+    localPath: path.resolve('./files'),
+    cloudPath: '',
+    onProgress: data => {}
+})
 ```
 
-## 下载文件
+## 下载文件（v2.x 与 v1.x 不兼容）
 
 ### 接口定义
 
 ```js
+// 2.x 版本
+downloadFile(options): Promise<void>
+```
+
+```js
+// 1.x 版本
 downloadFile(cloudPath: string, localPath): Promise<void>
 ```
 
-### 参数说明
+### 参数 options 说明
 
 | 参数名    | 类型   | 描述                                 |
 | --------- | ------ | ------------------------------------ |
@@ -100,22 +128,32 @@ downloadFile(cloudPath: string, localPath): Promise<void>
 
 ```js
 import path from 'path'
-await storage.downloadFile('files/data.txt', path.resolve('./data.txt'))
+await storage.downloadFile({
+    cloudPath: 'files/data.txt',
+    localPath: path.resolve('./data.txt')
+})
 ```
 
-## 下载文件夹
+## 下载文件夹（v2.x 与 v1.x 不兼容）
 
 ### 接口定义
 
 ```js
-downloadDirectory(cloudDirectory: string, localPath: string): Promise<void>
+// 2.x 版本
+downloadDirectory(options): Promise<void>
+
+```
+
+```js
+// 1.x 版本
+downloadDirectory(cloudPath: string, localPath: string): Promise<void>
 ```
 
 ### 参数说明
 
 | 参数名         | 类型   | 描述                                 |
 | -------------- | ------ | ------------------------------------ |
-| cloudDirectory | string | 云端文件夹                           |
+| cloudPath | string | 云端文件夹                           |
 | localPath      | string | 本地文件存储路径，文件需指定文件名称 |
 
 ### 响应结果：void
@@ -124,27 +162,30 @@ downloadDirectory(cloudDirectory: string, localPath: string): Promise<void>
 
 ```js
 import path from 'path'
-await storage.downloadDirectory('files/music', path.resolve('./music'))
+await storage.downloadDirectory({
+    cloudPath: 'files/music',
+    localPath: path.resolve('./music')
+})
 ```
 
 **NOTE：**
-- 此操作会遍历文件夹下的所有文件，如果文件数量过多，可能会造成执行失败。
-- 当 cloudDirectory 不存在时，SDK 不会下载文件，也不会抛出错误。
 
+-   此操作会遍历文件夹下的所有文件，如果文件数量过多，可能会造成执行失败。
+-   当 cloudPath 不存在时，SDK 不会下载文件，也不会抛出错误。
 
 ## 列出文件夹下的所有文件
 
 ### 接口定义
 
 ```js
-listDirectoryFiles(cloudDirectory: string): Promise<IListFileInfo[]>
+listDirectoryFiles(cloudPath: string): Promise<IListFileInfo[]>
 ```
 
 ### 参数说明
 
 | 参数名         | 类型   | 描述                        |
 | -------------- | ------ | --------------------------- |
-| cloudDirectory | string | 云端文件夹路径：`dir/data/` |
+| cloudPath | string | 云端文件夹路径：`dir/data/` |
 
 ### 响应结果
 
@@ -229,14 +270,14 @@ await storage.deleteFile(['files/data.txt'])
 ### 接口定义
 
 ```js
-deleteDirectory(cloudDirectory: string): Promise<void>
+deleteDirectory(cloudPath: string): Promise<void>
 ```
 
 ### 参数说明
 
 | 参数名         | 类型   | 描述           |
 | -------------- | ------ | -------------- |
-| cloudDirectory | string | 云端文件夹路径 |
+| cloudPath | string | 云端文件夹路径 |
 
 ### 响应结果：void
 
@@ -246,14 +287,14 @@ deleteDirectory(cloudDirectory: string): Promise<void>
 await storage.deleteDirectory('files/')
 ```
 
-**注意：** 当 cloudDirectory 不存在时，SDK 不会抛出错误。
+**注意：** 当 cloudPath 不存在时，SDK 不会抛出错误。
 
 ## 获取文件临时下载链接
 
 ### 接口定义
 
 ```js
-getTemporaryUrl(fileList: (string | TempUrlInfo)[])
+getTemporaryUrl((fileList: (string | TempUrlInfo)[]))
 ```
 
 ### 参数说明
@@ -331,7 +372,7 @@ const acl = await storage.getStorageAcl()
 ### 接口定义
 
 ```js
-setStorageAcl(acl: string)
+setStorageAcl((acl: string))
 ```
 
 ### 参数说明
