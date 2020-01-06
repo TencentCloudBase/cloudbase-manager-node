@@ -84,20 +84,31 @@ const res = await env.listEnvs()
 > ⚠️ 若你想创建预付费的环境，本 API 目前仅支持创建预付费的免费环境，每个主账户最多有一个免费环境。如果该账户已经创建过免费环境，调用本 API 创建预付费环境会返回商品下单异常错误，请到云开发控制台创建更多预付费环境。
 
 ```javascript
-createEnv(((name: string), (paymentMode: string)))
+createEnv((param: ICreateEnvParam))
 ```
+
+### ICreateEnvParam 结构体
+
+| 参数名      | 是否必填 | 类型   | 描述                                                                                  |
+| ----------- | -------- | ------ | ------------------------------------------------------------------------------------- |
+| name        | 是       | String | 环境名                                                                                |
+| paymentMode | 否       | String | 环境套餐类型: 预付费(包年包月) prepay, 后付费(按量付费) postpay，不传默认使用 postpay |
+| channel     | 否       | String | 支持以下选项 'web'，'cocos'，'qq'，'cloudgame'                                        |
 
 ### 参数说明
 
-| 参数名 | 是否必填 | 类型   | 描述                                                                                  |
-| ------ | -------- | ------ | ------------------------------------------------------------------------------------- |
-| name   | 是       | String | 环境名                                                                                |
-| name   | 否       | String | 环境套餐类型: 预付费(包年包月) prepay, 后付费(按量付费) postpay，不传默认使用 postpay |
+| 参数名 | 是否必填 | 类型            | 描述         |
+| ------ | -------- | --------------- | ------------ |
+| param  | 是       | ICreateEnvParam | 环境创建选项 |
 
 ### 调用示例
 
 ```javascript
-const res = await env.createEnv('aaa', 'postpay')
+const res = await createEnv({
+    name: 'test',
+    paymentMode: 'postpay',
+    channel: 'web'
+})
 ```
 
 ### 返回示例
