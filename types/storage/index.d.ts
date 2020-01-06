@@ -25,7 +25,7 @@ export declare class StorageService {
      * @param {string} cloudPath 云端文件路径，如 img/test.png
      * @returns {Promise<void>}
      */
-    uploadFile(localPath: string, cloudPath: string, onProgress?: OnProgress): Promise<void>;
+    uploadFile(localPath: string, cloudPath?: string, onProgress?: OnProgress): Promise<void>;
     /**
      * 上传文件，支持自定义 Bucket 和 Region
      * @param {string} localPath
@@ -41,7 +41,7 @@ export declare class StorageService {
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
-    uploadDirectory(source: string, cloudDirectory: string, options?: IOptions): Promise<void>;
+    uploadDirectory(source: string, cloudDirectory?: string, options?: IOptions): Promise<void>;
     /**
      * 上传文件夹，支持自定义 Region 和 Bucket
      * @param {string} source

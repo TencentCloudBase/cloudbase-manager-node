@@ -55,7 +55,7 @@ export class StorageService {
     @preLazy()
     public async uploadFile(
         localPath: string,
-        cloudPath: string,
+        cloudPath = '',
         onProgress?: OnProgress
     ): Promise<void> {
         const { bucket, region } = this.getStorageConfig()
@@ -88,7 +88,7 @@ export class StorageService {
         // 如果 localPath 是一个文件夹，尝试在文件下寻找 cloudPath 中的文件
         const fileStats = fs.statSync(resolveLocalPath)
         if (fileStats.isDirectory()) {
-            const fileName = cloudPath.split('/').pop()
+            const fileName = path.parse(cloudPath).base
             const attemptFilePath = path.join(localPath, fileName)
             if (fs.existsSync(attemptFilePath)) {
                 localFilePath = path.resolve(attemptFilePath)
@@ -156,7 +156,7 @@ export class StorageService {
     @preLazy()
     public async uploadDirectory(
         source: string,
-        cloudDirectory: string,
+        cloudDirectory = '',
         options: IOptions = {}
     ): Promise<void> {
         const { ignore, onProgress, onFileFinish } = options
@@ -200,8 +200,10 @@ export class StorageService {
         }
 
         const fileStatsList = filePaths.map(filePath => {
-            const fileKeyPath = filePath.replace(localPath, '')
-            let cloudPath = path.join(cloudDirectory, fileKeyPath)
+            // 处理 windows 路径
+            const fileKeyPath = filePath.replace(localPath, '').replace(/\\/g, '/')
+            let cloudPath = path.join(cloudDirectory, fileKeyPath).replace(/\\/g, '/')
+
             if (isDirectory(filePath)) {
                 cloudPath = this.getCloudKey(cloudPath)
                 return {
