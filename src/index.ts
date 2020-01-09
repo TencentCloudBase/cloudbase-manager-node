@@ -7,6 +7,7 @@ import { StorageService } from './storage'
 import { DatabaseService } from './database'
 import { EnvService } from './env'
 import { CloudBaseContext } from './context'
+import { CommonService } from './common'
 
 interface CloudBaseConfig {
     secretId?: string
@@ -99,6 +100,10 @@ class CloudBase {
     }
     public get database(): DatabaseService {
         return this.currentEnvironment().getDatabaseService()
+    }
+
+    public get commonService(): CommonService {
+        return this.currentEnvironment().getCommonService()
     }
 
     public get env(): EnvService {

@@ -41,8 +41,8 @@ listFunctions((limit: number), (offset: number)) // limit 默认20 offset 默认
 
 | 参数名 | 类型   | 描述 |
 | ------ | ------ | ---- |
-| limit  | number | 范围 |
-| offset | number | 偏移 |
+| limit  | Number | 范围 |
+| offset | Number | 偏移 |
 
 ### 调用示例
 
@@ -98,10 +98,10 @@ createFunction((funcParam: ICreateFunctionParam))
 | 参数名           | 是否必填 | 类型           | 描述                   |
 | ---------------- | -------- | -------------- | ---------------------- |
 | func             | 是       | ICloudFunction | 函数配置               |
-| functionRootPath | 否       | string         | 用户本地函数文件目录   |
-| force            | 是       | boolean        | 是否覆盖同名函数       |
-| base64Code       | 否       | string         | 函数文件的 base64 编码 |
-| codeSecret       | 否       | string         | 代码保护密钥           |
+| functionRootPath | 否       | String         | 用户本地函数文件目录   |
+| force            | 是       | Boolean        | 是否覆盖同名函数       |
+| base64Code       | 否       | String         | 函数文件的 base64 编码 |
+| codeSecret       | 否       | String         | 代码保护密钥           |
 
 **注：createFunction 支持两种方式创建函数，1. 用户指定本地的函数文件根目录(绝对地址); 2. 用户将函数代码包压缩为 zip 文件后进行 base64 转码，传入 base64Code 参数**
 
@@ -208,9 +208,9 @@ updateFunctionCode((funcParam: IUpdateFunctionCodeParam))
 | 参数名           | 是否必填 | 类型           | 描述                   |
 | ---------------- | -------- | -------------- | ---------------------- |
 | func             | 是       | ICloudFunction | 函数配置               |
-| functionRootPath | 否       | string         | 用户本地函数文件目录   |
-| base64Code       | 否       | string         | 函数文件的 base64 编码 |
-| codeSecret       | 否       | string         | 函数文件的 base64 编码 |
+| functionRootPath | 否       | String         | 用户本地函数文件目录   |
+| base64Code       | 否       | String         | 函数文件的 base64 编码 |
+| codeSecret       | 否       | String         | 函数文件的 base64 编码 |
 
 [ICloudFunction 结构体](#ICloudFunction)
 
@@ -533,7 +533,7 @@ copyFunction((name: string), (newFunctionName: string), (targetEnvId: string), (
 | name            | String  | 原函数名                          |
 | newFunctionName | String  | 新函数名                          |
 | targetEnvId     | String  | 新环境 ID（跨环境拷贝函数时填写） |
-| force           | boolean | 是否覆盖同名函数                  |
+| force           | Boolean | 是否覆盖同名函数                  |
 
 ### 调用示例
 

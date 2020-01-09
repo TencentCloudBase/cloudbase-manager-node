@@ -4,6 +4,7 @@ import { FunctionService } from './function';
 import { StorageService } from './storage';
 import { DatabaseService } from './database';
 import { EnvService } from './env';
+import { CommonService } from './common';
 interface CloudBaseConfig {
     secretId?: string;
     secretKey?: string;
@@ -31,6 +32,7 @@ declare class CloudBase {
     readonly functions: FunctionService;
     readonly storage: StorageService;
     readonly database: DatabaseService;
+    readonly commonService: CommonService;
     readonly env: EnvService;
     getEnvironmentManager(): EnvironmentManager;
     getManagerConfig(): CloudBaseConfig;

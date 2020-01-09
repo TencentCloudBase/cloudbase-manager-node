@@ -16,17 +16,17 @@ const { database } = new CloudBase({
 
 ## 目录
 
-- [创建集合](#创建集合)
-- [检查集合是否存在](#检查集合是否存在)
-- [删除集合](#删除集合)
-- [更新集合](#更新集合)
-- [查询集合详细信息](#查询集合详细信息)
-- [查询所有集合信息](#查询所有集合信息)
-- [检查索引是否存在](#检查索引是否存在)
-- [导入数据](#导入数据)
-- [导出数据](#导出数据)
-- [查询迁移（导入|导出）状态](#查询迁移导入导出状态)
-- [查询数据分布](#查询数据分布)
+-   [创建集合](#创建集合)
+-   [检查集合是否存在](#检查集合是否存在)
+-   [删除集合](#删除集合)
+-   [更新集合](#更新集合)
+-   [查询集合详细信息](#查询集合详细信息)
+-   [查询所有集合信息](#查询所有集合信息)
+-   [检查索引是否存在](#检查索引是否存在)
+-   [导入数据](#导入数据)
+-   [导出数据](#导出数据)
+-   [查询迁移（导入|导出）状态](#查询迁移导入导出状态)
+-   [查询数据分布](#查询数据分布)
 
 ## 创建集合
 
@@ -35,13 +35,13 @@ const { database } = new CloudBase({
 该接口可创建集合。
 
 ```javascript
-createCollection(collectionName: string)
+createCollection((collectionName: string))
 ```
 
 该接口可创建集合，如果集合不存在。
 
 ```javascript
-createCollectionIfNotExists(collectionName: string)
+createCollectionIfNotExists((collectionName: string))
 ```
 
 ### 参数说明
@@ -77,7 +77,7 @@ let result = await database.createCollection('collectionName')
 该接口可检查集合是否存在。
 
 ```javascript
-checkCollectionExists(collectionName: string)
+checkCollectionExists((collectionName: string))
 ```
 
 ### 参数说明
@@ -115,7 +115,7 @@ let result = await database.checkCollectionExists('collectionAlreadyExists')
 该接口可删除集合。
 
 ```javascript
-deleteCollection(collectionName: string)
+deleteCollection((collectionName: string))
 ```
 
 ### 参数说明
@@ -153,8 +153,8 @@ let result = await database.deleteCollection('collectionAlreadyExists')
 
 | 参数名    | 类型    | 描述             |
 | --------- | ------- | ---------------- |
-| RequestId | string  | 请求唯一标识     |
-| Exists    | boolean | 被删集合是否存在 |
+| RequestId | String  | 请求唯一标识     |
+| Exists    | Boolean | 被删集合是否存在 |
 
 ## 更新集合
 
@@ -212,7 +212,7 @@ updateCollection(collectionName: string, options: array): object
 | --------- | ------ | -------- |
 | IndexName | String | 索引名称 |
 
->更新索引支持的两种方式，创建与删除，相互独立，不可在options同时传入CreateIndexes，DropIndexes
+> 更新索引支持的两种方式，创建与删除，相互独立，不可在 options 同时传入 CreateIndexes，DropIndexes
 
 ### 调用示例
 
@@ -450,12 +450,9 @@ let result = await database.checkIndexExists('collectionAlreadyExists', 'index_t
 -   导入数据需要先将文件上传到该环境（同一个 EnvId）下的对象存储中，所以会在对象存储中创建对象。
 -   因为该函数成功返回只意味着上传成功，导入操作在上传后开始，该接口无法判断导入是否完成，所以该对象用完后需要手动删除。
 
-
 ```javascript
 import(collectionName: string, file: object, options: object): object
 ```
-
-
 
 **参数说明**
 

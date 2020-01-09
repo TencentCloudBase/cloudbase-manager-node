@@ -240,7 +240,11 @@ test('获取函数详情: functions.getFunctionDetail', async () => {
 })
 
 test('获取函数日志: functions.getFunctionLog', async () => {
-    const logs = await functions.getFunctionLogs({ name: 'app' })
+    // const logs = await functions.getFunctionLogs({ name: 'app' })
+    const logs = await functions.getFunctionLogs({
+        name: 'app',
+        requestId: 'b87d3ad6-3447-11ea-8ec5-525400e4521d'
+    })
 
     expect(logs.Data.length).toBeGreaterThanOrEqual(0)
 })

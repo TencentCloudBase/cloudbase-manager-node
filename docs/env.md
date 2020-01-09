@@ -26,6 +26,7 @@ const { env } = new CloudBase({
 -   [拉取登录配置列表](#拉取登录配置列表)
 -   [创建登录方式](#创建登录方式)
 -   [更新登录方式配置](#更新登录方式配置)
+-   [创建自定义登录密钥](#创建自定义登录密钥)
 
 ## 获取所有环境信息
 
@@ -167,9 +168,9 @@ createEnvDomain((domains: string[]))
 
 ### 参数说明
 
-| 参数名  | 类型     | 描述         |
-| ------- | -------- | ------------ |
-| domains | String[] | 安全域名数组 |
+| 参数名  | 类型                 | 描述         |
+| ------- | -------------------- | ------------ |
+| domains | Array.&lt;String&gt; | 安全域名数组 |
 
 ### 调用示例
 
@@ -195,9 +196,9 @@ deleteEnvDomain((domains: string[]))
 
 ### 参数说明
 
-| 参数名  | 类型     | 描述         |
-| ------- | -------- | ------------ |
-| domains | String[] | 安全域名数组 |
+| 参数名  | 类型                 | 描述         |
+| ------- | -------------------- | ------------ |
+| domains | Array.&lt;String&gt; | 安全域名数组 |
 
 ### 调用示例
 
@@ -316,11 +317,11 @@ createLoginConfig((platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC'), (appId: string), 
 
 ### 参数说明
 
-| 参数名    | 类型   | 描述                               |
-| --------- | ------ | ---------------------------------- |
-| platform  | String | 平台 "WECHAT-OPEN" "WECHAT-PUBLIC" |
-| appId     | String | 第三方平台的 AppID                 |
-| appSecret | String | 第三方平台的 AppSecret             |
+| 参数名    | 类型   | 描述                                                                                    |
+| --------- | ------ | --------------------------------------------------------------------------------------- |
+| platform  | String | 平台 "WECHAT-OPEN" "WECHAT-PUBLIC" "QQ" "ANONYMOUS"                                     |
+| appId     | String | 第三方平台的 AppID 注意:如果是匿名登录方式(platform:ANONYMOUS),appId 填: anonymous      |
+| appSecret | String | 第三方平台的 AppSecret，注意:如果是 匿名登录方式(platform:ANONYMOUS)， appSecret 可不填 |
 
 ### 调用示例
 
@@ -346,12 +347,12 @@ updateLoginConfig((configId: string), (status = 'ENABLE'), (appId = ''), (appSec
 
 ### 参数说明
 
-| 参数名    | 类型   | 描述                   |
-| --------- | ------ | ---------------------- |
-| configId  | String | 配置的记录 ID          |
-| status    | String | ”ENABLE”, “DISABLE”    |
-| appId     | String | 第三方平台的 AppSecret |
-| appSecret | String | 第三方平台的 AppSecret |
+| 参数名    | 类型   | 描述                                                     |
+| --------- | ------ | -------------------------------------------------------- |
+| configId  | String | 配置的记录 ID                                            |
+| status    | String | ”ENABLE”, “DISABLE”                                      |
+| appId     | String | 第三方平台的 AppId，如果是匿名登录， appId 填: anonymous |
+| appSecret | String | 第三方平台的 AppSecret，如果是匿名登录，可不填该字段     |
 
 ### 调用示例
 
@@ -359,7 +360,7 @@ updateLoginConfig((configId: string), (status = 'ENABLE'), (appId = ''), (appSec
 const loginConfigRes = await env.getLoginConfigList()
 const updateLoginConfigRes = await env.updateLoginConfig(
     loginConfigRes.ConfigList[0].Id,
-    '',
+    'ENABLE',
     'appId',
     'appSecret'
 )
@@ -370,5 +371,29 @@ const updateLoginConfigRes = await env.updateLoginConfig(
 ```json
 {
     "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+}
+```
+
+## 创建自定义登录密钥
+
+### 接口定义
+
+```javascript
+createCustomLoginKeys()
+```
+
+### 调用示例
+
+```javascript
+const res = await env.createCustomLoginKeys()
+```
+
+### 返回示例
+
+```json
+{
+    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a",
+    "KeyID": "ade7b34e-7e54-492f-9bc7-786626d2b971",
+    "PrivateKey": "-----BEGIN RSA PRIVATE KEY-----\naaaaaaaaaaaaaaa\n-----END RSA PRIVATE KEY-----\n"
 }
 ```

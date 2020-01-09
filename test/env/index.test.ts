@@ -3,6 +3,8 @@ import CloudBase from '../../src/index'
 
 let manager = new CloudBase(cloudBaseConfig)
 
+const { envId } = cloudBaseConfig
+
 test('获取所有环境 env.listEnvs', async () => {
     const res = await manager.env.listEnvs()
     expect(res.EnvList.length).toBeGreaterThanOrEqual(1)
@@ -35,6 +37,7 @@ test('修改环境信息 env.updateEnvInfo', async () => {
 // 拉取当前环境的登录配置列表
 test('拉取当前环境的登录配置列表 env.getLoginConfigList', async () => {
     const res = await manager.env.getLoginConfigList()
+    console.log(res)
     expect(res.ConfigList.length).toBeGreaterThanOrEqual(0)
 })
 
@@ -47,6 +50,29 @@ test('删除当前环境的安全域名 env.deleteEnvDomain', async () => {
 // 创建登录方式
 test('env CreateLoginConfig', async () => {
     expect(manager.env.createLoginConfig('WECHAT-OPEN', '', '')).rejects.toThrowError()
+})
+
+// 创建匿名登录方式
+test('env anonymous CreateLoginConfig', async () => {
+    const { ConfigList } = await manager.env.getLoginConfigList()
+    const hasAnonymousConfig = ConfigList.some(item => item.Platform === 'ANONYMOUS')
+    if (!hasAnonymousConfig) {
+        const res = await manager.env.createLoginConfig('ANONYMOUS', 'anonymous')
+        expect(res.RequestId).toBeTruthy()
+    }
+})
+
+// 更新匿名登录方式
+test('env anonymous CreateLoginConfig', async () => {
+    const { ConfigList } = await manager.env.getLoginConfigList()
+    const anonymousConfig: any = ConfigList.find(item => item.Platform === 'ANONYMOUS')
+    if (anonymousConfig) {
+        const res = await manager.env.updateLoginConfig(anonymousConfig.Id, 'ENABLE', 'anonymous')
+        console.log(res)
+        // expect(res.RequestId).toBeTruthy()
+    } else {
+        throw Error('请先创建匿名登录方式')
+    }
 })
 
 // 更新登录方式 待验证
@@ -73,4 +99,12 @@ test('env createEnv', async () => {
 test('env listEnvs', async () => {
     const res = await manager.env.listEnvs()
     expect(res.EnvList.length).toBeGreaterThanOrEqual(0)
+})
+
+test('创建自定义登录密钥', async () => {
+    const res = await manager.env.createCustomLoginKeys()
+
+    console.log(res)
+
+    expect(res.RequestId !== undefined).toBe(true)
 })

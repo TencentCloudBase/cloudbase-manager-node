@@ -319,7 +319,7 @@ export class FunctionService {
             OrderBy: orderBy,
             StartTime: startTime,
             EndTime: endTime,
-            functionRequestId: requestId
+            FunctionRequestId: requestId
         }
 
         const res: IFunctionLogRes = await this.scfService.request('GetFunctionLogs', params)

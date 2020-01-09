@@ -271,6 +271,29 @@ export interface CommParam {
     EnvName?: string;
     Module?: string;
 }
+export interface CloudBaseGWAPI {
+    ServiceId: string;
+    APIId: string;
+    Path: string;
+    Type: number;
+    Name: string;
+    CreateTime: number;
+}
+export interface CloudBaseGWService {
+    ServiceId: string;
+    Domain: string;
+    OpenTime: number;
+}
 export interface ICreatePostpayRes extends IResponseInfo {
     TranId: string;
+}
+export interface ICreateFunctionHttpServiceRes extends IResponseInfo {
+    APIId: string;
+    Endpoint: string;
+}
+export interface IGWOrDomainNumRes extends IResponseInfo {
+    Count: number;
+}
+export interface IHttpServiceDomainRes extends IResponseInfo {
+    ServiceSet: Array<CloudBaseGWService>;
 }

@@ -2,6 +2,7 @@ import { DatabaseService } from './database';
 import { FunctionService } from './function';
 import { StorageService } from './storage';
 import { EnvService } from './env';
+import { CommonService } from './common';
 import { CloudBaseContext } from './context';
 export declare class Environment {
     inited: boolean;
@@ -19,5 +20,6 @@ export declare class Environment {
     getDatabaseService(): DatabaseService;
     getFunctionService(): FunctionService;
     getEnvService(): EnvService;
+    getCommonService(serviceType?: string): CommonService;
     getServicesEnvInfo(): Promise<any>;
 }

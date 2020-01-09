@@ -16,17 +16,17 @@ const { storage } = new CloudBase({
 
 ## 目录
 
-- [上传文件](#上传文件)
-- [上传文件夹](#上传文件夹)
-- [下载文件](#下载文件)
-- [下载文件夹](#下载文件夹)
-- [列出文件夹下的所有文件](#列出文件夹下的所有文件)
-- [获取文件信息](#获取文件信息)
-- [批量删除文件](#批量删除文件)
-- [删除文件夹](#删除文件夹)
-- [获取文件临时下载链接](#获取文件临时下载链接)
-- [获取文件存储权限](#获取文件存储权限)
-- [设置文件存储权限](#设置文件存储权限)
+-   [上传文件](#上传文件)
+-   [上传文件夹](#上传文件夹)
+-   [下载文件](#下载文件)
+-   [下载文件夹](#下载文件夹)
+-   [列出文件夹下的所有文件](#列出文件夹下的所有文件)
+-   [获取文件信息](#获取文件信息)
+-   [批量删除文件](#批量删除文件)
+-   [删除文件夹](#删除文件夹)
+-   [获取文件临时下载链接](#获取文件临时下载链接)
+-   [获取文件存储权限](#获取文件存储权限)
+-   [设置文件存储权限](#设置文件存储权限)
 
 ## 上传文件（v2.x 与 v1.x 不兼容 ）
 
@@ -46,8 +46,8 @@ uploadFile(localPath: string, cloudPath: string): Promise<void>
 
 | 参数名     | 类型     | 描述                           |
 | ---------- | -------- | ------------------------------ |
-| localPath  | string   | 本地文件路径，建议传入绝对路径 |
-| cloudPath  | string   | 云端文件路径：`dir/data.txt`   |
+| localPath  | String   | 本地文件路径，建议传入绝对路径 |
+| cloudPath  | String   | 云端文件路径：`dir/data.txt`   |
 | onProgress | Function | 上传进度回调函数               |
 
 注：当 localPath 为文件夹时，SDK 会尝试在此文件夹下（一级目录，不深度遍历）寻找和 cloudPath 中所存在文件同名的文件，如 cloudPath 为 `dir/data.txt`，则会寻找 'data.txt'。
@@ -84,8 +84,8 @@ uploadDirectory(source: string, cloudPath: string): Promise<void>
 
 | 参数名     | 类型     | 描述             |
 | ---------- | -------- | ---------------- |
-| localPath  | string   | 本地文件夹路径   |
-| cloudPath  | string   | 云端文件夹路径   |
+| localPath  | String   | 本地文件夹路径   |
+| cloudPath  | String   | 云端文件夹路径   |
 | onProgress | Function | 上传进度回调函数 |
 
 ### 响应结果：void
@@ -119,8 +119,8 @@ downloadFile(cloudPath: string, localPath): Promise<void>
 
 | 参数名    | 类型   | 描述                                 |
 | --------- | ------ | ------------------------------------ |
-| cloudPath | string | 云端文件路径：`dir/data.txt`         |
-| localPath | string | 本地文件存储路径，文件需指定文件名称 |
+| cloudPath | String | 云端文件路径：`dir/data.txt`         |
+| localPath | String | 本地文件存储路径，文件需指定文件名称 |
 
 ### 响应结果：void
 
@@ -151,10 +151,10 @@ downloadDirectory(cloudPath: string, localPath: string): Promise<void>
 
 ### 参数说明
 
-| 参数名         | 类型   | 描述                                 |
-| -------------- | ------ | ------------------------------------ |
-| cloudPath | string | 云端文件夹                           |
-| localPath      | string | 本地文件存储路径，文件需指定文件名称 |
+| 参数名    | 类型   | 描述                                 |
+| --------- | ------ | ------------------------------------ |
+| cloudPath | String | 云端文件夹                           |
+| localPath | String | 本地文件存储路径，文件需指定文件名称 |
 
 ### 响应结果：void
 
@@ -183,9 +183,9 @@ listDirectoryFiles(cloudPath: string): Promise<IListFileInfo[]>
 
 ### 参数说明
 
-| 参数名         | 类型   | 描述                        |
-| -------------- | ------ | --------------------------- |
-| cloudPath | string | 云端文件夹路径：`dir/data/` |
+| 参数名    | 类型   | 描述                        |
+| --------- | ------ | --------------------------- |
+| cloudPath | String | 云端文件夹路径：`dir/data/` |
 
 ### 响应结果
 
@@ -224,7 +224,7 @@ getFileInfo(cloudPath: string): Promise<IFileInfo>
 
 | 参数名    | 类型   | 描述                        |
 | --------- | ------ | --------------------------- |
-| cloudPath | string | 云端文件路径 `dir/data.txt` |
+| cloudPath | String | 云端文件路径 `dir/data.txt` |
 
 ### 响应结果
 
@@ -253,9 +253,9 @@ deleteFile(cloudPathList: string[]): Promise<void>
 
 ### 参数说明
 
-| 参数名        | 类型            | 描述                                            |
-| ------------- | --------------- | ----------------------------------------------- |
-| cloudPathList | `Array<string>` | 云端文件路径组成的字符串数组 `['dir/data.txt']` |
+| 参数名        | 类型             | 描述                                            |
+| ------------- | ---------------- | ----------------------------------------------- |
+| cloudPathList | `Array.<string>` | 云端文件路径组成的字符串数组 `['dir/data.txt']` |
 
 ### 响应结果：void
 
@@ -275,9 +275,9 @@ deleteDirectory(cloudPath: string): Promise<void>
 
 ### 参数说明
 
-| 参数名         | 类型   | 描述           |
-| -------------- | ------ | -------------- |
-| cloudPath | string | 云端文件夹路径 |
+| 参数名    | 类型   | 描述           |
+| --------- | ------ | -------------- |
+| cloudPath | String | 云端文件夹路径 |
 
 ### 响应结果：void
 
@@ -299,16 +299,16 @@ getTemporaryUrl((fileList: (string | TempUrlInfo)[]))
 
 ### 参数说明
 
-| 参数名   | 类型                          | 描述                                |
-| -------- | ----------------------------- | ----------------------------------- |
-| fileList | `string | Array<TempUrlInfo>` | 云端文件路径数组或 TempUrlInfo 数组 |
+| 参数名   | 类型                           | 描述                                |
+| -------- | ------------------------------ | ----------------------------------- |
+| fileList | `String | Array.<TempUrlInfo>` | 云端文件路径数组或 TempUrlInfo 数组 |
 
 TempUrlInfo
 
 | 参数名    | 类型   | 描述                           |
 | --------- | ------ | ------------------------------ |
-| cloudPath | string | 云端文件路径                   |
-| maxAge    | number | 临时下载链接有效时间，单位：秒 |
+| cloudPath | String | 云端文件路径                   |
+| maxAge    | Number | 临时下载链接有效时间，单位：秒 |
 
 ### 响应结果
 
@@ -379,7 +379,7 @@ setStorageAcl((acl: string))
 
 | 参数名 | 类型     | 描述             |
 | ------ | -------- | ---------------- |
-| acl    | `string` | 文件存储权限描述 |
+| acl    | `String` | 文件存储权限描述 |
 
 acl 支持选项：
 

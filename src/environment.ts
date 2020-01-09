@@ -3,6 +3,8 @@ import { FunctionService } from './function'
 import { StorageService } from './storage'
 
 import { EnvService } from './env'
+import { CommonService } from './common'
+
 import { CloudBaseContext } from './context'
 import { CloudBaseError } from './error'
 
@@ -63,6 +65,10 @@ export class Environment {
 
     public getEnvService(): EnvService {
         return this.envService
+    }
+
+    public getCommonService(serviceType = 'tcb'): CommonService {
+        return new CommonService(this, serviceType)
     }
 
     public getServicesEnvInfo(): Promise<any> {

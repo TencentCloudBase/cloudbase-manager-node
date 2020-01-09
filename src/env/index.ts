@@ -13,7 +13,6 @@ import { CloudBaseError } from '../error'
 import { guid6, rsaEncrypt, CloudService, preLazy } from '../utils'
 import { CamService } from '../cam'
 import { ROLE_NAME } from '../constant'
-import { create } from 'domain'
 import { BillingService } from '../billing'
 
 interface ICreateEnvParam {
@@ -458,15 +457,20 @@ export class EnvService {
      * @returns {Promise<IResponseInfo>}
      */
     async createLoginConfig(
-        platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC',
+        platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC' | 'QQ' | 'ANONYMOUS',
         appId: string,
-        appSecret: string
+        appSecret?: string
     ): Promise<IResponseInfo> {
-        const validPlatform = ['WECHAT-OPEN', 'WECHAT-PUBLIC']
+        const validPlatform = ['WECHAT-OPEN', 'WECHAT-PUBLIC', 'QQ', 'ANONYMOUS']
+        let finalAppSecret = appSecret
         if (!validPlatform.includes(platform)) {
             throw new CloudBaseError(
-                `Invalid platform value: ${platform}. Now only support 'WECHAT-OPEN', 'WECHAT-PUBLIC'`
+                `Invalid platform value: ${platform}. Now only support 'WECHAT-OPEN', 'WECHAT-PUBLIC', 'QQ', 'ANONYMOUS'`
             )
+        }
+
+        if (platform === 'ANONYMOUS') {
+            finalAppSecret = 'anonymous'
         }
 
         return this.cloudService.request('CreateLoginConfig', {
@@ -474,7 +478,7 @@ export class EnvService {
             // 平台， “QQ" "WECHAT-OPEN" "WECHAT-PUBLIC"
             Platform: platform,
             PlatformId: appId,
-            PlatformSecret: rsaEncrypt(appSecret),
+            PlatformSecret: rsaEncrypt(finalAppSecret),
             Status: 'ENABLE'
         })
     }
@@ -494,6 +498,8 @@ export class EnvService {
         appSecret = ''
     ): Promise<IResponseInfo> {
         const validStatus = ['ENABLE', 'DISABLE']
+        let finalAppSecret = appSecret
+
         if (!validStatus.includes(status)) {
             throw new CloudBaseError(
                 `Invalid status value: ${status}. Only support 'ENABLE', 'DISABLE'`
@@ -505,10 +511,26 @@ export class EnvService {
             Status: status
         }
 
+        if (appId === 'anonymous') {
+            finalAppSecret = 'anonymous'
+        }
+
         appId && (params.PlatformId = appId)
-        appSecret && (params.PlatformSecret = rsaEncrypt(appSecret))
+        finalAppSecret && (params.PlatformSecret = rsaEncrypt(finalAppSecret))
 
         return this.cloudService.request('UpdateLoginConfig', params)
+    }
+
+    // 创建自定义登录私钥
+    public async createCustomLoginKeys(): Promise<{
+        PrivateKey: string // 自定义签名私钥
+        KeyID: string // 私钥id
+        RequestId: string // 请求ID
+    }> {
+        const res = await this.cloudService.request('CreateCustomLoginKeys', {
+            EnvId: this.envId
+        })
+        return res
     }
 
     // 获取 COS CORS 域名

@@ -30,7 +30,6 @@ const CloudBase = require('@cloudbase/manager-node')
 import CloudBase from '@cloudbase/manager-node'
 ```
 
-
 初始化
 
 ```js
@@ -44,8 +43,10 @@ const app = CloudBase.init({
 
 ## 目录
 
-- [初始化](./docs/initialization.md)
-- [环境管理](./docs/env.md)
-- [云函数](./docs/function.md)
-- [数据库](./docs/database.md)
-- [文件存储](./docs/storage.md)
+-   [初始化](./docs/initialization.md)
+-   [环境管理](./docs/env.md)
+-   [云函数](./docs/function.md)
+-   [数据库](./docs/database.md)
+-   [文件存储](./docs/storage.md)
+-   [HTTP Service](./docs/httpservice.md)
+-   [安全规则](./docs/access.md)
