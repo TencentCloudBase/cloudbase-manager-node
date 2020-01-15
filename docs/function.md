@@ -417,34 +417,32 @@ const res = await functions.invokeFunction('app', {
 
 ```json
 {
-    "Result": {
-        "MemUsage": 3207168,
-        "Log": "",
-        "RetMsg": "hello from scf",
-        "BillDuration": 100,
-        "FunctionRequestId": "6add56fa-58f1-11e8-89a9-5254005d5fdb",
-        "Duration": 0.826,
-        "ErrMsg": "",
-        "InvokeResult": 0
-    },
+    "MemUsage": 3207168,
+    "Log": "",
+    // 函数响应结果的 JSON 编码形式
+    "RetMsg": "{\"app\": 1}",
+    "BillDuration": 100,
+    "FunctionRequestId": "6add56fa-58f1-11e8-89a9-5254005d5fdb",
+    "Duration": 0.826,
+    "ErrMsg": "",
+    "InvokeResult": 0,
     "RequestId": "c2af8a64-c922-4d55-aee0-bd86a5c2cd12"
 }
 ```
 
 #### 字段描述
 
-| 参数名                   | 类型   | 描述                                                |
-| ------------------------ | ------ | --------------------------------------------------- |
-| RequestId                | String | 请求唯一标识                                        |
-| Result                   | Object | 运行函数的返回                                      |
-| Result.FunctionRequestId | String | 此次函数执行的 ID                                   |
-| Result.Duration          | Number | 表示执行函数的耗时，单位是毫秒，异步调用返回为空    |
-| Result.BillDuration      | Number | 表示函数的计费耗时，单位是毫秒，异步调用返回为空    |
-| Result.MemUsage          | Number | 执行函数时的内存大小，单位为 Byte，异步调用返回为空 |
-| Result.InvokeResult      | Number | 0 为正确，异步调用返回为空                          |
-| Result.RetMsg            | String | 表示执行函数的返回，异步调用返回为空                |
-| Result.ErrMsg            | String | 表示执行函数的错误返回信息，异步调用返回为空        |
-| Result.Log               | String | 表示执行过程中的日志输出，异步调用返回为空          |
+| 参数名            | 类型   | 描述                                                |
+| ----------------- | ------ | --------------------------------------------------- |
+| RequestId         | String | 请求唯一标识                                        |
+| FunctionRequestId | String | 此次函数执行的 ID                                   |
+| Duration          | Number | 表示执行函数的耗时，单位是毫秒，异步调用返回为空    |
+| BillDuration      | Number | 表示函数的计费耗时，单位是毫秒，异步调用返回为空    |
+| MemUsage          | Number | 执行函数时的内存大小，单位为 Byte，异步调用返回为空 |
+| InvokeResult      | Number | 0 为正确，异步调用返回为空                          |
+| RetMsg            | String | 表示执行函数的返回，异步调用返回为空                |
+| ErrMsg            | String | 表示执行函数的错误返回信息，异步调用返回为空        |
+| Log               | String | 表示执行过程中的日志输出，异步调用返回为空          |
 
 ## 获取云函数调用日志
 

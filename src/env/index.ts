@@ -96,7 +96,6 @@ export class EnvService {
 
         // 1. 检查TCB服务是否开通
         const { Initialized } = await this.checkTcbService()
-        console.log('Initialized:', Initialized)
 
         if (!Initialized) {
             // 跳2 查询TCB角色是否绑定
@@ -111,7 +110,6 @@ export class EnvService {
                 }
             }
 
-            console.log('hasTcbRole:', hasTcbRole)
             if (!hasTcbRole) {
                 // 3. 当前账户没有tcbRole，创建角色并绑定
 
@@ -124,8 +122,6 @@ export class EnvService {
                         '{"version":"2.0","statement":[{"action":"sts:AssumeRole","effect":"allow","principal":{"service":["scf.qcloud.com","tcb.cloud.tencent.com"]}}]}'
                 })
 
-                console.log('createRoleResult:', createRoleResult)
-
                 const { RoleId } = createRoleResult
 
                 // 绑定角色策略
@@ -133,13 +129,10 @@ export class EnvService {
                     PolicyId: 8825032,
                     AttachRoleName: ROLE_NAME.TCB
                 })
-
-                console.log('绑定策略完成')
             }
 
             // 4. 未开通则初始化TCB
             await this.initTcb()
-            console.log('TCB 初始化完成')
         }
 
         // 5. 创建环境
@@ -155,8 +148,6 @@ export class EnvService {
         }
 
         const { EnvId } = await this.cloudService.request('CreateEnv', params)
-
-        console.log('环境创建完成:', EnvId)
 
         const realPaymentMode = paymentMode ? paymentMode : 'postpay'
         // 6. 购买环境
@@ -268,7 +259,6 @@ export class EnvService {
             // 后付费
             try {
                 const { TranId } = await this.CreatePostpayPackage(EnvId)
-                console.log(TranId)
                 postpayDeal = true
             } catch (e) {
                 payError = e

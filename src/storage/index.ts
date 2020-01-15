@@ -737,6 +737,28 @@ export class StorageService {
     }
 
     /**
+     * 遍历本地文件夹
+     * 忽略不包含 dir 路径，即如果 ignore 匹配 dir，dir 也不会被忽略
+     * @private
+     * @param {string} dir
+     * @param {(string | string[])} [ignore]
+     * @returns
+     */
+    public async walkLocalDir(dir: string, ignore?: string | string[]) {
+        try {
+            return walkdir.async(dir, {
+                filter: (dir: string, files: string[]) => {
+                    // NOTE: ignore 为空数组时会忽略全部文件
+                    if (!ignore || !ignore.length) return files
+                    return micromatch.not(files, ignore)
+                }
+            })
+        } catch (e) {
+            throw new CloudBaseError(e.message)
+        }
+    }
+
+    /**
      * 获取文件上传链接属性
      */
     private async getUploadMetadata(path: string): Promise<IUploadMetadata> {
@@ -832,28 +854,6 @@ export class StorageService {
             region,
             bucket: Bucket,
             env: envConfig.EnvId
-        }
-    }
-
-    /**
-     * 遍历本地文件夹
-     * 忽略不包含 dir 路径，即如果 ignore 匹配 dir，dir 也不会被忽略
-     * @private
-     * @param {string} dir
-     * @param {(string | string[])} [ignore]
-     * @returns
-     */
-    private async walkLocalDir(dir: string, ignore?: string | string[]) {
-        try {
-            return walkdir.async(dir, {
-                filter: (dir: string, files: string[]) => {
-                    // NOTE: ignore 为空数组时会忽略全部文件
-                    if (!ignore || !ignore.length) return files
-                    return micromatch.not(files, ignore)
-                }
-            })
-        } catch (e) {
-            throw new CloudBaseError(e.message)
         }
     }
 }

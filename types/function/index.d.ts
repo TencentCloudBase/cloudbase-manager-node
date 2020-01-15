@@ -92,7 +92,7 @@ export declare class FunctionService {
      * @param {Record<string, any>} params 调用函数传入参数
      * @returns {Promise<IFunctionInvokeRes>}
      */
-    invokeFunction(name: string, params: Record<string, any>): Promise<IFunctionInvokeRes>;
+    invokeFunction(name: string, params?: Record<string, any>): Promise<IFunctionInvokeRes>;
     /**
      * 复制云函数
      * @param {string} name 云函数名称

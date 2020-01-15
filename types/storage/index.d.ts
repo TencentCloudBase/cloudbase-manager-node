@@ -182,6 +182,15 @@ export declare class StorageService {
      */
     walkCloudDirCustom(options: IWalkCloudDirOptions): Promise<IListFileInfo[]>;
     /**
+     * 遍历本地文件夹
+     * 忽略不包含 dir 路径，即如果 ignore 匹配 dir，dir 也不会被忽略
+     * @private
+     * @param {string} dir
+     * @param {(string | string[])} [ignore]
+     * @returns
+     */
+    walkLocalDir(dir: string, ignore?: string | string[]): Promise<string[]>;
+    /**
      * 获取文件上传链接属性
      */
     private getUploadMetadata;
@@ -205,14 +214,5 @@ export declare class StorageService {
      * 获取存储桶配置
      */
     private getStorageConfig;
-    /**
-     * 遍历本地文件夹
-     * 忽略不包含 dir 路径，即如果 ignore 匹配 dir，dir 也不会被忽略
-     * @private
-     * @param {string} dir
-     * @param {(string | string[])} [ignore]
-     * @returns
-     */
-    private walkLocalDir;
 }
 export {};

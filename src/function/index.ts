@@ -514,14 +514,17 @@ export class FunctionService {
      * @returns {Promise<IFunctionInvokeRes>}
      */
     @preLazy()
-    async invokeFunction(name: string, params: Record<string, any>): Promise<IFunctionInvokeRes> {
+    async invokeFunction(name: string, params?: Record<string, any>): Promise<IFunctionInvokeRes> {
         const { namespace } = this.getFunctionConfig()
 
-        const _params = {
+        const _params: any = {
             FunctionName: name,
             Namespace: namespace,
-            ClientContext: JSON.stringify(params),
             LogType: 'Tail'
+        }
+
+        if (params) {
+            _params.ClientContext = JSON.stringify(params)
         }
 
         try {
