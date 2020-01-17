@@ -2,25 +2,21 @@ export interface IFunctionVPC {
     subnetId: string;
     vpcId: string;
 }
+export interface ICloudFunctionTrigger {
+    name: string;
+    type: string;
+    config: string;
+}
 export interface ICloudFunctionConfig {
     timeout?: number;
     envVariables?: Record<string, string | number | boolean>;
     runtime?: string;
     vpc?: IFunctionVPC;
     installDependency?: boolean;
+    l5?: boolean;
 }
-export interface ICloudFunctionTrigger {
+export interface ICloudFunction extends ICloudFunctionConfig {
     name: string;
-    type: string;
-    config: string;
-}
-export interface ICloudFunction {
-    name: string;
-    timeout?: number;
-    envVariables?: Record<string, string | number | boolean>;
-    runtime?: string;
-    vpc?: IFunctionVPC;
-    installDependency?: boolean;
     triggers?: ICloudFunctionTrigger[];
     handler?: string;
     ignore?: string | string[];

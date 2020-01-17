@@ -65,6 +65,7 @@ export class CloudService {
     baseParams: Record<string, any>
     cloudBaseContext: CloudBaseContext
 
+    /* eslint-disable-next-line */
     constructor(
         context: CloudBaseContext,
         service: string,

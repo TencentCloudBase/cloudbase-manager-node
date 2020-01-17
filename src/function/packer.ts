@@ -31,6 +31,7 @@ export class FunctionPacker {
     // 指定增量文件路径
     incrementalPath: string
 
+    /* eslint-disable-next-line */
     constructor(root: string, name: string, ignore: string | string[], incrementalPath?: string) {
         this.name = name
         this.root = root
@@ -41,7 +42,9 @@ export class FunctionPacker {
 
     validPath(path: string) {
         if (!fs.existsSync(path)) {
-            throw new CloudBaseError('file not exist')
+            throw new CloudBaseError(`file not exist on ${path}`, {
+                code: 'FILE_NOT_FOUND'
+            })
         }
     }
 
@@ -92,9 +95,11 @@ export class FunctionPacker {
             try {
                 const code = await this.getJavaFileCode()
                 return code
-            } catch (error) {
+            } catch (e) {
                 this.clean()
-                throw new CloudBaseError(`函数代码打包失败：\n ${error.message}`)
+                throw new CloudBaseError(`函数代码打包失败：${e.message}`, {
+                    code: e.code
+                })
             }
         }
 
@@ -102,9 +107,11 @@ export class FunctionPacker {
             try {
                 const code = await this.getFileCode()
                 return code
-            } catch (error) {
+            } catch (e) {
                 this.clean()
-                throw new CloudBaseError(`函数代码打包失败：\n ${error.message}`)
+                throw new CloudBaseError(`函数代码打包失败：${e.message}`, {
+                    code: e.code
+                })
             }
         }
     }

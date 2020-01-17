@@ -4,7 +4,6 @@ import {
     IResponseInfo,
     ICloudFunction,
     IFunctionLogOptions,
-    ICloudFunctionConfig,
     ICloudFunctionTrigger,
     IFunctionInvokeRes,
     IFunctionLogRes,
@@ -34,6 +33,26 @@ interface IUpdateFunctionIncrementalCodeParam {
     functionRootPath: string // 必选
     deleteFiles?: Array<string> // 要删除的文件和目录列表
     addFiles?: string // 新增或修改的文件路径 （指定单个文件或单个文件夹）
+}
+
+// 校验函数参数
+function validCreateParams(func: ICloudFunction, codeSecret?: string) {
+    // 校验 CodeSecret 格式
+    if (codeSecret && !/^[A-Za-z0-9+=/]{1,160}$/.test(codeSecret)) {
+        throw new CloudBaseError(
+            'CodeSecret 格式错误，CodeSecret 只能包含 1-160 位大小字母、数字、"+"、"="、"/"'
+        )
+    }
+
+    // 校验运行时
+    const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
+    if (func?.runtime && !validRuntime.includes(func.runtime)) {
+        throw new CloudBaseError(
+            `${func.name} Invalid runtime value：${
+                func.runtime
+            }. Now only support: ${validRuntime.join(', ')}`
+        )
+    }
 }
 
 export class FunctionService {
@@ -73,15 +92,7 @@ export class FunctionService {
         let packer: FunctionPacker
         let base64
 
-        // 校验运行时 待确认 php7 Java8 环境是否支持增量更新
-        const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
-        if (func && func.runtime && !validRuntime.includes(func.runtime)) {
-            throw new CloudBaseError(
-                `${name} Invalid runtime value：${
-                    func.runtime
-                }. Now only support: ${validRuntime.join(', ')}`
-            )
-        }
+        validCreateParams(func)
 
         if (deleteFiles) {
             params.DeleteFiles = deleteFiles
@@ -110,24 +121,15 @@ export class FunctionService {
      * @memberof FunctionService
      */
     @preLazy()
-    public async createFunction(funcParam: ICreateFunctionParam): Promise<void> {
+    public async createFunction(funcParam: ICreateFunctionParam): Promise<IResponseInfo> {
         // TODO: 优化处理逻辑
         const { namespace } = this.getFunctionConfig()
         const { func, functionRootPath, force = false, base64Code, codeSecret } = funcParam
         let base64
         let packer: FunctionPacker
         const funcName = func.name
-        // const { config = {} } = func
 
-        // 校验运行时
-        const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
-        if (func && func.runtime && !validRuntime.includes(func.runtime)) {
-            throw new CloudBaseError(
-                `${funcName} Invalid runtime value：${
-                    func.runtime
-                }. Now only support: ${validRuntime.join(', ')}`
-            )
-        }
+        validCreateParams(func, codeSecret)
 
         let installDependency
         // Node 8.9 默认安装依赖
@@ -161,6 +163,9 @@ export class FunctionService {
             Value: func.envVariables[key]
         }))
 
+        // 当不存在 L5 配置时，不修改 L5 状态，否则根据 true/false 进行修改
+        const l5Enable = typeof func?.l5 === 'undefined' ? null : func?.l5 ? 'TRUE' : 'FALSE'
+
         const params: any = {
             FunctionName: funcName,
             Namespace: namespace,
@@ -170,7 +175,8 @@ export class FunctionService {
             // 不可选择
             MemorySize: 256,
             Role: 'TCB_QcsRole',
-            Stamp: 'MINI_QCBASE'
+            Stamp: 'MINI_QCBASE',
+            L5Enable: l5Enable
         }
 
         // 修复参数存在 undefined 字段时，会出现鉴权失败的情况
@@ -197,29 +203,23 @@ export class FunctionService {
 
         try {
             // 创建云函数
-            await this.scfService.request('CreateFunction', params)
-            // 创建函数触发器
-            await this.createFunctionTriggers(funcName, func.triggers)
+            const res = await this.scfService.request('CreateFunction', params)
+            // 创建函数触发器、失败自动重试
+            await this.retryCreateTrigger(funcName, func.triggers)
+            // await this.createFunctionTriggers(funcName, func.triggers)
 
             // 如果选择自动安装依赖，且等待依赖安装
             if (params.InstallDependency && func.isWaitInstall === true) {
                 await this.waitFunctionActive(funcName)
             }
+            return res
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
-                // 创建函数触发器
-                await this.createFunctionTriggers(funcName, func.triggers)
-                // 更新函数配置和代码
-                await this.updateFunctionConfig(func)
-                // 更新函数代码
-                await this.updateFunctionCode({
-                    func,
-                    functionRootPath,
-                    base64Code: base64,
-                    codeSecret: codeSecret
-                })
-                return
+                // 删除云函数、重新创建
+                await this.deleteFunction(funcName)
+                const res = await this.createFunction(funcParam)
+                return res
             }
 
             // 不强制覆盖，抛出错误
@@ -228,6 +228,8 @@ export class FunctionService {
                     code: e.code
                 })
             }
+
+            throw e
         }
     }
 
@@ -404,9 +406,13 @@ export class FunctionService {
             Value: func.envVariables[key]
         }))
 
+        // 当不存在 L5 配置时，不修改 L5 状态，否则根据 true/false 进行修改
+        const l5Enable = typeof func.l5 === 'undefined' ? null : func.l5 ? 'TRUE' : 'FALSE'
+
         const params: any = {
             FunctionName: func.name,
-            Namespace: namespace
+            Namespace: namespace,
+            L5Enable: l5Enable
         }
 
         // 修复参数存在 undefined 字段时，会出现鉴权失败的情况
@@ -421,6 +427,7 @@ export class FunctionService {
             SubnetId: (func.vpc && func.vpc.subnetId) || '',
             VpcId: (func.vpc && func.vpc.vpcId) || ''
         }
+
         // Node 8.9 默认安装依赖
         func.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
         // 是否安装依赖，选项可以覆盖
@@ -443,19 +450,10 @@ export class FunctionService {
         let packer
         const { func, functionRootPath, base64Code, codeSecret } = funcParam
         const funcName = func.name
-        // const { config = {} } = func
 
         const { namespace } = this.getFunctionConfig()
 
-        // 校验运行时
-        const validRuntime = ['Nodejs8.9']
-        if (func && func.runtime && !validRuntime.includes(func.runtime)) {
-            throw new CloudBaseError(
-                `${funcName} 非法的运行环境：${func.runtime}，当前支持环境：${validRuntime.join(
-                    ', '
-                )}`
-            )
-        }
+        validCreateParams(func)
 
         let installDependency
         // Node 8.9 默认安装依赖
@@ -546,6 +544,7 @@ export class FunctionService {
      * @param {boolean} [force=false] 是否覆盖同名云函数
      * @returns {Promise<IResponseInfo>}
      */
+    /* eslint-disable-next-line */
     @preLazy()
     async copyFunction(
         name: string,
@@ -652,6 +651,19 @@ export class FunctionService {
             return { Url, RequestId, CodeSha256 }
         } catch (e) {
             throw new CloudBaseError(`[${functionName}] 获取函数代码下载链接失败：\n${e.message}`)
+        }
+    }
+
+    private async retryCreateTrigger(name, triggers, count = 0) {
+        try {
+            await this.createFunctionTriggers(name, triggers)
+        } catch (e) {
+            if (count < 3) {
+                await sleep(500)
+                await this.retryCreateTrigger(name, triggers, count + 1)
+            } else {
+                throw e
+            }
         }
     }
 

@@ -8,7 +8,7 @@ export interface IProgressData {
 }
 export interface IOptions {
     onProgress?: OnProgress;
-    onFileFinish?: OnProgress;
+    onFileFinish?: OnFileFinish;
     ignore?: string | string[];
     fileId?: boolean;
 }
@@ -28,6 +28,7 @@ export interface IWalkCloudDirOptions {
 }
 declare type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY';
 declare type OnProgress = (progressData: IProgressData) => void;
+declare type OnFileFinish = (error: Error, res: any, fileData: any) => void;
 export declare class StorageService {
     private environment;
     private tcbService;

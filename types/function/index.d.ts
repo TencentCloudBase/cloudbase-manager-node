@@ -38,7 +38,7 @@ export declare class FunctionService {
      * @returns {Promise<void>}
      * @memberof FunctionService
      */
-    createFunction(funcParam: ICreateFunctionParam): Promise<void>;
+    createFunction(funcParam: ICreateFunctionParam): Promise<IResponseInfo>;
     /**
      * 列出函数
      * @param {number} [limit=20]
@@ -124,6 +124,7 @@ export declare class FunctionService {
      * @memberof FunctionService
      */
     getFunctionDownloadUrl(functionName: string, codeSecret?: string): Promise<IFunctionDownloadUrlRes>;
+    private retryCreateTrigger;
     /**
      *
      * @private

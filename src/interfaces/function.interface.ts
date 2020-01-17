@@ -3,27 +3,24 @@ export interface IFunctionVPC {
     vpcId: string
 }
 
-export interface ICloudFunctionConfig {
-    timeout?: number
-    envVariables?: Record<string, string | number | boolean>
-    runtime?: string
-    vpc?: IFunctionVPC
-    installDependency?: boolean
-}
-
 export interface ICloudFunctionTrigger {
     name: string
     type: string
     config: string
 }
 
-export interface ICloudFunction {
-    name: string
+// 支持的函数配置
+export interface ICloudFunctionConfig {
     timeout?: number
     envVariables?: Record<string, string | number | boolean>
     runtime?: string
     vpc?: IFunctionVPC
     installDependency?: boolean
+    l5?: boolean
+}
+
+export interface ICloudFunction extends ICloudFunctionConfig {
+    name: string
     triggers?: ICloudFunctionTrigger[]
     handler?: string
     ignore?: string | string[]

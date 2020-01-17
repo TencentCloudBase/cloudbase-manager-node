@@ -410,7 +410,7 @@ export class EnvService {
         })
 
         return {
-            EnvInfo: EnvList && EnvList.length ? EnvList[0] : {},
+            EnvInfo: EnvList?.length ? EnvList[0] : {},
             RequestId
         }
     }
@@ -481,6 +481,7 @@ export class EnvService {
      * @param {string} [appSecret=''] 微信 appSecret，可选
      * @returns {Promise<IResponseInfo>}
      */
+    /* eslint-disable-next-line */
     async updateLoginConfig(
         configId: string,
         status = 'ENABLE',

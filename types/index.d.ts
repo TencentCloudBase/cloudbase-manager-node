@@ -29,11 +29,11 @@ declare class CloudBase {
     constructor(config: CloudBaseConfig);
     addEnvironment(envId: string): void;
     currentEnvironment(): Environment;
-    readonly functions: FunctionService;
-    readonly storage: StorageService;
-    readonly database: DatabaseService;
-    readonly commonService: CommonService;
-    readonly env: EnvService;
+    get functions(): FunctionService;
+    get storage(): StorageService;
+    get database(): DatabaseService;
+    get commonService(): CommonService;
+    get env(): EnvService;
     getEnvironmentManager(): EnvironmentManager;
     getManagerConfig(): CloudBaseConfig;
 }

@@ -55,7 +55,7 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
         base64Code: ''
     })
 
-    expect(res).toBe(undefined)
+    expect(res.RequestId).toBeTruthy()
 })
 
 test('获取函数代码的下载链接: functions.getFunctionDownloadUrl', async () => {
@@ -105,7 +105,7 @@ test('创建云函数-本地文件上传 加代码保护 验证getFunctionDetail
         console.log(status)
     } while (status !== SCF_STATUS.ACTIVE)
 
-    expect(res).toBe(undefined)
+    expect(res.RequestId).toBeTruthy()
 
     // 验证不加code 调用 getFunctionDetail
     try {
@@ -223,7 +223,7 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
         base64Code: ''
     })
 
-    expect(res).toBe(undefined)
+    expect(res.RequestId).toBeTruthy()
 })
 
 test('创建云函数：functions.createFunction', async () => {
@@ -255,7 +255,7 @@ test('创建云函数：functions.createFunction', async () => {
         base64Code:
             'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
     })
-    expect(res).toBe(undefined)
+    expect(res.RequestId).toBeTruthy()
 })
 
 test('更新云函数代码：functions.updateFunctionCode', async () => {

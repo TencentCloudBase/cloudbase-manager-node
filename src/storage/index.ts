@@ -26,7 +26,7 @@ export interface IProgressData {
 
 export interface IOptions {
     onProgress?: OnProgress
-    onFileFinish?: OnProgress
+    onFileFinish?: OnFileFinish
     ignore?: string | string[]
     // 是否获取文件 fileId
     fileId?: boolean
@@ -51,6 +51,7 @@ export interface IWalkCloudDirOptions {
 
 type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY'
 type OnProgress = (progressData: IProgressData) => void
+type OnFileFinish = (error: Error, res: any, fileData: any) => void
 
 const BIG_FILE_SIZE = 5242880 // 5MB 1024*1024*5
 
