@@ -104,7 +104,9 @@ createFunction((funcParam: ICreateFunctionParam))
 | base64Code       | 否       | String         | 函数文件的 base64 编码 |
 | codeSecret       | 否       | String         | 代码保护密钥           |
 
-**注：自 v2.2.0 后，使用 force 参数将会删除原有的同名函数，并创建新的函数**
+**注：如果只更新函数代码，请使用 `updateFunctionCode` 接口。**
+
+**注：如果存在同名云函数，并设置了 force 选项为 true，SDK 将会自动更新函数代码，更新函数配置并创建触发器。**
 
 **注：createFunction 支持两种方式创建函数，1. 用户指定本地的函数文件根目录(绝对地址); 2. 用户将函数代码包压缩为 zip 文件后进行 base64 转码，传入 base64Code 参数**
 

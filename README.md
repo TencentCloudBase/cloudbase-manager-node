@@ -50,3 +50,4 @@ const app = CloudBase.init({
 -   [文件存储](./docs/storage.md)
 -   [HTTP Service](./docs/httpservice.md)
 -   [安全规则](./docs/access.md)
+-   [更新日志](./CHANGELOG.md)

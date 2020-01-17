@@ -1,6 +1,5 @@
 # v2.2.0
 
--   [update] 更新创建云函数时的覆盖逻辑，使用 `force` 参数将会删除原有的同名函数，并创建新的函数
 -   [fix] 修复上传文件夹等接口 `onFileFinish` 参数 TS 定义错误
 -   [add] 创建云函数返回 RequestId 响应值
 -   [add] 支持 L5 选项

@@ -19,6 +19,11 @@ interface IUpdateFunctionIncrementalCodeParam {
     deleteFiles?: Array<string>;
     addFiles?: string;
 }
+interface ICreateFunctionRes {
+    triggerRes: IResponseInfo;
+    configRes: IResponseInfo;
+    codeRes: IResponseInfo;
+}
 export declare class FunctionService {
     private environment;
     private vpcService;
@@ -33,12 +38,11 @@ export declare class FunctionService {
      */
     updateFunctionIncrementalCode(funcParam: IUpdateFunctionIncrementalCodeParam): Promise<IResponseInfo>;
     /**
-     *
+     * 创建云函数
      * @param {ICreateFunctionParam} funcParam
-     * @returns {Promise<void>}
-     * @memberof FunctionService
+     * @returns {(Promise<IResponseInfo | ICreateFunctionRes>)}
      */
-    createFunction(funcParam: ICreateFunctionParam): Promise<IResponseInfo>;
+    createFunction(funcParam: ICreateFunctionParam): Promise<IResponseInfo | ICreateFunctionRes>;
     /**
      * 列出函数
      * @param {number} [limit=20]

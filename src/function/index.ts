@@ -35,6 +35,12 @@ interface IUpdateFunctionIncrementalCodeParam {
     addFiles?: string // 新增或修改的文件路径 （指定单个文件或单个文件夹）
 }
 
+interface ICreateFunctionRes {
+    triggerRes: IResponseInfo
+    configRes: IResponseInfo
+    codeRes: IResponseInfo
+}
+
 // 校验函数参数
 function validCreateParams(func: ICloudFunction, codeSecret?: string) {
     // 校验 CodeSecret 格式
@@ -115,13 +121,14 @@ export class FunctionService {
     }
 
     /**
-     *
+     * 创建云函数
      * @param {ICreateFunctionParam} funcParam
-     * @returns {Promise<void>}
-     * @memberof FunctionService
+     * @returns {(Promise<IResponseInfo | ICreateFunctionRes>)}
      */
     @preLazy()
-    public async createFunction(funcParam: ICreateFunctionParam): Promise<IResponseInfo> {
+    public async createFunction(
+        funcParam: ICreateFunctionParam
+    ): Promise<IResponseInfo | ICreateFunctionRes> {
         // TODO: 优化处理逻辑
         const { namespace } = this.getFunctionConfig()
         const { func, functionRootPath, force = false, base64Code, codeSecret } = funcParam
@@ -216,16 +223,30 @@ export class FunctionService {
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
-                // 删除云函数、重新创建
-                await this.deleteFunction(funcName)
-                const res = await this.createFunction(funcParam)
-                return res
+                // 创建函数触发器
+                const triggerRes = await this.createFunctionTriggers(funcName, func.triggers)
+                // 更新函数配置和代码
+                const configRes = await this.updateFunctionConfig(func)
+                // 更新函数代码
+                const codeRes = await this.updateFunctionCode({
+                    func,
+                    functionRootPath,
+                    base64Code: base64,
+                    codeSecret: codeSecret
+                })
+                // 返回全部操作的响应值
+                return {
+                    triggerRes,
+                    configRes,
+                    codeRes
+                }
             }
 
             // 不强制覆盖，抛出错误
             if (e.message && !force) {
                 throw new CloudBaseError(`[${funcName}] 部署失败：\n${e.message}`, {
-                    code: e.code
+                    code: e.code,
+                    requestId: e.requestId
                 })
             }
 
