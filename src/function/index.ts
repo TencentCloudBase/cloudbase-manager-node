@@ -505,7 +505,8 @@ export class FunctionService {
             FunctionName: funcName,
             Namespace: namespace,
             ZipFile: base64,
-            Handler: func.handler || 'index.main'
+            Handler: func.handler || 'index.main',
+            InstallDependency: installDependency
         }
 
         if (codeSecret) {
