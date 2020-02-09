@@ -1,399 +1,508 @@
-# 云开发环境
+# 云开发环境管理
 
-env 实例可以对云开发环境进行管理
+## listEnvs
 
-获得 env 实例: 示例代码如下
+### 1. 接口描述
+
+接口功能：获取所有环境信息
+
+接口声明：`listEnvs(): Promise<Object>`
+
+### 2. 输入参数
+
+无
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型                  | 说明         |
+| --------- | ---- | --------------------- | ------------ |
+| RequestId | 是   | String                | 请求唯一标识 |
+| EnvList   | 是   | Array.&lt;EnvItem&gt; | 环境数组     |
+
+#### EnvItem
+
+| 字段        | 必填 | 类型   | 说明           |
+| ----------- | ---- | ------ | -------------- |
+| EnvId       | 是   | String | 环境 ID        |
+| Source      | 是   | String | 来源           |
+| Alias       | 是   | String | 环境别名       |
+| Status      | 是   | String | 环境状态       |
+| CreateTime  | 是   | String | 创建时间       |
+| UpdateTime  | 是   | String | 更新时间       |
+| PackageId   | 是   | String | 环境套餐 ID    |
+| PackageName | 是   | String | 套餐名         |
+| Databases   | 是   | Array  | 数据库资源详情 |
+| Storages    | 是   | Array  | 存储资源详情   |
+| Functions   | 是   | Array  | 函数资源详情   |
+| LogServices | 是   | Array  | 日志资源详情   |
+
+### 4. 示例代码
 
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
 const { env } = new CloudBase({
-    secretId: 'Your SecretId',
-    secretKey: 'Your SecretKey',
-    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
-```
 
-## 目录
-
--   [获取所有环境信息](#获取所有环境信息)
--   [创建环境](#创建环境)
--   [获取合法域名列表](#获取合法域名列表)
--   [添加环境安全域名](#添加环境安全域名)
--   [删除环境安全域名](#删除环境安全域名)
--   [获取环境信息](#获取环境信息)
--   [修改环境别名](#修改环境别名)
--   [拉取登录配置列表](#拉取登录配置列表)
--   [创建登录方式](#创建登录方式)
--   [更新登录方式配置](#更新登录方式配置)
--   [创建自定义登录密钥](#创建自定义登录密钥)
-
-## 获取所有环境信息
-
-### 接口定义
-
-```javascript
-listEnvs()
-```
-
-### 参数说明
-
-无
-
-### 调用示例
-
-```javascript
-const res = await env.listEnvs()
-```
-
-### 返回结果
-
-```json
-{
-    "EnvList": [
-        {
-            "EnvId": "lukeke-42f08e",
-            "Source": "qcloud",
-            "Alias": "lukeke",
-            "Status": "NORMAL",
-            "CreateTime": "2019-09-15 17:04:43",
-            "UpdateTime": "2019-09-15 17:04:50",
-            "PackageId": "basic",
-            "PackageName": "基础版",
-            "Databases": [],
-            "Storages": [],
-            "Functions": [],
-            "LogServices": []
-        }
-    ],
-    "RequestId": "a42bf1cd-c5db-4ddb-9a6d-6a8c4cde9744"
+async function test() {
+  const res = await env.listEnvs()
+  const { EnvList } = res
+  for (let env in EnvList) {
+    // 遍历envList
+    console.log(env)
+  }
 }
+
+test()
 ```
 
-## 创建环境
+## createEnv
 
-### 接口定义
+### 1. 接口描述
+
+接口功能：创建环境
+
+接口声明：`createEnv(param: ICreateEnvParam): Promise<Object>`
 
 > ⚠️ 该接口支持 SDK 内闭环完成环境创建，目前只支持创建 web 端云开发环境，主账户可操作，子账户需主账户授权后再创建环境
 
 子账户创建环境流程:
 
--   主账户开通云开发
--   子账户创建环境还需 开通 QCloudFinanceFullAccess(财务权限)
--   子账户使用当前接口完成环境创建
+- 主账户开通云开发
+- 子账户创建环境还需 开通 QCloudFinanceFullAccess(财务权限)
+- 子账户使用当前接口完成环境创建
 
 > ⚠️ 若你想创建预付费的环境，本 API 目前仅支持创建预付费的免费环境，每个主账户最多有一个免费环境。如果该账户已经创建过免费环境，调用本 API 创建预付费环境会返回商品下单异常错误，请到云开发控制台创建更多预付费环境。
 
+**NOTE**：因为创建环境是一个异步操作，所以创建环境接口返回成功时，仍需等待环境资源的初始化，一般需 3~5 分钟
+
+### 2. 输入参数
+
+ICreateEnvParam 结构体
+
+| 字段        | 必填 | 类型   | 说明                                                                                  |
+| ----------- | ---- | ------ | ------------------------------------------------------------------------------------- |
+| name        | 是   | String | 环境名                                                                                |
+| paymentMode | 否   | String | 环境套餐类型: 预付费(包年包月) prepay, 后付费(按量付费) postpay，不传默认使用 postpay |
+| channel     | 否   | String | 支持以下选项 'web'，'cocos'，'qq'，'cloudgame'                                        |
+
+### 3. 返回结果
+
+| 字段  | 必填 | 类型   | 说明    |
+| ----- | ---- | ------ | ------- |
+| envId | 是   | String | 环境 ID |
+
+### 4. 示例代码
+
 ```javascript
-createEnv((param: ICreateEnvParam))
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### ICreateEnvParam 结构体
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-| 参数名      | 是否必填 | 类型   | 描述                                                                                  |
-| ----------- | -------- | ------ | ------------------------------------------------------------------------------------- |
-| name        | 是       | String | 环境名                                                                                |
-| paymentMode | 否       | String | 环境套餐类型: 预付费(包年包月) prepay, 后付费(按量付费) postpay，不传默认使用 postpay |
-| channel     | 否       | String | 支持以下选项 'web'，'cocos'，'qq'，'cloudgame'                                        |
-
-### 参数说明
-
-| 参数名 | 是否必填 | 类型            | 描述         |
-| ------ | -------- | --------------- | ------------ |
-| param  | 是       | ICreateEnvParam | 环境创建选项 |
-
-### 调用示例
-
-```javascript
-const res = await createEnv({
+async function test() {
+  const res = await env.createEnv({
     name: 'test',
     paymentMode: 'postpay',
     channel: 'web'
+  })
+  console.log(res.envId)
+}
+
+test()
+```
+
+## getEnvAuthDomains
+
+### 1. 接口描述
+
+接口功能：获取合法域名列表
+
+接口声明：`getEnvAuthDomains(): Promise<Object>`
+
+### 2. 输入参数
+
+无
+
+### 3. 返回结果
+
+| 字段    | 必填 | 类型                 | 说明     |
+| ------- | ---- | -------------------- | -------- |
+| Domains | 是   | Array.&lt;Domain&gt; | 域名列表 |
+| envId   | 是   | String               | 环境 ID  |
+
+**Domain**
+
+| 字段       | 必填 | 类型   | 说明                                |
+| ---------- | ---- | ------ | ----------------------------------- |
+| Id         | 是   | String | 域名 ID                             |
+| Domain     | 是   | String | 域名                                |
+| Type       | 是   | String | 域名类型。包含以下取值：system user |
+| Status     | 是   | String | 状态。包含以下取值：ENABLE DISABLE  |
+| CreateTime | 是   | String | 创建时间                            |
+| UpdateTime | 是   | String | 更新时间                            |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
-```
 
-### 返回示例
-
-```json
-{
-    "envId": "test-fsdaffds"
+async function test() {
+  const res = await env.getEnvAuthDomains()
+  const { Domains } = res
+  for (let domain in Domains) {
+    console.log(domain)
+  }
 }
+
+test()
 ```
 
-**NOTE**：因为创建环境是一个异步操作，所以创建环境接口返回成功时，仍需等待环境资源的初始化，一般需 3~5 分钟
+## createEnvDomain
 
-## 获取合法域名列表
+### 1. 接口描述
 
-### 接口定义
+接口功能：添加环境安全域名
+
+接口声明：`createEnvDomain(domains: string[]): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                 | 说明         |
+| ------- | ---- | -------------------- | ------------ |
+| domains | 是   | Array.&lt;String&gt; | 安全域名数组 |
+
+### 3. 返回结果
+
+| 字段      | 类型   | 说明    |
+| --------- | ------ | ------- |
+| RequestId | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-getEnvAuthDomains()
+import CloudBase from '@cloudbase/manager-node'
+
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+  const res = await env.createEnvDomain(['luke.com'])
+  console.log(res)
+}
+
+test()
 ```
 
-### 参数说明
+## deleteEnvDomain
+
+### 1. 接口描述
+
+接口功能：删除环境安全域名
+
+接口声明：`deleteEnvDomain(domains: string[]): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                 | 说明         |
+| ------- | ---- | -------------------- | ------------ |
+| domains | 是   | Array.&lt;String&gt; | 安全域名数组 |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明             |
+| --------- | ---- | ------ | ---------------- |
+| RequestId | 是   | String | 请求 ID          |
+| Deleted   | 是   | Number | 删除成功的域名数 |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+  const res = await env.deleteEnvDomain(['luke.com'])
+  const { Deleted } = res
+  console.log(Deleted) // 删除域名数
+}
+
+test()
+```
+
+## getEnvInfo
+
+### 1. 接口描述
+
+接口功能：获取环境信息
+
+接口声明：`getEnvInfo(): Promise<Object>`
+
+### 2. 输入参数
 
 无
 
-### 调用示例
+### 3. 返回结果
+
+| 字段      | 必填 | 类型                | 说明     |
+| --------- | ---- | ------------------- | -------- |
+| RequestId | 是   | String              | 请求 ID  |
+| EnvInfo   | 是   | [EnvItem](#EnvItem) | 环境信息 |
+
+### 4. 示例代码
 
 ```javascript
-const envs = await env.getEnvAuthDomains()
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 返回示例
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-```js
-{
-    "Domains": [
-        {
-            "Id": "397c8004-eab4-41ee-86b3-972db37eb6e8", // 域名ID
-            "Domain": "luke.com", // 域名
-            "Type": "USER", // 域名类型。包含以下取值：system user
-            "Status": "ENABLE", // 状态。包含以下取值：ENABLE DISABLE
-            "CreateTime": "2019-09-18 15:05:45", // 创建时间
-            "UpdateTime": "2019-09-18 15:05:45" // 	更新时间
-        }
-    ],
-    "RequestId": "89841b3d-0b6e-47ec-be21-308c72814b18"
+async function test() {
+  const res = await env.getEnvInfo()
+  const { EnvInfo } = res
+  console.log(EnvInfo)
 }
+
+test()
 ```
 
-## 添加环境安全域名
+## updateEnvInfo
 
-### 接口定义
+### 1. 接口描述
+
+接口功能：修改环境别名
+
+接口声明：`updateEnvInfo(alias: string): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段  | 必填 | 类型   | 说明     |
+| ----- | ---- | ------ | -------- |
+| alias | 是   | String | 环境别名 |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-createEnvDomain((domains: string[]))
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 参数说明
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-| 参数名  | 类型                 | 描述         |
-| ------- | -------------------- | ------------ |
-| domains | Array.&lt;String&gt; | 安全域名数组 |
-
-### 调用示例
-
-```javascript
-const res = await env.createEnvDomain(['luke.com'])
-```
-
-### 返回示例
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+async function test() {
+  const res = await env.updateEnvInfo('lukemodify')
+  console.log(res)
 }
+
+test()
 ```
 
-## 删除环境安全域名
+## getLoginConfigList
 
-### 接口定义
+### 1. 接口描述
 
-```javascript
-deleteEnvDomain((domains: string[]))
-```
+接口功能：拉取登录配置列表
 
-### 参数说明
+接口声明：`getLoginConfigList(): Promise<Object>`
 
-| 参数名  | 类型                 | 描述         |
-| ------- | -------------------- | ------------ |
-| domains | Array.&lt;String&gt; | 安全域名数组 |
-
-### 调用示例
-
-```javascript
-const res = await env.deleteEnvDomain(['luke.com'])
-```
-
-### 返回示例
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a",
-    "Deleted": 1
-}
-```
-
-## 获取环境信息
-
-### 接口定义
-
-```javascript
-getEnvInfo()
-```
-
-### 参数说明
+### 2. 输入参数
 
 无
 
-### 调用示例
+### 3. 返回结果
+
+| 字段       | 必填 | 类型                     | 说明         |
+| ---------- | ---- | ------------------------ | ------------ |
+| RequestId  | 是   | String                   | 请求 ID      |
+| ConfigList | 是   | Array.&lt;ConfigItem&gt; | 登录配置列表 |
+
+#### ConfigItem
+
+| 字段       | 必填 | 类型   | 说明         |
+| ---------- | ---- | ------ | ------------ |
+| Id         | 是   | String | 配置 ID      |
+| Platform   | 是   | String | 平台类型     |
+| PlatformId | 是   | String | 平台 ID      |
+| Status     | 是   | String | 配置状态     |
+| UpdateTime | 是   | String | 配置更新时间 |
+| CreateTime | 是   | String | 配置创建时间 |
+
+### 4. 示例代码
 
 ```javascript
-const res = await env.getEnvInfo()
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 返回示例
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-```js
-{
-    "EnvInfo": {
-        "EnvId": "luke-87pns", // 该环境的账户下唯一标识
-        "Source": "miniapp", // 环境来源。包含以下取值： miniapp：微信小程序 qcloud ：腾讯云
-        "Alias": "lukemodify", // 环境别名，要以a-z开头，不能包含 a-zA-z0-9- 以外的字符
-        "Status": "NORMAL", // 环境状态。包含以下取值：NORMAL：正常可用 UNAVAILABLE：服务不可用，可能是尚未初始化或者初始化过程中
-        "CreateTime": "2019-05-12 22:25:40", // 创建时间
-        "UpdateTime": "2019-09-15 18:37:14", // 最后修改时间
-        "PackageId": "basic", // 云开发产品套餐ID
-        "PackageName": "基础版", // 套餐中文名称
-        "Databases": [], // 数据库列表
-        "Storages": [], // 存储列表
-        "Functions": [], // 函数列表
-        "LogServices": [] // 云日志服务列表
-    },
-    "RequestId": "d79a65f1-1b8c-40c7-8073-f2e34c52b3a0"
+async function test() {
+  const res = await env.getLoginConfigList()
+  const { ConfigList } = res
+  for (let config in ConfigList) {
+    console.log(config)
+  }
 }
+
+test()
 ```
 
-## 修改环境别名
+## createLoginConfig
 
-### 接口定义
+### 1. 接口描述
+
+接口功能：创建登录方式
+
+接口声明：`createLoginConfig(platform, appId, appSecret): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段      | 必填 | 类型   | 说明                                                                                    |
+| --------- | ---- | ------ | --------------------------------------------------------------------------------------- |
+| platform  | 是   | String | 平台 "WECHAT-OPEN" "WECHAT-PUBLIC" "QQ" "ANONYMOUS"                                     |
+| appId     | 是   | String | 第三方平台的 AppID 注意:如果是匿名登录方式(platform:ANONYMOUS),appId 填: anonymous      |
+| appSecret | 否   | String | 第三方平台的 AppSecret，注意:如果是 匿名登录方式(platform:ANONYMOUS)， appSecret 可不填 |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-updateEnvInfo((alias: string))
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 参数说明
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-| 参数名 | 类型   | 描述     |
-| ------ | ------ | -------- |
-| alias  | String | 环境别名 |
-
-### 调用示例
-
-```javascript
-const res = await env.updateEnvInfo('lukemodify')
-```
-
-### 返回示例
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+async function test() {
+  await env.createLoginConfig('WECHAT-OPEN', 'appId', 'appSecret')
 }
+
+test()
 ```
 
-## 拉取登录配置列表
+## updateLoginConfig
 
-### 接口定义
+### 1. 接口描述
+
+接口功能：更新登录方式配置
+
+接口声明：`updateLoginConfig(configId, status, appId, appSecret): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段      | 必填 | 类型   | 说明                                                     |
+| --------- | ---- | ------ | -------------------------------------------------------- |
+| configId  | 是   | String | 配置的记录 ID                                            |
+| status    | 是   | String | ”ENABLE”, “DISABLE”                                      |
+| appId     | 是   | String | 第三方平台的 AppId，如果是匿名登录， appId 填: anonymous |
+| appSecret | 否   | String | 第三方平台的 AppSecret，如果是匿名登录，可不填该字段     |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-getLoginConfigList()
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 参数说明
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-无
-
-### 调用示例
-
-```javascript
-const res = await env.getLoginConfigList()
-```
-
-### 返回示例
-
-```json
-{ "ConfigList": [], "RequestId": "6599c241-319c-40fe-9f80-72bee656a911" }
-```
-
-## 创建登录方式
-
-### 接口定义
-
-```javascript
-createLoginConfig((platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC'), (appId: string), (appSecret: string))
-```
-
-### 参数说明
-
-| 参数名    | 类型   | 描述                                                                                    |
-| --------- | ------ | --------------------------------------------------------------------------------------- |
-| platform  | String | 平台 "WECHAT-OPEN" "WECHAT-PUBLIC" "QQ" "ANONYMOUS"                                     |
-| appId     | String | 第三方平台的 AppID 注意:如果是匿名登录方式(platform:ANONYMOUS),appId 填: anonymous      |
-| appSecret | String | 第三方平台的 AppSecret，注意:如果是 匿名登录方式(platform:ANONYMOUS)， appSecret 可不填 |
-
-### 调用示例
-
-```javascript
-const res = await env.createLoginConfig('WECHAT-OPEN', 'appId', 'appSecret')
-```
-
-### 返回示例
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
-}
-```
-
-## 更新登录方式配置
-
-### 接口定义
-
-```javascript
-updateLoginConfig((configId: string), (status = 'ENABLE'), (appId = ''), (appSecret = ''))
-```
-
-### 参数说明
-
-| 参数名    | 类型   | 描述                                                     |
-| --------- | ------ | -------------------------------------------------------- |
-| configId  | String | 配置的记录 ID                                            |
-| status    | String | ”ENABLE”, “DISABLE”                                      |
-| appId     | String | 第三方平台的 AppId，如果是匿名登录， appId 填: anonymous |
-| appSecret | String | 第三方平台的 AppSecret，如果是匿名登录，可不填该字段     |
-
-### 调用示例
-
-```javascript
-const loginConfigRes = await env.getLoginConfigList()
-const updateLoginConfigRes = await env.updateLoginConfig(
+async function test() {
+  const loginConfigRes = await env.getLoginConfigList()
+  await env.updateLoginConfig(
     loginConfigRes.ConfigList[0].Id,
     'ENABLE',
     'appId',
     'appSecret'
-)
-```
-
-### 返回示例
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+  )
 }
+
+test()
 ```
 
-## 创建自定义登录密钥
+## createCustomLoginKeys
 
-### 接口定义
+### 1. 接口描述
+
+接口功能：创建自定义登录密钥
+
+接口声明：`createCustomLoginKeys(): Promise<Object>`
+
+### 2. 输入参数
+
+无
+
+### 3. 返回结果
+
+| 字段       | 必填 | 类型   | 说明    |
+| ---------- | ---- | ------ | ------- |
+| RequestId  | 是   | String | 请求 ID |
+| KeyID      | 是   | String | 密钥 ID |
+| PrivateKey | 是   | String | 私钥    |
+
+### 4. 示例代码
 
 ```javascript
-createCustomLoginKeys()
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 调用示例
+const { env } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-```javascript
-const res = await env.createCustomLoginKeys()
-```
-
-### 返回示例
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a",
-    "KeyID": "ade7b34e-7e54-492f-9bc7-786626d2b971",
-    "PrivateKey": "-----BEGIN RSA PRIVATE KEY-----\naaaaaaaaaaaaaaa\n-----END RSA PRIVATE KEY-----\n"
+async function test() {
+  const res = await env.createCustomLoginKeys()
+  const { KeyID, PrivateKey } = res
+  console.log(KeyID, PrivateKey)
 }
+
+test()
 ```

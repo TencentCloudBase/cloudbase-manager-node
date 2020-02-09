@@ -1,8 +1,35 @@
 # 云函数
 
-functions 实例可以对云函数进行管理，包括创建、删除、更新、调用等云函数管理功能。
+## listFunctions
 
-获得当前环境下的 functions 实例，示例代码如下：
+### 1. 接口描述
+
+接口功能：获取云函数列表
+
+接口声明：`listFunctions(limit, offset): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段   | 必填 | 类型   | 说明 |
+| ------ | ---- | ------ | ---- |
+| limit  | 否   | Number | 范围 |
+| offset | 否   | Number | 偏移 |
+
+### 3. 返回结果
+
+| 字段                     | 必填 | 类型   | 说明         |
+| ------------------------ | ---- | ------ | ------------ |
+| RequestID                | 是   | String | 请求唯一标识 |
+| TotalCount               | 是   | Number | 总数         |
+| Functions                | 是   | Array  | 函数列表     |
+| Functions[].FunctionId   | 是   | String | 函数 ID      |
+| Functions[].FunctionName | 是   | String | 函数名称     |
+| Functions[].Namespace    | 是   | String | 命名空间     |
+| Functions[].Runtime      | 是   | String | 运行时间     |
+| Functions[].AddTime      | 是   | String | 创建时间     |
+| Functions[].ModTime      | 是   | String | 修改时间     |
+
+### 4. 示例代码
 
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
@@ -12,97 +39,39 @@ const { functions } = new CloudBase({
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
-```
 
-## 目录
-
--   [获取云函数列表](#获取云函数列表)
--   [创建函数](#创建函数)
--   [更新云函数代码](#更新云函数代码)
--   [更新云函数配置](#更新云函数配置)
--   [删除云函数](#删除云函数)
--   [获取云函数详情](#获取云函数详情)
--   [调用云函数](#调用云函数)
--   [获取云函数调用日志](#获取云函数调用日志)
--   [拷贝云函数](#拷贝云函数)
--   [创建云函数触发器](#创建云函数触发器)
--   [删除云函数触发器](#删除云函数触发器)
--   [获取云函数代码下载链接](#获取云函数代码下载链接)
--   [增量上传云函数代码](#增量上传云函数代码)
-
-## 获取云函数列表
-
-### 接口定义
-
-```javascript
-listFunctions((limit: number), (offset: number)) // limit 默认20 offset 默认0
-```
-
-### 参数说明
-
-| 参数名 | 类型   | 描述 |
-| ------ | ------ | ---- |
-| limit  | Number | 范围 |
-| offset | Number | 偏移 |
-
-### 调用示例
-
-```javascript
-let res = await functions.listFunctions(20, 0)
-```
-
-### 响应结果
-
-```json
-{
-    "Functions": [
-        {
-            "FunctionId": "lam-hyjplgyy",
-            "FunctionName": "openid",
-            "Runtime": "Nodejs8.9",
-            "AddTime": "2019-08-02 22:53:19",
-            "ModTime": "2019-08-02 23:38:15",
-            "Status": "Active"
-        }
-    ],
-    "TotalCount": 1,
-    "RequestID": "3c140219-cfe9-470e-b241-907877d6fb03"
+async function test() {
+    let res = await functions.listFunctions(20, 0)
+    const { Functions } = res
+    for(let function in Functions) {
+        console.log(function)
+    }
 }
+
+test()
 ```
 
-#### 字段描述
+## createFunction
 
-| 参数名                   | 类型   | 描述         |
-| ------------------------ | ------ | ------------ |
-| RequestID                | String | 请求唯一标识 |
-| TotalCount               | Number | 总数         |
-| Functions                | Array  | 函数列表     |
-| Functions[].FunctionId   | String | 函数 ID      |
-| Functions[].FunctionName | String | 函数名称     |
-| Functions[].Namespace    | String | 命名空间     |
-| Functions[].Runtime      | String | 运行时间     |
-| Functions[].AddTime      | String | 创建时间     |
-| Functions[].ModTime      | String | 修改时间     |
+### 1. 接口描述
 
-## 创建函数
+接口功能：创建函数
 
-### 接口定义
-
-```javascript
-createFunction((funcParam: ICreateFunctionParam))
-```
+接口声明：`createFunction(funcParam: ICreateFunctionParam): Promise<Object>`
 
 > ⚠️ 本接口从 2.0.0 版本后，请求参数由( func: ICloudFunction, functionRootPath: string, force: boolean, base64Code: string ) 转换为 (funcParam: ICreateFunctionParam)，属于不兼容变更
 
-### ICreateFunctionParam 结构体
+### 2. 输入参数
 
-| 参数名           | 是否必填 | 类型           | 描述                   |
-| ---------------- | -------- | -------------- | ---------------------- |
-| func             | 是       | ICloudFunction | 函数配置               |
-| functionRootPath | 否       | String         | 用户本地函数文件目录   |
-| force            | 是       | Boolean        | 是否覆盖同名函数       |
-| base64Code       | 否       | String         | 函数文件的 base64 编码 |
-| codeSecret       | 否       | String         | 代码保护密钥           |
+#### ICreateFunctionParam
+
+| 字段             | 必填 | 类型           | 说明                   |
+| ---------------- | ---- | -------------- | ---------------------- |
+| func             | 是   | ICloudFunction | 函数配置               |
+| functionRootPath | 否   | String         | 用户本地函数文件目录   |
+| force            | 是   | Boolean        | 是否覆盖同名函数       |
+| base64Code       | 否   | String         | 函数文件的 base64 编码 |
+| codeSecret       | 否   | String         | 代码保护密钥           |
 
 **注：如果只更新函数代码，请使用 `updateFunctionCode` 接口。**
 
@@ -114,28 +83,28 @@ createFunction((funcParam: ICreateFunctionParam))
 
 #### ICloudFunctionConfig
 
-|       名称        | 是否必填 |             类型              |                       描述                        |
-| :---------------: | :------: | :---------------------------: | :-----------------------------------------------: |
-|      timeout      |    否    |            Number             |                   函数超时时间                    |
-|   envVariables    |    否    |            Object             |             包含环境变量的键值对对象              |
-|        vpc        |    否    | [IFunctionVPC](#ifunctionvpc) |                   私有网络配置                    |
-|      runtime      |    否    |            String             | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
-| installDependency |    否    |            Boolean            |            是否安装依赖，仅 Node 有效             |
+| 字段              | 必填 | 类型                          | 说明                                              |
+| ----------------- | ---- | ----------------------------- | ------------------------------------------------- |
+| timeout           | 否   | Number                        | 函数超时时间                                      |
+| envVariables      | 否   | Object                        | 包含环境变量的键值对对象                          |
+| vpc               | 否   | [IFunctionVPC](#ifunctionvpc) | 私有网络配置                                      |
+| runtime           | 否   | String                        | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
+| installDependency | 否   | Boolean                       | 是否安装依赖，仅 Node 有效                        |
 
 #### ICloudFunction
 
-|       名称        | 是否必填 |                           类型                           |                       描述                        |
-| :---------------: | :------: | :------------------------------------------------------: | :-----------------------------------------------: |
-|       name        |    是    |                          String                          |                     函数名称                      |
-|      timeout      |    否    |                          Number                          |                   函数超时时间                    |
-|   envVariables    |    否    |                          Object                          |             包含环境变量的键值对对象              |
-|        vpc        |    否    |              [IFunctionVPC](#IFunctionVPC)               |                   私有网络配置                    |
-|      runtime      |    否    |                          String                          | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
-| installDependency |    否    |                         Boolean                          |            是否安装依赖，仅 Node 有效             |
-|     triggers      |    否    | Array of [ICloudFunctionTrigger](#ICloudFunctionTrigger) |                                                   |
-|      handler      |    否    |                          String                          |                     函数入口                      |
-|      ignore       |    否    |              String 或 Array.&lt;String&gt;              |    上传函数代码时忽略的文件，以 Glob 模式匹配     |
-|   isWaitInstall   |    否    |                         Boolean                          |               是否等待依赖安装完成                |
+| 字段              | 必填 | 类型                                                     | 说明                                              |
+| ----------------- | ---- | -------------------------------------------------------- | ------------------------------------------------- |
+| name              | 是   | String                                                   | 函数名称                                          |
+| timeout           | 否   | Number                                                   | 函数超时时间                                      |
+| envVariables      | 否   | Object                                                   | 包含环境变量的键值对对象                          |
+| vpc               | 否   | [IFunctionVPC](#IFunctionVPC)                            | 私有网络配置                                      |
+| runtime           | 否   | String                                                   | 运行时环境配置，可选值： `Nodejs8.9, Php7, Java8` |
+| installDependency | 否   | Boolean                                                  | 是否安装依赖，仅 Node 有效                        |
+| triggers          | 否   | Array of [ICloudFunctionTrigger](#ICloudFunctionTrigger) |                                                   |
+| handler           | 否   | String                                                   | 函数入口                                          |
+| ignore            | 否   | String 或 Array.&lt;String&gt;                           | 上传函数代码时忽略的文件，以 Glob 模式匹配        |
+| isWaitInstall     | 否   | Boolean                                                  | 是否等待依赖安装完成                              |
 
 **注：`handler` 函数处理入口，Node 项目默认值为 index.main，入口文件只能在根目录，如 node 项目的 index.main，指向的是 index.js 文件的 main 方法**
 
@@ -144,617 +113,632 @@ createFunction((funcParam: ICreateFunctionParam))
 
 #### ICloudFunctionTrigger
 
-|  名称  | 是否必填 |  类型  |                         描述                          |
-| :----: | :------: | :----: | :---------------------------------------------------: |
-|  name  |    是    | String |                      触发器名称                       |
-|  type  |    是    | String |               触发器类型，可选值：timer               |
-| config |    是    | String | 触发器配置，在定时触发器下，config 格式为 cron 表达式 |
+| 字段   | 必填 | 类型   | 说明                                                  |
+| ------ | ---- | ------ | ----------------------------------------------------- |
+| name   | 是   | String | 触发器名称                                            |
+| type   | 是   | String | 触发器类型，可选值：timer                             |
+| config | 是   | String | 触发器配置，在定时触发器下，config 格式为 cron 表达式 |
 
 #### IFunctionVPC
 
-|   名称   | 是否必填 |  类型  |    描述     |
-| :------: | :------: | :----: | :---------: |
-|  vpcId   |    是    | String |   VPC Id    |
-| subnetId |    是    | String | VPC 子网 Id |
+| 字段     | 必填 | 类型   | 说明        |
+| -------- | ---- | ------ | ----------- |
+| vpcId    | 是   | String | VPC Id      |
+| subnetId | 是   | String | VPC 子网 Id |
 
 > ⚠️ 请在测试时在云开发控制台确认函数创建并部署成功，有可能创建成功，`createFunction` 成功返回，但是部署失败，部署失败的原因通常为 `handler` 参数与源码包不对应。
 
-### 调用示例
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-const res = await functions.createFunction({
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+  await functions.createFunction({
     func: {
-        // functions 文件夹下函数文件夹的名称，即函数名
-        name: 'app',
-        // 超时时间
-        timeout: 5,
-        // 环境变量
-        envVariables: {
-            key: 'value',
-            akey: 'c'
-        },
-        runtime: 'Nodejs8.9',
-        // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
-        triggers: [
-            {
-                // name: 触发器的名字
-                name: 'myTrigger',
-                // type: 触发器类型，目前仅支持 timer （即定时触发器）
-                type: 'timer',
-                // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
-                config: '0 0 2 1 * * *'
-            }
-        ]
+      // functions 文件夹下函数文件夹的名称，即函数名
+      name: 'app',
+      // 超时时间
+      timeout: 5,
+      // 环境变量
+      envVariables: {
+        key: 'value',
+        akey: 'c'
+      },
+      runtime: 'Nodejs8.9',
+      // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
+      triggers: [
+        {
+          // name: 触发器的名字
+          name: 'myTrigger',
+          // type: 触发器类型，目前仅支持 timer （即定时触发器）
+          type: 'timer',
+          // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+          config: '0 0 2 1 * * *'
+        }
+      ]
     },
     functionRootPath: '',
     force: true,
     base64Code:
-        'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-})
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "eac6b301-a322-493a-8e36-83b295459397"
+      'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+  })
 }
+
+test()
 ```
 
-## 更新云函数代码
+## updateFunctionCode
 
-### 接口定义
+### 1. 接口描述
 
-```javascript
-updateFunctionCode((funcParam: IUpdateFunctionCodeParam))
-```
+接口功能：更新云函数代码
+
+接口声明：`updateFunctionCode(funcParam: IUpdateFunctionCodeParam): Promise<Object>`
 
 > ⚠️ 本接口从 2.0.0 版本后，请求参数由( func: ICloudFunction, functionRootPath: string, base64Code: string ) 转换为 (funcParam: IUpdateFunctionCodeParam)，属于不兼容变更
 
-### IUpdateFunctionCodeParam 结构体说明
+### 2. 输入参数
 
-| 参数名           | 是否必填 | 类型           | 描述                   |
-| ---------------- | -------- | -------------- | ---------------------- |
-| func             | 是       | ICloudFunction | 函数配置               |
-| functionRootPath | 否       | String         | 用户本地函数文件目录   |
-| base64Code       | 否       | String         | 函数文件的 base64 编码 |
-| codeSecret       | 否       | String         | 函数文件的 base64 编码 |
+#### IUpdateFunctionCodeParam
+
+| 字段             | 必填 | 类型           | 说明                   |
+| ---------------- | ---- | -------------- | ---------------------- |
+| func             | 是   | ICloudFunction | 函数配置               |
+| functionRootPath | 否   | String         | 用户本地函数文件目录   |
+| base64Code       | 否   | String         | 函数文件的 base64 编码 |
+| codeSecret       | 否   | String         | 函数文件的 base64 编码 |
 
 [ICloudFunction 结构体](#ICloudFunction)
 
-### 调用示例
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-let res = await functions.updateFunctionCode({
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+  let res = await functions.updateFunctionCode({
     func: {
-        // functions 文件夹下函数文件夹的名称，即函数名
-        name: 'app'
+      // functions 文件夹下函数文件夹的名称，即函数名
+      name: 'app'
     },
     functionRootPath: '',
     base64Code:
-        'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-})
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "eac6b301-a322-493a-8e36-83b295459397"
+      'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+  })
+  console.log(res)
 }
+
+test()
 ```
 
-#### 字段描述
+## updateFunctionConfig
 
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
+### 1. 接口描述
 
-## 更新云函数配置
+接口功能：更新云函数配置
 
-### 接口定义
-
-```javascript
-updateFunctionConfig((funcParam: ICloudFunction)
-```
+接口声明：`updateFunctionConfig(funcParam: ICloudFunction): Promise<Object>`
 
 > ⚠️ 本接口从 2.0.0 版本后，请求参数由( name: string, config: ICloudFunctionConfig ) 转换为 (funcParam: ICloudFunction)，属于不兼容变更
 
-### 参数说明
+### 2. 输入参数
 
-| 参数名    | 类型           | 描述     |
-| --------- | -------------- | -------- |
-| funcParam | ICloudFunction | 函数配置 |
+| 字段      | 必填 | 类型           | 说明     |
+| --------- | ---- | -------------- | -------- |
+| funcParam | 是   | ICloudFunction | 函数配置 |
 
 [ICloudFunction 结构体](#ICloudFunction)
 
-### 调用示例
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-let res = await functions.updateFunctionConfig({
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+  let res = await functions.updateFunctionConfig({
     name: 'app',
     timeout: 6
+  })
+  console.log(res)
+}
+
+test()
+```
+
+## deleteFunction
+
+### 1. 接口描述
+
+接口功能：删除云函数
+
+接口声明：`deleteFunction(name: string): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段 | 必填 | 类型   | 说明     |
+| ---- | ---- | ------ | -------- |
+| name | 是   | String | 函数名称 |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
-```
 
-### 响应结果
-
-```json
-{
-    "RequestId": "eac6b301-a322-493a-8e36-83b295459397"
+async function test() {
+  await functions.deleteFunction('functionName')
 }
+
+test()
 ```
 
-#### 字段描述
+## getFunctionDetail
 
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
+### 1. 接口描述
 
-## 删除云函数
+接口功能：获取云函数详情
 
-### 接口定义
+接口声明：`getFunctionDetail(name: string, codeSecret?: string): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段       | 必填 | 类型   | 说明         |
+| ---------- | ---- | ------ | ------------ |
+| name       | 是   | String | 函数名称     |
+| codeSecret | 否   | String | 代码保护密钥 |
+
+### 3. 返回结果
+
+| 字段                          | 必填 | 类型   | 说明               |
+| ----------------------------- | ---- | ------ | ------------------ |
+| RequestId                     | 是   | String | 请求唯一标识       |
+| FunctionName                  | 是   | String | 函数名称           |
+| Namespace                     | 是   | String | 命名空间           |
+| Runtime                       | 是   | String | 运行时             |
+| Handler                       | 是   | String | 函数入口           |
+| Description                   | 是   | String | 函数的描述信息     |
+| ModTime                       | 是   | String | 函数修改时间       |
+| Environment                   | 是   | Object | 函数的环境变量     |
+| Environment.Variables         | 是   | Array  | 环境变量数组       |
+| Environment.Variables[].Key   | 是   | String | 变量的 Key         |
+| Environment.Variables[].Value | 是   | String | 变量的 Value       |
+| MemorySize                    | 是   | Number | 函数的最大可用内存 |
+| Timeout                       | 是   | Number | 函数的超时时间     |
+
+### 4. 示例代码
 
 ```javascript
-deleteFunction((name: string))
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 参数说明
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-| 参数名 | 类型   | 描述     |
-| ------ | ------ | -------- |
-| name   | String | 函数名称 |
-
-### 调用示例
-
-```javascript
-let res = await functions.deleteFunction('functionName')
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "eac6b301-a322-493a-8e36-83b295459397"
+async function test() {
+  let res = await functions.getFunctionDetail('functionName')
+  console.log(res) // 输出云函数详情
 }
+
+test()
 ```
 
-#### 字段描述
+## invokeFunction
 
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
+### 1. 接口描述
 
-## 获取云函数详情
+接口功能：调用云函数
 
-### 接口定义
+接口声明：`invokeFunction(name: string, params: object): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段         | 必填 | 类型   | 说明                          |
+| ------------ | ---- | ------ | ----------------------------- |
+| functionName | 是   | String | 函数名称                      |
+| params       | 否   | Object | 可选参数 用户调用函数时的入参 |
+
+### 3. 返回结果
+
+| 字段              | 必填 | 类型   | 说明                                                |
+| ----------------- | ---- | ------ | --------------------------------------------------- |
+| RequestId         | 是   | String | 请求唯一标识                                        |
+| FunctionRequestId | 是   | String | 此次函数执行的 ID                                   |
+| Duration          | 是   | Number | 表示执行函数的耗时，单位是毫秒，异步调用返回为空    |
+| BillDuration      | 是   | Number | 表示函数的计费耗时，单位是毫秒，异步调用返回为空    |
+| MemUsage          | 是   | Number | 执行函数时的内存大小，单位为 Byte，异步调用返回为空 |
+| InvokeResult      | 是   | Number | 0 为正确，异步调用返回为空                          |
+| RetMsg            | 是   | String | 表示执行函数的返回，异步调用返回为空                |
+| ErrMsg            | 是   | String | 表示执行函数的错误返回信息，异步调用返回为空        |
+| Log               | 是   | String | 表示执行过程中的日志输出，异步调用返回为空          |
+
+### 4. 示例代码
 
 ```javascript
-getFunctionDetail((name: string, codeSecret?: string))
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 参数说明
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-| 参数名     | 是否必填 | 类型   | 描述         |
-| ---------- | -------- | ------ | ------------ |
-| name       | 是       | String | 函数名称     |
-| codeSecret | 否       | String | 代码保护密钥 |
-
-### 调用示例
-
-```javascript
-let res = await functions.getFunctionDetail('functionName')
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "a1ffbba5-5489-45bc-89c5-453e50d5386e",
-    "FunctionName": "ledDummyAPITest",
-    "FunctionVersion": "LATEST",
-    "Namespace": "default",
-    "Runtime": "Python2.7",
-    "Handler": "scfredis.main_handler",
-    "Description": "",
-    "ModTime": "2018-06-07 09:52:23",
-    "Environment": {
-        "Variables": []
-    },
-    "VpcConfig": {
-        "SubnetId": "",
-        "VpcId": ""
-    },
-    "Triggers": [],
-    "ErrNo": 0,
-    "UseGpu": "FALSE",
-    "MemorySize": 128,
-    "Timeout": 3,
-    "CodeSize": 0,
-    "CodeResult": "failed",
-    "CodeInfo": "",
-    "CodeError": "",
-    "Role": ""
-}
-```
-
-#### 字段描述
-
-| 参数名                        | 类型   | 描述               |
-| ----------------------------- | ------ | ------------------ |
-| RequestId                     | String | 请求唯一标识       |
-| FunctionName                  | String | 函数名称           |
-| Namespace                     | String | 命名空间           |
-| Runtime                       | String | 运行时             |
-| Handler                       | String | 函数入口           |
-| Description                   | String | 函数的描述信息     |
-| ModTime                       | String | 函数修改时间       |
-| Environment                   | Object | 函数的环境变量     |
-| Environment.Variables         | Array  | 环境变量数组       |
-| Environment.Variables[].Key   | String | 变量的 Key         |
-| Environment.Variables[].Value | String | 变量的 Value       |
-| MemorySize                    | Number | 函数的最大可用内存 |
-| Timeout                       | Number | 函数的超时时间     |
-
-## 调用云函数
-
-### 接口定义
-
-```javascript
-invokeFunction((name: string), (params: object))
-```
-
-### 参数说明
-
-| 参数名       | 类型   | 描述                          |
-| ------------ | ------ | ----------------------------- |
-| functionName | String | 函数名称                      |
-| params       | Object | 可选参数 用户调用函数时的入参 |
-
-### 调用示例
-
-```javascript
-const res = await functions.invokeFunction('app', {
+async function test() {
+  const res = await functions.invokeFunction('app', {
     a: 1
+  })
+  console.log(res.RetMsg)
+}
+
+test()
+```
+
+## getFunctionLogs
+
+### 1. 接口描述
+
+接口功能：获取云函数调用日志
+
+接口声明：`getFunctionLogs(options: IFunctionLogOptions): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                                        | 说明         |
+| ------- | ---- | ------------------------------------------- | ------------ |
+| options | 是   | [IFunctionLogOptions](#ifunctionlogoptions) | 日志查询选项 |
+
+#### IFunctionLogOptions
+
+| 字段      | 必填 | 类型   | 说明                                                                              |
+| --------- | ---- | ------ | --------------------------------------------------------------------------------- |
+| name      | 是   | String | 函数名词                                                                          |
+| offset    | 否   | Number | 数据的偏移量，Offset+Limit 不能大于 10000                                         |
+| limit     | 否   | Number | 返回数据的长度，Offset+Limit 不能大于 10000                                       |
+| order     | 否   | String | 以升序还是降序的方式对日志进行排序，可选值 desc 和 asc                            |
+| orderBy   | 否   | String | 根据某个字段排序日志,支持以下字段：function_name, duration, mem_usage, start_time |
+| startTime | 否   | String | 查询的具体日期，例如：2017 - 05 - 16 20:00:00，只能与 EndTime 相差一天之内        |
+| endTime   | 否   | String | 查询的具体日期，例如：2017 - 05 - 16 20:59:59，只能与 StartTime 相差一天之内      |
+| requestId | 否   | String | 执行该函数对应的 requestId                                                        |
+
+### 3. 返回结果
+
+| 字段                  | 必填 | 类型   | 说明                                                        |
+| --------------------- | ---- | ------ | ----------------------------------------------------------- |
+| RequestId             | 是   | String | 请求唯一标识                                                |
+| TotalCount            | 是   | String | 函数日志的总数                                              |
+| Data[]                | 是   | Array  | 运行函数的返回                                              |
+| Data[].RequestId      | 是   | String | 执行该函数对应的 requestId                                  |
+| Data[].FunctionName   | 是   | String | 函数的名称                                                  |
+| Data[].RetCode        | 是   | Number | 函数执行结果，如果是 0 表示执行成功，其他值表示失败         |
+| Data[].InvokeFinished | 是   | Number | 函数调用是否结束，如果是 1 表示执行结束，其他值表示调用异常 |
+| Data[].StartTime      | 是   | String | 函数开始执行时的时间点                                      |
+| Data[].Duration       | 是   | Number | 表示执行函数的耗时，单位是毫秒，异步调用返回为空            |
+| Data[].BillDuration   | 是   | Number | 表示函数的计费耗时，单位是毫秒，异步调用返回为空            |
+| Data[].MemUsage       | 是   | Number | 执行函数时的内存大小，单位为 Byte，异步调用返回为空         |
+| Data[].RetMsg         | 是   | String | 表示执行函数的返回，异步调用返回为空                        |
+| Data[].Log            | 是   | String | 表示执行过程中的日志输出，异步调用返回为空                  |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
-```
 
-### 响应结果
-
-```json
-{
-    "MemUsage": 3207168,
-    "Log": "",
-    // 函数响应结果的 JSON 编码形式
-    "RetMsg": "{\"app\": 1}",
-    "BillDuration": 100,
-    "FunctionRequestId": "6add56fa-58f1-11e8-89a9-5254005d5fdb",
-    "Duration": 0.826,
-    "ErrMsg": "",
-    "InvokeResult": 0,
-    "RequestId": "c2af8a64-c922-4d55-aee0-bd86a5c2cd12"
+async function test() {
+  const logs = await functions.getFunctionLogs({ name: 'app' })
+  const { Data } = logs
+  for (let item in Data) {
+    console.log(item)
+  }
 }
+
+test()
 ```
 
-#### 字段描述
+## copyFunction
 
-| 参数名            | 类型   | 描述                                                |
-| ----------------- | ------ | --------------------------------------------------- |
-| RequestId         | String | 请求唯一标识                                        |
-| FunctionRequestId | String | 此次函数执行的 ID                                   |
-| Duration          | Number | 表示执行函数的耗时，单位是毫秒，异步调用返回为空    |
-| BillDuration      | Number | 表示函数的计费耗时，单位是毫秒，异步调用返回为空    |
-| MemUsage          | Number | 执行函数时的内存大小，单位为 Byte，异步调用返回为空 |
-| InvokeResult      | Number | 0 为正确，异步调用返回为空                          |
-| RetMsg            | String | 表示执行函数的返回，异步调用返回为空                |
-| ErrMsg            | String | 表示执行函数的错误返回信息，异步调用返回为空        |
-| Log               | String | 表示执行过程中的日志输出，异步调用返回为空          |
+### 1. 接口描述
 
-## 获取云函数调用日志
+接口功能：拷贝云函数
 
-### 接口定义
+接口声明：`copyFunction(name, newFunctionName, targetEnvId, force): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段            | 必填 | 类型    | 说明                              |
+| --------------- | ---- | ------- | --------------------------------- |
+| name            | 是   | String  | 原函数名                          |
+| newFunctionName | 是   | String  | 新函数名                          |
+| targetEnvId     | 是   | String  | 新环境 ID（跨环境拷贝函数时填写） |
+| force           | 否   | Boolean | 是否覆盖同名函数                  |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-getFunctionLogs((options: IFunctionLogOptions))
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 参数说明
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-| 参数名  | 类型                                        | 描述         |
-| ------- | ------------------------------------------- | ------------ |
-| options | [IFunctionLogOptions](#ifunctionlogoptions) | 日志查询选项 |
-
-### IFunctionLogOptions
-
-|   名称    | 是否必填 |  类型  |                                       描述                                        |
-| :-------: | :------: | :----: | :-------------------------------------------------------------------------------: |
-|   name    |    是    | String |                                     函数名词                                      |
-|  offset   |    否    | Number |                     数据的偏移量，Offset+Limit 不能大于 10000                     |
-|   limit   |    否    | Number |                    返回数据的长度，Offset+Limit 不能大于 10000                    |
-|   order   |    否    | String |              以升序还是降序的方式对日志进行排序，可选值 desc 和 asc               |
-|  orderBy  |    否    | String | 根据某个字段排序日志,支持以下字段：function_name, duration, mem_usage, start_time |
-| startTime |    否    | String |    查询的具体日期，例如：2017 - 05 - 16 20:00:00，只能与 EndTime 相差一天之内     |
-|  endTime  |    否    | String |   查询的具体日期，例如：2017 - 05 - 16 20:59:59，只能与 StartTime 相差一天之内    |
-| requestId |    否    | String |                            执行该函数对应的 requestId                             |
-
-### 调用示例
-
-```javascript
-const logs = await functions.getFunctionLogs({ name: 'app' })
-```
-
-### 响应结果
-
-```json
-{
-    "TotalCount": 1,
-    "Data": [
-        {
-            "MemUsage": 3174400,
-            "RetCode": 1,
-            "RetMsg": "Success",
-            "Log": "",
-            "BillDuration": 100,
-            "InvokeFinished": 1,
-            "RequestId": "bc309eaa-6d64-11e8-a7fe-5254000b4175",
-            "StartTime": "2018-06-11 18:46:45",
-            "Duration": 0.532,
-            "FunctionName": "APITest"
-        }
-    ],
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+async function test() {
+  await functions.copyFunction()
 }
+test()
 ```
 
-#### 字段描述
+## createFunctionTriggers
 
-| 参数名                | 类型   | 描述                                                        |
-| --------------------- | ------ | ----------------------------------------------------------- |
-| RequestId             | String | 请求唯一标识                                                |
-| TotalCount            | String | 函数日志的总数                                              |
-| Data[]                | Array  | 运行函数的返回                                              |
-| Data[].RequestId      | String | 执行该函数对应的 requestId                                  |
-| Data[].FunctionName   | String | 函数的名称                                                  |
-| Data[].RetCode        | Number | 函数执行结果，如果是 0 表示执行成功，其他值表示失败         |
-| Data[].InvokeFinished | Number | 函数调用是否结束，如果是 1 表示执行结束，其他值表示调用异常 |
-| Data[].StartTime      | String | 函数开始执行时的时间点                                      |
-| Data[].Duration       | Number | 表示执行函数的耗时，单位是毫秒，异步调用返回为空            |
-| Data[].BillDuration   | Number | 表示函数的计费耗时，单位是毫秒，异步调用返回为空            |
-| Data[].MemUsage       | Number | 执行函数时的内存大小，单位为 Byte，异步调用返回为空         |
-| Data[].RetMsg         | String | 表示执行函数的返回，异步调用返回为空                        |
-| Data[].Log            | String | 表示执行过程中的日志输出，异步调用返回为空                  |
+### 1. 接口描述
 
-## 拷贝云函数
+接口功能：创建云函数触发器
 
-### 接口定义
+接口声明：`createFunctionTriggers(name: string, triggers: ICloudFunctionTrigger[]): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段     | 必填 | 类型                                            | 说明           |
+| -------- | ---- | ----------------------------------------------- | -------------- |
+| name     | 是   | String                                          | 函数名         |
+| triggers | 是   | [ICloudFunctionTrigger](#icloudfunctiontrigger) | 触发器配置数组 |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-copyFunction((name: string), (newFunctionName: string), (targetEnvId: string), (force = false))
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 参数说明
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-| 参数名          | 类型    | 描述                              |
-| --------------- | ------- | --------------------------------- |
-| name            | String  | 原函数名                          |
-| newFunctionName | String  | 新函数名                          |
-| targetEnvId     | String  | 新环境 ID（跨环境拷贝函数时填写） |
-| force           | Boolean | 是否覆盖同名函数                  |
-
-### 调用示例
-
-```javascript
-const logs = await functions.copyFunction()
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
-}
-```
-
-#### 字段描述
-
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
-
-## 创建云函数触发器
-
-### 接口定义
-
-```javascript
-createFunctionTriggers((name: string), (triggers: ICloudFunctionTrigger[]))
-```
-
-### 参数说明
-
-| 参数名   | 类型                                            | 描述           |
-| -------- | ----------------------------------------------- | -------------- |
-| name     | String                                          | 函数名         |
-| triggers | [ICloudFunctionTrigger](#icloudfunctiontrigger) | 触发器配置数组 |
-
-### 调用示例
-
-```javascript
-const res = await functions.createFunctionTriggers('app', [
+async function test() {
+  await functions.createFunctionTriggers('app', [
     {
-        // name: 触发器的名字
-        name: 'newTrigger',
-        // type: 触发器类型，目前仅支持 timer （即定时触发器）
-        type: 'timer',
-        // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
-        config: '0 0 2 1 * * *'
+      // name: 触发器的名字
+      name: 'newTrigger',
+      // type: 触发器类型，目前仅支持 timer （即定时触发器）
+      type: 'timer',
+      // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+      config: '0 0 2 1 * * *'
     }
-])
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+  ])
 }
+
+test()
 ```
 
-#### 字段描述
+## deleteFunctionTrigger
 
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
+### 1. 接口描述
 
-## 删除云函数触发器
+接口功能：删除云函数触发器
 
-### 接口定义
+接口声明：`deleteFunctionTrigger(name: string, triggerName: string): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段        | 必填 | 类型   | 说明     |
+| ----------- | ---- | ------ | -------- |
+| name        | 是   | String | 函数名   |
+| triggerName | 是   | String | 触发器名 |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-deleteFunctionTrigger((name: string), (triggerName: string))
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+  await functions.deleteFunctionTrigger('app', 'newTrigger')
+}
+
+test()
 ```
 
-### 参数说明
+## getFunctionDownloadUrl
 
-| 参数名      | 类型   | 描述     |
-| ----------- | ------ | -------- |
-| name        | String | 函数名   |
-| triggerName | String | 触发器名 |
+### 1. 接口描述
 
-### 调用示例
+接口功能：获取云函数代码下载链接
+
+接口声明：`getFunctionDownloadUrl(functionName:string, codeSecret?: string）: Promise<Object>`
+
+### 2. 输入参数
+
+| 字段         | 必填 | 类型   | 说明         |
+| ------------ | ---- | ------ | ------------ |
+| functionName | 是   | String | 函数名       |
+| codeSecret   | 否   | String | 代码保护密钥 |
+
+### 3. 返回结果
+
+| 字段       | 必填 | 类型   | 说明             |
+| ---------- | ---- | ------ | ---------------- |
+| RequestID  | 是   | String | 请求唯一标识     |
+| Url        | 是   | String | 函数代码下载链接 |
+| CodeSha256 | 是   | String | 函数的 SHA256 编 |
+
+### 4. 示例代码
 
 ```javascript
-const res = await functions.deleteFunctionTrigger('app', 'newTrigger')
-```
+import CloudBase from '@cloudbase/manager-node'
 
-### 响应结果
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
 
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+async function test() {
+  const res = await functions.getFunctionDownloadUrl('sum')
+  const { Url } = res
+  console.log(Url)
 }
+
+test()
 ```
 
-#### 字段描述
+## updateFunctionIncrementalCode
 
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
+### 1. 接口描述
 
-## 获取云函数代码下载链接
+接口功能：增量上传云函数代码
 
-### 接口定义
+接口声明：`updateFunctionIncrementalCode(funcParam: IUpdateFunctionIncrementalCodeParam): Promise<Object>`
 
-```typescript
-getFunctionDownloadUrl((functionName:string, codeSecret?: string)）
-```
+### 2. 输入参数
 
-### 参数说明
+| 字段      | 必填 | 类型                                       | 说明           |
+| --------- | ---- | ------------------------------------------ | -------------- |
+| funcParam | 是   | IUpdateFunctionIncrementalCodeParam 结构体 | 增量更新函数项 |
 
-| 参数名       | 是否必填 | 类型   | 描述         |
-| ------------ | -------- | ------ | ------------ |
-| functionName | 是       | String | 函数名       |
-| codeSecret   | 否       | String | 代码保护密钥 |
+#### IUpdateFunctionIncrementalCodeParam 结构体
 
-### 调用示例
-
-```javascript
-const res = await functions.getFunctionDownloadUrl('sum')
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a",
-    "Url": "https://lambdash-1253665819.cos.ap-shanghai.myqcloud.com/1259218801/luke-87pns/sum/sum_LATEST.zip?xxxxx",
-    "CodeSha256": "5077f5203547b225b532434dd6fcf7c9897025d7581a9f3d474a7afee88bc696"
-}
-```
-
-#### 字段描述
-
-| 参数名     | 类型   | 描述             |
-| ---------- | ------ | ---------------- |
-| RequestID  | String | 请求唯一标识     |
-| Url        | String | 函数代码下载链接 |
-| CodeSha256 | String | 函数的 SHA256 编 |
-
-## 增量上传云函数代码
-
-### 接口定义
-
-```typescript
-updateFunctionIncrementalCode((funcParam: IUpdateFunctionIncrementalCodeParam))
-```
-
-### 参数说明
-
-| 参数名    | 是否必填 | 类型                                       | 描述           |
-| --------- | -------- | ------------------------------------------ | -------------- |
-| funcParam | 是       | IUpdateFunctionIncrementalCodeParam 结构体 | 增量更新函数项 |
-
-### IUpdateFunctionIncrementalCodeParam 结构体
-
-| 参数名           | 是否必填 | 类型                 | 描述                                                                                       |
-| ---------------- | -------- | -------------------- | ------------------------------------------------------------------------------------------ |
-| func             | 是       | ICloudFunction       | 函数配置项，针对增量更新，目前只支持 name，runTime 字段设置(runTime 目前 仅支持 Nodejs8.9) |
-| functionRootPath | 是       | String               | 用户本地函数文件目录                                                                       |
-| deleteFiles      | 否       | Array.&lt;String&gt; | 要删除的文件，目录的列表，使用相对路径， 删除目录时必须以/结尾                             |
-| addFiles         | 否       | String               | 新增或修改的文件/目录 对应的 glob 匹配模式，目前支持 新增或修改 单个文件 或单个文件夹      |
+| 字段             | 必填 | 类型                 | 说明                                                                                       |
+| ---------------- | ---- | -------------------- | ------------------------------------------------------------------------------------------ |
+| func             | 是   | ICloudFunction       | 函数配置项，针对增量更新，目前只支持 name，runTime 字段设置(runTime 目前 仅支持 Nodejs8.9) |
+| functionRootPath | 是   | String               | 用户本地函数文件目录                                                                       |
+| deleteFiles      | 否   | Array.&lt;String&gt; | 要删除的文件，目录的列表，使用相对路径， 删除目录时必须以/结尾                             |
+| addFiles         | 否   | String               | 新增或修改的文件/目录 对应的 glob 匹配模式，目前支持 新增或修改 单个文件 或单个文件夹      |
 
 > ⚠️ 填写路径时请注意 Linux 及 Windows 下的区别（'/'与'\\'）
 > ⚠️ 增量更新 package.json 并不会触发依赖安装
 
-### 调用示例
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
 
 ```javascript
-// 本地存在sum 函数文件夹，新增test/index.js 文件 (index.js相对路径为 sum/test/index.js)
-const res = await functions.updateFunctionIncrementalCode({
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+  secretId: 'Your SecretId',
+  secretKey: 'Your SecretKey',
+  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+  // 本地存在sum 函数文件夹，新增test/index.js 文件 (index.js相对路径为 sum/test/index.js)
+  await functions.updateFunctionIncrementalCode({
     func: {
-        name: 'sum',
-        runTime: 'Nodejs8.9'
+      name: 'sum',
+      runTime: 'Nodejs8.9'
     },
     addFiles: 'test/index.js'
-})
+  })
 
-// 本地存在sum 函数文件夹，新增test/目录 (test相对路径为 sum/test/)
-const res = await functions.updateFunctionIncrementalCode({
+  // 本地存在sum 函数文件夹，新增test/目录 (test相对路径为 sum/test/)
+  await functions.updateFunctionIncrementalCode({
     func: {
-        name: 'sum',
-        runTime: 'Nodejs8.9'
+      name: 'sum',
+      runTime: 'Nodejs8.9'
     },
     addFiles: 'test/*' // 匹配test目录下所有文件, 这里采用 glob 匹配模式 而非相对路径
-})
+  })
 
-// 本地存在sum 函数文件夹，删除test/index.js (index.js相对路径为 sum/test/index.js)
-const res = await functions.updateFunctionIncrementalCode({
+  // 本地存在sum 函数文件夹，删除test/index.js (index.js相对路径为 sum/test/index.js)
+  await functions.updateFunctionIncrementalCode({
     func: {
-        name: 'sum',
-        runTime: 'Nodejs8.9'
+      name: 'sum',
+      runTime: 'Nodejs8.9'
     },
     deleteFiles: ['test/index.js']
-})
+  })
 
-// 本地存在sum 函数文件夹，删除test/ 目录 (test相对路径为 sum/test/)
-const res = await functions.updateFunctionIncrementalCode({
+  // 本地存在sum 函数文件夹，删除test/ 目录 (test相对路径为 sum/test/)
+  await functions.updateFunctionIncrementalCode({
     func: {
-        name: 'sum',
-        runTime: 'Nodejs8.9'
+      name: 'sum',
+      runTime: 'Nodejs8.9'
     },
     deleteFiles: ['test/'] // 删除目录时必须以 /结尾
-})
-```
-
-### 响应结果
-
-```json
-{
-    "RequestId": "e2571ff3-da04-4c53-8438-f58bf057ce4a"
+  })
 }
+
+test()
 ```
-
-#### 字段描述
-
-| 参数名    | 类型   | 描述         |
-| --------- | ------ | ------------ |
-| RequestID | String | 请求唯一标识 |
