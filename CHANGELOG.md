@@ -1,3 +1,8 @@
+# v2.2.1
+
+-   [fix] 修复查询所有集合信息接口 集合为空时报错
+-   [fix] updateFunctionCode 支持自动安装依赖
+
 # v2.2.0
 
 -   [fix] 修复上传文件夹等接口 `onFileFinish` 参数 TS 定义错误

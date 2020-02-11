@@ -217,12 +217,17 @@ export class DatabaseService {
             ...options
         })
 
-        // 云api返回转换为与TCB一致
-        res.Collections = res.Tables.map(item => {
-            item.CollectionName = item.TableName
-            delete item.TableName
-            return item
-        })
+        if (res.Tables === null) {
+            // 无集合
+            res.Collections = []
+        } else {
+            // 云api返回转换为与TCB一致
+            res.Collections = res.Tables.map(item => {
+                item.CollectionName = item.TableName
+                delete item.TableName
+                return item
+            })
+        }
 
         delete res.Tables
         return res
