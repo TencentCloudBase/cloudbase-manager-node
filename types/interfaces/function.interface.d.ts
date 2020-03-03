@@ -15,12 +15,17 @@ export interface ICloudFunctionConfig {
     installDependency?: boolean;
     l5?: boolean;
 }
+export interface LayerVersionSimple {
+    LayerName: string;
+    LayerVersion: number;
+}
 export interface ICloudFunction extends ICloudFunctionConfig {
     name: string;
     triggers?: ICloudFunctionTrigger[];
     handler?: string;
     ignore?: string | string[];
     isWaitInstall?: boolean;
+    layers?: LayerVersionSimple[];
 }
 export interface IFunctionLogOptions {
     name: string;

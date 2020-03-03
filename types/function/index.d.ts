@@ -24,6 +24,58 @@ interface ICreateFunctionRes {
     configRes: IResponseInfo;
     codeRes: IResponseInfo;
 }
+interface IFunctionLayerOptions {
+    contentPath?: string;
+    base64Content?: string;
+    name: string;
+    runtimes: string[];
+    description?: string;
+    licenseInfo?: string;
+}
+interface ICreateLayerResponse extends IResponseInfo {
+    LayerVersion: number;
+}
+interface ILayerOptions {
+    name: string;
+    version: number;
+}
+interface IVersionListOptions {
+    name: string;
+    runtimes?: string[];
+}
+interface ILayerListOptions {
+    offset?: number;
+    limit?: number;
+    runtime?: string;
+    searchKey?: string;
+}
+interface ILayerVersionInfo {
+    CompatibleRuntimes: string[];
+    AddTime: string;
+    Description: string;
+    LicenseInfo: string;
+    LayerVersion: number;
+    LayerName: string;
+    Status: string;
+}
+interface IListLayerVersionsRes extends IResponseInfo {
+    LayerVersions: Array<ILayerVersionInfo>;
+}
+interface IListLayerRes extends IResponseInfo {
+    Layers: Array<ILayerVersionInfo>;
+    TotalCount: number;
+}
+interface IGetLayerVersionRes extends IResponseInfo {
+    CompatibleRuntimes: string[];
+    CodeSha256: string;
+    Location: string;
+    AddTime: string;
+    Description: string;
+    LicenseInfo: string;
+    LayerVersion: number;
+    LayerName: string;
+    Status: string;
+}
 export declare class FunctionService {
     private environment;
     private vpcService;
@@ -128,7 +180,13 @@ export declare class FunctionService {
      * @memberof FunctionService
      */
     getFunctionDownloadUrl(functionName: string, codeSecret?: string): Promise<IFunctionDownloadUrlRes>;
+    createLayer(options: IFunctionLayerOptions): Promise<ICreateLayerResponse>;
+    deleteLayerVersion(options: ILayerOptions): Promise<IResponseInfo>;
+    listLayerVersions(options: IVersionListOptions): Promise<IListLayerVersionsRes>;
+    listLayers(options: ILayerListOptions): Promise<IListLayerRes>;
+    getLayerVersion(options: ILayerOptions): Promise<IGetLayerVersionRes>;
     private retryCreateTrigger;
+    private retryUpdateFunctionCode;
     /**
      *
      * @private

@@ -1,5 +1,6 @@
 import fs from 'fs'
 import { CloudBaseError } from '../error'
+import del from 'del'
 
 type SizeUnit = 'MB' | 'GB'
 
@@ -26,4 +27,8 @@ export function formateFileSize(size: number, unit: SizeUnit) {
     }
 
     return Number(size / unitMap[unit]).toFixed(2)
+}
+
+export function delSync(patterns: string | readonly string[]) {
+    del.sync(patterns, { force: true })
 }

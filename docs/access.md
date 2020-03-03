@@ -4,11 +4,11 @@
 
 ### 权限类别(以下前 4 种属于简易权限，CUSTOM 属于安全规则特有)
 
-- READONLY：所有用户可读，仅创建者和管理员可写
-- PRIVATE：仅创建者及管理员可读写
-- ADMINWRITE：所有用户可读，仅管理员可写
-- ADMINONLY：仅管理员可读写
-- CUSTOM: 自定义安全规则
+-   READONLY：所有用户可读，仅创建者和管理员可写
+-   PRIVATE：仅创建者及管理员可读写
+-   ADMINWRITE：所有用户可读，仅管理员可写
+-   ADMINONLY：仅管理员可读写
+-   CUSTOM: 自定义安全规则
 
 ## 获取数据库简易权限
 
@@ -43,23 +43,23 @@
 
 ```js
 const cloudbaseConfig = {
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
 let { commonService } = new CloudBase(cloudbaseConfig)
 
 async function test() {
-  const res = await commonService.call({
-    Action: 'DescribeDatabaseACL',
-    Param: {
-      CollectionName: 'xxx',
-      EnvId: cloudbaseConfig.envId
-    }
-  })
+    const res = await commonService.call({
+        Action: 'DescribeDatabaseACL',
+        Param: {
+            CollectionName: 'xxx',
+            EnvId: cloudbaseConfig.envId
+        }
+    })
 
-  console.log(res.AclTag) // 打印权限类别
+    console.log(res.AclTag) // 打印权限类别
 }
 
 test()
@@ -98,23 +98,23 @@ test()
 
 ```js
 const cloudbaseConfig = {
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
 let { commonService } = new CloudBase(cloudBaseConfig)
 
 async function test() {
-  const res = await commonService.call({
-    Action: 'ModifyDatabaseACL',
-    Param: {
-      CollectionName: 'xxx',
-      EnvId: cloudbaseConfig.envId,
-      AclTag: 'PRIVATE'
-    }
-  })
-  console.log(res)
+    const res = await commonService.call({
+        Action: 'ModifyDatabaseACL',
+        Param: {
+            CollectionName: 'xxx',
+            EnvId: cloudbaseConfig.envId,
+            AclTag: 'PRIVATE'
+        }
+    })
+    console.log(res)
 }
 
 test()
@@ -154,27 +154,27 @@ test()
 
 ```js
 const cloudbaseConfig = {
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
 let { commonService } = new CloudBase(cloudBaseConfig)
 
 async function test() {
-  const res = await commonService.call({
-    Action: 'ModifySafeRule',
-    Param: {
-      CollectionName: 'coll-1',
-      AclTag: 'CUSTOM',
-      EnvId: 'xxx',
-      Rule: JSON.stringify({
-        read: true,
-        write: 'doc._openid == auth.openid'
-      })
-    }
-  })
-  console.log(res)
+    const res = await commonService.call({
+        Action: 'ModifySafeRule',
+        Param: {
+            CollectionName: 'coll-1',
+            AclTag: 'CUSTOM',
+            EnvId: 'xxx',
+            Rule: JSON.stringify({
+                read: true,
+                write: 'doc._openid == auth.openid'
+            })
+        }
+    })
+    console.log(res)
 }
 
 test()
@@ -214,23 +214,23 @@ test()
 
 ```js
 const cloudbaseConfig = {
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
 let { commonService } = new CloudBase(cloudBaseConfig)
 
 async function test() {
-  const res = await commonService.call({
-    Action: 'DescribeSafeRule',
-    Param: {
-      CollectionName: 'coll-1',
-      EnvId: cloudbaseConfig.envId
-    }
-  })
-  console.log(res.AclTag)
-  console.log(res.Rule)
+    const res = await commonService.call({
+        Action: 'DescribeSafeRule',
+        Param: {
+            CollectionName: 'coll-1',
+            EnvId: cloudbaseConfig.envId
+        }
+    })
+    console.log(res.AclTag)
+    console.log(res.Rule)
 }
 test()
 ```
@@ -269,30 +269,30 @@ test()
 
 ```js
 const { commonService, env } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 // 先获取桶名
 const {
-  EnvInfo: { Storages }
+    EnvInfo: { Storages }
 } = await env.getEnvInfo()
 const { Bucket } = Storages[0]
 
 async function test() {
-  const res = await commonService.call({
-    Action: 'ModifyStorageSafeRule',
-    Param: {
-      Bucket,
-      AclTag: 'CUSTOM',
-      EnvId: envId,
-      Rule: JSON.stringify({
-        read: true,
-        write: 'resource.openid == auth.uid'
-      })
-    }
-  })
-  console.log(res)
+    const res = await commonService.call({
+        Action: 'ModifyStorageSafeRule',
+        Param: {
+            Bucket,
+            AclTag: 'CUSTOM',
+            EnvId: envId,
+            Rule: JSON.stringify({
+                read: true,
+                write: 'resource.openid == auth.uid'
+            })
+        }
+    })
+    console.log(res)
 }
 test()
 ```
@@ -331,23 +331,103 @@ test()
 
 ```js
 const cloudbaseConfig = {
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
 let { commonService } = new CloudBase(cloudBaseConfig)
 
 async function test() {
-  const res = await commonService.call({
-    Action: 'DescribeStorageSafeRule',
-    Param: {
-      Bucket: 'xxx',
-      EnvId: cloudBaseConfig.envId
-    }
-  })
-  console.log(res.AclTag)
-  console.log(res.Rule)
+    const res = await commonService.call({
+        Action: 'DescribeStorageSafeRule',
+        Param: {
+            Bucket: 'xxx',
+            EnvId: cloudBaseConfig.envId
+        }
+    })
+    console.log(res.AclTag)
+    console.log(res.Rule)
+}
+
+test()
+```
+
+## 查询存储安全规则修改异步任务状态
+
+### 1. 接口描述
+
+接口功能：查询存储安全规则修改异步任务状态
+
+接口声明：`commonService.call({Action: 'DescribeCDNChainTask',Param: {}}): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段   | 必填 | 类型   | 说明     |
+| ------ | ---- | ------ | -------- |
+| Action | 是   | String | 接口名称 |
+| Param  | 是   | Object | 接口参数 |
+
+#### Param 字段说明
+
+| 字段   | 必填 | 类型   | 说明    |
+| ------ | ---- | ------ | ------- |
+| Bucket | 是   | String | 桶名称  |
+| EnvId  | 是   | String | 环境 ID |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明                                                   |
+| --------- | ---- | ------ | ------------------------------------------------------ |
+| RequestId | 是   | String | 请求唯一标识                                           |
+| Status    | 是   | String | 开/关防盗链任务状态。WAITING、PENDING、FINISHED、ERROR |
+
+### 4. 示例代码
+
+```js
+const cloudbaseConfig = {
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+}
+
+let { commonService } = new CloudBase(cloudBaseConfig)
+
+async function test() {
+    // 获取环境信息 取bucket
+    const {
+        EnvInfo: { Storages }
+    } = await env.getEnvInfo()
+    console.log(Storages)
+    const { Bucket } = Storages[0]
+    const res = await commonService.call({
+        Action: 'ModifyStorageSafeRule',
+        Param: {
+            Bucket,
+            AclTag: 'CUSTOM',
+            EnvId: envId,
+            Rule: JSON.stringify({
+                read: true,
+                write: 'resource.openid == auth.uid'
+            })
+        }
+    })
+    console.log(res)
+    expect(res.RequestId !== undefined).toBe(true)
+
+    let status = ''
+    do {
+        status = (
+            await commonService.call({
+                Action: 'DescribeCDNChainTask',
+                Param: {
+                    Bucket,
+                    EnvId: envId
+                }
+            })
+        ).Status
+        console.log(status)
+    } while (status !== 'FINISHED' && status !== 'ERROR')
 }
 
 test()

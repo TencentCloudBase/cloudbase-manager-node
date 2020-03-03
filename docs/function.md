@@ -140,41 +140,41 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  await functions.createFunction({
-    func: {
-      // functions 文件夹下函数文件夹的名称，即函数名
-      name: 'app',
-      // 超时时间
-      timeout: 5,
-      // 环境变量
-      envVariables: {
-        key: 'value',
-        akey: 'c'
-      },
-      runtime: 'Nodejs8.9',
-      // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
-      triggers: [
-        {
-          // name: 触发器的名字
-          name: 'myTrigger',
-          // type: 触发器类型，目前仅支持 timer （即定时触发器）
-          type: 'timer',
-          // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
-          config: '0 0 2 1 * * *'
-        }
-      ]
-    },
-    functionRootPath: '',
-    force: true,
-    base64Code:
-      'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-  })
+    await functions.createFunction({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'app',
+            // 超时时间
+            timeout: 5,
+            // 环境变量
+            envVariables: {
+                key: 'value',
+                akey: 'c'
+            },
+            runtime: 'Nodejs8.9',
+            // 函数触发器，说明见文档: https://cloud.tencent.com/document/product/876/32314
+            triggers: [
+                {
+                    // name: 触发器的名字
+                    name: 'myTrigger',
+                    // type: 触发器类型，目前仅支持 timer （即定时触发器）
+                    type: 'timer',
+                    // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+                    config: '0 0 2 1 * * *'
+                }
+            ]
+        },
+        functionRootPath: '',
+        force: true,
+        base64Code:
+            'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+    })
 }
 
 test()
@@ -215,22 +215,22 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  let res = await functions.updateFunctionCode({
-    func: {
-      // functions 文件夹下函数文件夹的名称，即函数名
-      name: 'app'
-    },
-    functionRootPath: '',
-    base64Code:
-      'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
-  })
-  console.log(res)
+    let res = await functions.updateFunctionCode({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'app'
+        },
+        functionRootPath: '',
+        base64Code:
+            'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
+    })
+    console.log(res)
 }
 
 test()
@@ -266,17 +266,17 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  let res = await functions.updateFunctionConfig({
-    name: 'app',
-    timeout: 6
-  })
-  console.log(res)
+    let res = await functions.updateFunctionConfig({
+        name: 'app',
+        timeout: 6
+    })
+    console.log(res)
 }
 
 test()
@@ -308,13 +308,13 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  await functions.deleteFunction('functionName')
+    await functions.deleteFunction('functionName')
 }
 
 test()
@@ -359,14 +359,14 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  let res = await functions.getFunctionDetail('functionName')
-  console.log(res) // 输出云函数详情
+    let res = await functions.getFunctionDetail('functionName')
+    console.log(res) // 输出云函数详情
 }
 
 test()
@@ -407,16 +407,16 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  const res = await functions.invokeFunction('app', {
-    a: 1
-  })
-  console.log(res.RetMsg)
+    const res = await functions.invokeFunction('app', {
+        a: 1
+    })
+    console.log(res.RetMsg)
 }
 
 test()
@@ -473,17 +473,17 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  const logs = await functions.getFunctionLogs({ name: 'app' })
-  const { Data } = logs
-  for (let item in Data) {
-    console.log(item)
-  }
+    const logs = await functions.getFunctionLogs({ name: 'app' })
+    const { Data } = logs
+    for (let item in Data) {
+        console.log(item)
+    }
 }
 
 test()
@@ -518,13 +518,13 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  await functions.copyFunction()
+    await functions.copyFunction()
 }
 test()
 ```
@@ -556,22 +556,22 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  await functions.createFunctionTriggers('app', [
-    {
-      // name: 触发器的名字
-      name: 'newTrigger',
-      // type: 触发器类型，目前仅支持 timer （即定时触发器）
-      type: 'timer',
-      // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
-      config: '0 0 2 1 * * *'
-    }
-  ])
+    await functions.createFunctionTriggers('app', [
+        {
+            // name: 触发器的名字
+            name: 'newTrigger',
+            // type: 触发器类型，目前仅支持 timer （即定时触发器）
+            type: 'timer',
+            // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+            config: '0 0 2 1 * * *'
+        }
+    ])
 }
 
 test()
@@ -604,13 +604,13 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  await functions.deleteFunctionTrigger('app', 'newTrigger')
+    await functions.deleteFunctionTrigger('app', 'newTrigger')
 }
 
 test()
@@ -645,15 +645,15 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  const res = await functions.getFunctionDownloadUrl('sum')
-  const { Url } = res
-  console.log(Url)
+    const res = await functions.getFunctionDownloadUrl('sum')
+    const { Url } = res
+    console.log(Url)
 }
 
 test()
@@ -697,47 +697,331 @@ test()
 import CloudBase from '@cloudbase/manager-node'
 
 const { functions } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  // 本地存在sum 函数文件夹，新增test/index.js 文件 (index.js相对路径为 sum/test/index.js)
-  await functions.updateFunctionIncrementalCode({
-    func: {
-      name: 'sum',
-      runTime: 'Nodejs8.9'
-    },
-    addFiles: 'test/index.js'
-  })
+    // 本地存在sum 函数文件夹，新增test/index.js 文件 (index.js相对路径为 sum/test/index.js)
+    await functions.updateFunctionIncrementalCode({
+        func: {
+            name: 'sum',
+            runTime: 'Nodejs8.9'
+        },
+        addFiles: 'test/index.js'
+    })
 
-  // 本地存在sum 函数文件夹，新增test/目录 (test相对路径为 sum/test/)
-  await functions.updateFunctionIncrementalCode({
-    func: {
-      name: 'sum',
-      runTime: 'Nodejs8.9'
-    },
-    addFiles: 'test/*' // 匹配test目录下所有文件, 这里采用 glob 匹配模式 而非相对路径
-  })
+    // 本地存在sum 函数文件夹，新增test/目录 (test相对路径为 sum/test/)
+    await functions.updateFunctionIncrementalCode({
+        func: {
+            name: 'sum',
+            runTime: 'Nodejs8.9'
+        },
+        addFiles: 'test/*' // 匹配test目录下所有文件, 这里采用 glob 匹配模式 而非相对路径
+    })
 
-  // 本地存在sum 函数文件夹，删除test/index.js (index.js相对路径为 sum/test/index.js)
-  await functions.updateFunctionIncrementalCode({
-    func: {
-      name: 'sum',
-      runTime: 'Nodejs8.9'
-    },
-    deleteFiles: ['test/index.js']
-  })
+    // 本地存在sum 函数文件夹，删除test/index.js (index.js相对路径为 sum/test/index.js)
+    await functions.updateFunctionIncrementalCode({
+        func: {
+            name: 'sum',
+            runTime: 'Nodejs8.9'
+        },
+        deleteFiles: ['test/index.js']
+    })
 
-  // 本地存在sum 函数文件夹，删除test/ 目录 (test相对路径为 sum/test/)
-  await functions.updateFunctionIncrementalCode({
-    func: {
-      name: 'sum',
-      runTime: 'Nodejs8.9'
-    },
-    deleteFiles: ['test/'] // 删除目录时必须以 /结尾
-  })
+    // 本地存在sum 函数文件夹，删除test/ 目录 (test相对路径为 sum/test/)
+    await functions.updateFunctionIncrementalCode({
+        func: {
+            name: 'sum',
+            runTime: 'Nodejs8.9'
+        },
+        deleteFiles: ['test/'] // 删除目录时必须以 /结尾
+    })
+}
+
+test()
+```
+
+## createLayer
+
+### 1. 接口描述
+
+接口功能：发布层版本
+
+接口声明：`createLayer(options: IFunctionLayerOptions): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                         | 说明   |
+| ------- | ---- | ---------------------------- | ------ |
+| options | 是   | IFunctionLayerOptions 结构体 | 请求项 |
+
+#### IFunctionLayerOptions 结构体
+
+| 字段          | 必填 | 类型                 | 说明                                                                                                                                |
+| ------------- | ---- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| contentPath   | 否   | String               | 可以指定 contentPath 为文件夹 或者 ZIP 文件路径                                                                                     |
+| base64Content | 否   | String               | 文件的 base64 编码                                                                                                                  |
+| name          | 是   | String               | 层名称，支持 26 个英文字母大小写、数字、连接符和下划线，第一个字符只能以字母开头，最后一个字符不能为连接符或者下划线，名称长度 1-64 |
+| runtimes      | 是   | Array.&lt;String&gt; | 层适用的运行时，可多选，可选的值对应函数的 Runtime 可选值。                                                                         |
+| description   | 否   | String               | 层版本描述                                                                                                                          |
+| licenseInfo   | 否   | String               | 层的软件许可证                                                                                                                      |
+
+### 3. 返回结果
+
+| 字段         | 必填 | 类型   | 说明     |
+| ------------ | ---- | ------ | -------- |
+| RequestId    | 是   | String | 请求 ID  |
+| LayerVersion | 是   | Number | 层版本号 |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+    const res = await functions.updateFunctionIncrementalCode({
+        func: {
+            name: 'sum',
+            runTime: 'Nodejs8.9'
+        },
+        addFiles: 'test/index.js'
+    })
+    console.log(res.LayerVersion)
+}
+
+test()
+```
+
+## deleteLayerVersion
+
+### 1. 接口描述
+
+接口功能：删除层版本
+
+接口声明：`deleteLayerVersion(options: ILayerOptions): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                 | 说明   |
+| ------- | ---- | -------------------- | ------ |
+| options | 是   | ILayerOptions 结构体 | 请求项 |
+
+#### ILayerOptions 结构体
+
+| 字段    | 必填 | 类型   | 说明   |
+| ------- | ---- | ------ | ------ |
+| name    | 是   | String | 层名称 |
+| version | 是   | Number | 版本号 |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明    |
+| --------- | ---- | ------ | ------- |
+| RequestId | 是   | String | 请求 ID |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+    const res = await functions.deleteLayerVersion({
+        name: layerName,
+        version: 1
+    })
+    console.log(res.RequestId)
+}
+
+test()
+```
+
+## listLayerVersions
+
+### 1. 接口描述
+
+接口功能：获取层版本列表
+
+接口声明：`listLayerVersions(options: IVersionListOptions): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                       | 说明   |
+| ------- | ---- | -------------------------- | ------ |
+| options | 是   | IVersionListOptions 结构体 | 请求项 |
+
+#### IVersionListOptions 结构体
+
+| 字段     | 必填 | 类型                 | 说明   |
+| -------- | ---- | -------------------- | ------ |
+| name     | 是   | String               | 层名称 |
+| runtimes | 否   | Array.&lt;String&gt; | 版本号 |
+
+### 3. 返回结果
+
+| 字段          | 必填 | 类型                            | 说明       |
+| ------------- | ---- | ------------------------------- | ---------- |
+| RequestId     | 是   | String                          | 请求 ID    |
+| LayerVersions | 是   | Array.&lt;ILayerVersionInfo&gt; | 文件层详情 |
+
+#### ILayerVersionInfo 结构体
+
+| 字段               | 必填 | 类型                 | 说明                                                                                        |
+| ------------------ | ---- | -------------------- | ------------------------------------------------------------------------------------------- |
+| CompatibleRuntimes | 是   | Array.&lt;String&gt; | 版本适用的运行时                                                                            |
+| AddTime            | 是   | String               | 创建时间                                                                                    |
+| Description        | 是   | String               | 版本描述                                                                                    |
+| LicenseInfo        | 是   | String               | 许可证信息                                                                                  |
+| LayerVersion       | 是   | Number               | 版本号                                                                                      |
+| LayerName          | 是   | String               | 层名称                                                                                      |
+| Status             | 是   | String               | 层的具体版本当前状态， Active 正常, Publishing 发布中,PublishFailed 发布失败,Deleted 已删除 |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+    const res = await functions.listLayerVersions({
+        name: layerName
+    })
+    console.log(res.LayerVersions)
+}
+
+test()
+```
+
+## listLayers
+
+### 1. 接口描述
+
+接口功能：获取层列表
+
+接口声明：`listLayers(options: ILayerListOptions): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                     | 说明   |
+| ------- | ---- | ------------------------ | ------ |
+| options | 是   | ILayerListOptions 结构体 | 请求项 |
+
+#### ILayerListOptions 结构体
+
+| 字段      | 必填 | 类型   | 说明                   |
+| --------- | ---- | ------ | ---------------------- |
+| offset    | 否   | Number | 偏移                   |
+| limit     | 否   | Number | 限制数                 |
+| runtime   | 否   | String | 适配的运行时           |
+| searchKey | 否   | String | 查询 key，模糊匹配名称 |
+
+### 3. 返回结果
+
+| 字段       | 必填 | 类型                            | 说明       |
+| ---------- | ---- | ------------------------------- | ---------- |
+| RequestId  | 是   | String                          | 请求 ID    |
+| TotalCount | 是   | Number                          | 层总数     |
+| Layers     | 是   | Array.&lt;ILayerVersionInfo&gt; | 文件层详情 |
+
+#### ILayerVersionInfo 结构体
+
+| 字段               | 必填 | 类型                 | 说明                                                                                        |
+| ------------------ | ---- | -------------------- | ------------------------------------------------------------------------------------------- |
+| CompatibleRuntimes | 是   | Array.&lt;String&gt; | 版本适用的运行时                                                                            |
+| AddTime            | 是   | String               | 创建时间                                                                                    |
+| Description        | 是   | String               | 版本描述                                                                                    |
+| LicenseInfo        | 是   | String               | 许可证信息                                                                                  |
+| LayerVersion       | 是   | Number               | 版本号                                                                                      |
+| LayerName          | 是   | String               | 层名称                                                                                      |
+| Status             | 是   | String               | 层的具体版本当前状态， Active 正常, Publishing 发布中,PublishFailed 发布失败,Deleted 已删除 |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+    const res = await functions.listLayers({})
+    console.log(res.Layers)
+}
+
+test()
+```
+
+## getLayerVersion
+
+### 1. 接口描述
+
+接口功能：获取层版本详细信息
+
+接口声明：`getLayerVersion(options: ILayerOptions): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段    | 必填 | 类型                 | 说明   |
+| ------- | ---- | -------------------- | ------ |
+| options | 是   | ILayerOptions 结构体 | 请求项 |
+
+#### ILayerOptions 结构体
+
+| 字段    | 必填 | 类型   | 说明   |
+| ------- | ---- | ------ | ------ |
+| name    | 是   | String | 层名称 |
+| version | 是   | Number | 版本号 |
+
+### 3. 返回结果
+
+| 字段               | 必填 | 类型                 | 说明                                                                                        |
+| ------------------ | ---- | -------------------- | ------------------------------------------------------------------------------------------- |
+| RequestId          | 是   | String               | 请求 ID                                                                                     |
+| CompatibleRuntimes | 是   | Array.&lt;String&gt; | 适配的运行时                                                                                |
+| CodeSha256         | 是   | String               | 层中版本文件的 SHA256 编码                                                                  |
+| Location           | 是   | String               | 层中版本文件的下载地址                                                                      |
+| AddTime            | 是   | String               | 版本的创建时间                                                                              |
+| Description        | 是   | String               | 版本的描述                                                                                  |
+| LicenseInfo        | 是   | String               | 许可证信息                                                                                  |
+| LayerVersion       | 是   | Number               | 版本号                                                                                      |
+| LayerName          | 是   | String               | 层名称                                                                                      |
+| Status             | 是   | String               | 层的具体版本当前状态， Active 正常, Publishing 发布中,PublishFailed 发布失败,Deleted 已删除 |
+
+### 4. 示例代码
+
+```javascript
+import CloudBase from '@cloudbase/manager-node'
+
+const { functions } = new CloudBase({
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+})
+
+async function test() {
+    const res = await functions.getLayerVersion({ name: layerName, version: 2 })
+    console.log(res.LayerVersion)
 }
 
 test()

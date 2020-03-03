@@ -10,8 +10,11 @@ import {
     IFunctionDownloadUrlRes
 } from '../interfaces'
 import { CloudBaseError } from '../error'
-import { CloudService, preLazy, sleep } from '../utils'
+import { CloudService, preLazy, sleep, zipDir } from '../utils'
 import { SCF_STATUS } from '../constant'
+import { isDirectory, checkPathExist, delSync } from '../utils/fs'
+import path from 'path'
+import fs from 'fs'
 
 interface ICreateFunctionParam {
     func: ICloudFunction // 云函数信息
@@ -39,6 +42,67 @@ interface ICreateFunctionRes {
     triggerRes: IResponseInfo
     configRes: IResponseInfo
     codeRes: IResponseInfo
+}
+
+interface IFunctionLayerOptions {
+    contentPath?: string
+    base64Content?: string
+    name: string
+    runtimes: string[] // 支持的运行时
+    description?: string // 层版本描述
+    licenseInfo?: string // 层的软件许可证
+}
+
+interface ICreateLayerResponse extends IResponseInfo {
+    LayerVersion: number
+}
+
+interface ILayerOptions {
+    name: string
+    version: number
+}
+
+interface IVersionListOptions {
+    name: string
+    runtimes?: string[]
+}
+
+interface ILayerListOptions {
+    offset?: number
+    limit?: number
+    runtime?: string
+    searchKey?: string
+}
+
+interface ILayerVersionInfo {
+    CompatibleRuntimes: string[] // 版本适用的运行时
+    AddTime: string // 创建时间
+    Description: string // 版本描述
+    LicenseInfo: string // 许可证信息
+    LayerVersion: number // 版本号
+    LayerName: string // 层名称
+    Status: string // 层的具体版本当前状态
+}
+
+interface IListLayerVersionsRes extends IResponseInfo {
+    LayerVersions: Array<ILayerVersionInfo>
+}
+
+interface IListLayerRes extends IResponseInfo {
+    Layers: Array<ILayerVersionInfo>
+    TotalCount: number
+}
+
+interface IGetLayerVersionRes extends IResponseInfo {
+    CompatibleRuntimes: string[] // 适配的运行时
+    CodeSha256: string // 层中版本文件的SHA256编码
+    Location: string // 层中版本文件的下载地址
+    AddTime: string // 版本的创建时间
+    Description: string // 版本的描述
+    LicenseInfo: string // 许可证信息
+    LayerVersion: number // 版本号
+    LayerName: string // 层名称
+    Status: string // 	层的具体版本当前状态
 }
 
 // 校验函数参数
@@ -208,6 +272,9 @@ export class FunctionService {
             params.CodeSecret = codeSecret
         }
 
+        // 函数层
+        func.layers && func.layers.length && (params.Layers = func.layers)
+
         try {
             // 创建云函数
             const res = await this.scfService.request('CreateFunction', params)
@@ -228,7 +295,7 @@ export class FunctionService {
                 // 更新函数配置和代码
                 const configRes = await this.updateFunctionConfig(func)
                 // 更新函数代码
-                const codeRes = await this.updateFunctionCode({
+                const codeRes = await this.retryUpdateFunctionCode({
                     func,
                     functionRootPath,
                     base64Code: base64,
@@ -456,6 +523,9 @@ export class FunctionService {
             params.InstallDependency = func.installDependency ? 'TRUE' : 'FALSE'
         }
 
+        // 函数层
+        func.layers && func.layers.length && (params.Layers = func.layers)
+
         return this.scfService.request('UpdateFunctionConfiguration', params)
     }
 
@@ -676,6 +746,126 @@ export class FunctionService {
         }
     }
 
+    // 创建文件层版本
+    public async createLayer(options: IFunctionLayerOptions): Promise<ICreateLayerResponse> {
+        const {
+            contentPath = '',
+            name,
+            base64Content = '',
+            runtimes = [],
+            description = '',
+            licenseInfo = ''
+        } = options
+
+        // checkFullAccess(contentPath)
+
+        const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
+        if (runtimes.some(item => validRuntime.indexOf(item) === -1)) {
+            throw new CloudBaseError(
+                `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
+            )
+        }
+
+        let base64
+
+        if (base64Content) {
+            base64 = base64Content
+        } else if (isDirectory(contentPath)) {
+            // 压缩文件夹
+            const dirName = path.parse(contentPath).name
+            const dest = path.join(process.cwd(), `temp-${dirName}.zip`)
+            // ZIP 文件存在，删除 ZIP 文件
+            if (checkPathExist(dest)) {
+                delSync(dest)
+            }
+            await zipDir({
+                dirPath: contentPath,
+                outputPath: dest
+            })
+            // 转换成 base64
+            const fileBuffer = await fs.promises.readFile(dest)
+            base64 = fileBuffer.toString('base64')
+            delSync(dest)
+        } else {
+            const fileType = path.extname(contentPath)
+            if (fileType !== '.zip') {
+                throw new CloudBaseError('文件类型不正确，目前只支持 ZIP 文件！')
+            }
+            const fileBuffer = await fs.promises.readFile(contentPath)
+            base64 = fileBuffer.toString('base64')
+        }
+
+        return this.scfService.request('PublishLayerVersion', {
+            LayerName: name,
+            CompatibleRuntimes: runtimes,
+            Content: {
+                // 最大支持 20M
+                ZipFile: base64
+            },
+            Description: description,
+            LicenseInfo: licenseInfo
+        })
+    }
+
+    // 删除文件层版本
+    public async deleteLayerVersion(options: ILayerOptions): Promise<IResponseInfo> {
+        const { name, version } = options
+
+        return this.scfService.request('DeleteLayerVersion', {
+            LayerName: name,
+            LayerVersion: version
+        })
+    }
+
+    // 获取层版本列表
+    public async listLayerVersions(options: IVersionListOptions): Promise<IListLayerVersionsRes> {
+        const { name, runtimes } = options
+        let param: any = {
+            LayerName: name
+        }
+        if (runtimes?.length) {
+            const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
+            if (runtimes.some(item => validRuntime.indexOf(item) === -1)) {
+                throw new CloudBaseError(
+                    `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
+                )
+            }
+            param.CompatibleRuntime = runtimes
+        }
+        return this.scfService.request('ListLayerVersions', param)
+    }
+
+    // 获取文件层列表
+    public async listLayers(options: ILayerListOptions): Promise<IListLayerRes> {
+        const { limit = 20, offset = 0, runtime, searchKey } = options
+        let param: any = {
+            Limit: limit,
+            Offset: offset,
+            SearchKey: searchKey
+        }
+        if (runtime) {
+            const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
+            if (validRuntime.indexOf(runtime) === -1) {
+                throw new CloudBaseError(
+                    `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
+                )
+            }
+            param.CompatibleRuntime = runtime
+        }
+
+        return this.scfService.request('ListLayers', param)
+    }
+
+    // 获取层版本详细信息
+    public async getLayerVersion(options: ILayerOptions): Promise<IGetLayerVersionRes> {
+        const { name, version } = options
+
+        return this.scfService.request('GetLayerVersion', {
+            LayerName: name,
+            LayerVersion: version
+        })
+    }
+
     private async retryCreateTrigger(name, triggers, count = 0) {
         try {
             await this.createFunctionTriggers(name, triggers)
@@ -683,6 +873,19 @@ export class FunctionService {
             if (count < 3) {
                 await sleep(500)
                 await this.retryCreateTrigger(name, triggers, count + 1)
+            } else {
+                throw e
+            }
+        }
+    }
+
+    private async retryUpdateFunctionCode(param, count = 0) {
+        try {
+            return await this.updateFunctionCode(param)
+        } catch (e) {
+            if (count < 3) {
+                await sleep(500)
+                return await this.retryUpdateFunctionCode(param, count + 1)
             } else {
                 throw e
             }

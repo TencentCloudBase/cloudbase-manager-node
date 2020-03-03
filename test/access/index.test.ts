@@ -79,6 +79,20 @@ test('设置存储安全规则', async () => {
     })
     console.log(res)
     expect(res.RequestId !== undefined).toBe(true)
+
+    let status = ''
+    do {
+        status = (
+            await commonService.call({
+                Action: 'DescribeCDNChainTask',
+                Param: {
+                    Bucket,
+                    EnvId: envId
+                }
+            })
+        ).Status
+        console.log(status)
+    } while (status !== 'FINISHED' && status !== 'ERROR')
 })
 
 test('查询存储安全规则', async () => {
@@ -90,6 +104,24 @@ test('查询存储安全规则', async () => {
     const { Bucket } = Storages[0]
     const res = await commonService.call({
         Action: 'DescribeStorageSafeRule',
+        Param: {
+            Bucket,
+            EnvId: envId
+        }
+    })
+    console.log(res)
+    expect(res.RequestId !== undefined).toBe(true)
+})
+
+test('获取CDN防盗链任务状态', async () => {
+    // 获取环境信息 取bucket
+    const {
+        EnvInfo: { Storages }
+    } = await env.getEnvInfo()
+    console.log(Storages)
+    const { Bucket } = Storages[0]
+    const res = await commonService.call({
+        Action: 'DescribeCDNChainTask',
         Param: {
             Bucket,
             EnvId: envId

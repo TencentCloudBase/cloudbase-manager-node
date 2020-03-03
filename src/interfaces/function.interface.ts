@@ -19,12 +19,18 @@ export interface ICloudFunctionConfig {
     l5?: boolean
 }
 
+export interface LayerVersionSimple {
+    LayerName: string // layer名称
+    LayerVersion: number // 版本号
+}
+
 export interface ICloudFunction extends ICloudFunctionConfig {
     name: string
     triggers?: ICloudFunctionTrigger[]
     handler?: string
     ignore?: string | string[]
     isWaitInstall?: boolean
+    layers?: LayerVersionSimple[]
 }
 
 export interface IFunctionLogOptions {
