@@ -16,7 +16,7 @@ import { isDirectory, checkPathExist, delSync } from '../utils/fs'
 import path from 'path'
 import fs from 'fs'
 
-interface ICreateFunctionParam {
+export interface ICreateFunctionParam {
     func: ICloudFunction // 云函数信息
     functionRootPath: string // 云函数根目录
     force: boolean // 是否覆盖同名云函数
@@ -24,27 +24,27 @@ interface ICreateFunctionParam {
     codeSecret?: string // 代码保护密钥
 }
 
-interface IUpdateFunctionCodeParam {
+export interface IUpdateFunctionCodeParam {
     func: ICloudFunction // 云函数信息
     functionRootPath?: string // 云函数的目录路径（可选） functionRootPath 与 base64Code 可任选其中一个
     base64Code?: string // 云函数 ZIP 文件的 base64 编码（可选）
     codeSecret?: string // 代码保护密钥
 }
 
-interface IUpdateFunctionIncrementalCodeParam {
+export interface IUpdateFunctionIncrementalCodeParam {
     func: ICloudFunction
     functionRootPath: string // 必选
     deleteFiles?: Array<string> // 要删除的文件和目录列表
     addFiles?: string // 新增或修改的文件路径 （指定单个文件或单个文件夹）
 }
 
-interface ICreateFunctionRes {
+export interface ICreateFunctionRes {
     triggerRes: IResponseInfo
     configRes: IResponseInfo
     codeRes: IResponseInfo
 }
 
-interface IFunctionLayerOptions {
+export interface IFunctionLayerOptions {
     contentPath?: string
     base64Content?: string
     name: string
@@ -53,28 +53,28 @@ interface IFunctionLayerOptions {
     licenseInfo?: string // 层的软件许可证
 }
 
-interface ICreateLayerResponse extends IResponseInfo {
+export interface ICreateLayerResponse extends IResponseInfo {
     LayerVersion: number
 }
 
-interface ILayerOptions {
+export interface ILayerOptions {
     name: string
     version: number
 }
 
-interface IVersionListOptions {
+export interface IVersionListOptions {
     name: string
     runtimes?: string[]
 }
 
-interface ILayerListOptions {
+export interface ILayerListOptions {
     offset?: number
     limit?: number
     runtime?: string
     searchKey?: string
 }
 
-interface ILayerVersionInfo {
+export interface ILayerVersionInfo {
     CompatibleRuntimes: string[] // 版本适用的运行时
     AddTime: string // 创建时间
     Description: string // 版本描述
@@ -84,16 +84,16 @@ interface ILayerVersionInfo {
     Status: string // 层的具体版本当前状态
 }
 
-interface IListLayerVersionsRes extends IResponseInfo {
+export interface IListLayerVersionsRes extends IResponseInfo {
     LayerVersions: Array<ILayerVersionInfo>
 }
 
-interface IListLayerRes extends IResponseInfo {
+export interface IListLayerRes extends IResponseInfo {
     Layers: Array<ILayerVersionInfo>
     TotalCount: number
 }
 
-interface IGetLayerVersionRes extends IResponseInfo {
+export interface IGetLayerVersionRes extends IResponseInfo {
     CompatibleRuntimes: string[] // 适配的运行时
     CodeSha256: string // 层中版本文件的SHA256编码
     Location: string // 层中版本文件的下载地址
@@ -270,6 +270,13 @@ export class FunctionService {
         // 代码保护
         if (codeSecret) {
             params.CodeSecret = codeSecret
+        }
+
+        // 当使用 VPC 网络时，开启 EIP 配置
+        if (params.VpcConfig.SubnetId && params.VpcConfig.VpcId) {
+            params.EipConfig = { EipFixed: 'TRUE' }
+        } else {
+            params.EipConfig = { EipFixed: 'FALSE' }
         }
 
         // 函数层

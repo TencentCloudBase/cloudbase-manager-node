@@ -1,30 +1,30 @@
 import { Environment } from '../environment';
 import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes, IFunctionDownloadUrlRes } from '../interfaces';
-interface ICreateFunctionParam {
+export interface ICreateFunctionParam {
     func: ICloudFunction;
     functionRootPath: string;
     force: boolean;
     base64Code: string;
     codeSecret?: string;
 }
-interface IUpdateFunctionCodeParam {
+export interface IUpdateFunctionCodeParam {
     func: ICloudFunction;
     functionRootPath?: string;
     base64Code?: string;
     codeSecret?: string;
 }
-interface IUpdateFunctionIncrementalCodeParam {
+export interface IUpdateFunctionIncrementalCodeParam {
     func: ICloudFunction;
     functionRootPath: string;
     deleteFiles?: Array<string>;
     addFiles?: string;
 }
-interface ICreateFunctionRes {
+export interface ICreateFunctionRes {
     triggerRes: IResponseInfo;
     configRes: IResponseInfo;
     codeRes: IResponseInfo;
 }
-interface IFunctionLayerOptions {
+export interface IFunctionLayerOptions {
     contentPath?: string;
     base64Content?: string;
     name: string;
@@ -32,24 +32,24 @@ interface IFunctionLayerOptions {
     description?: string;
     licenseInfo?: string;
 }
-interface ICreateLayerResponse extends IResponseInfo {
+export interface ICreateLayerResponse extends IResponseInfo {
     LayerVersion: number;
 }
-interface ILayerOptions {
+export interface ILayerOptions {
     name: string;
     version: number;
 }
-interface IVersionListOptions {
+export interface IVersionListOptions {
     name: string;
     runtimes?: string[];
 }
-interface ILayerListOptions {
+export interface ILayerListOptions {
     offset?: number;
     limit?: number;
     runtime?: string;
     searchKey?: string;
 }
-interface ILayerVersionInfo {
+export interface ILayerVersionInfo {
     CompatibleRuntimes: string[];
     AddTime: string;
     Description: string;
@@ -58,14 +58,14 @@ interface ILayerVersionInfo {
     LayerName: string;
     Status: string;
 }
-interface IListLayerVersionsRes extends IResponseInfo {
+export interface IListLayerVersionsRes extends IResponseInfo {
     LayerVersions: Array<ILayerVersionInfo>;
 }
-interface IListLayerRes extends IResponseInfo {
+export interface IListLayerRes extends IResponseInfo {
     Layers: Array<ILayerVersionInfo>;
     TotalCount: number;
 }
-interface IGetLayerVersionRes extends IResponseInfo {
+export interface IGetLayerVersionRes extends IResponseInfo {
     CompatibleRuntimes: string[];
     CodeSha256: string;
     Location: string;
@@ -207,4 +207,3 @@ export declare class FunctionService {
     private getSubnets;
     private waitFunctionActive;
 }
-export {};
