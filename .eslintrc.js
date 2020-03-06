@@ -2,14 +2,13 @@ module.exports = {
     extends: ['alloy', 'alloy/typescript'],
     rules: {
         indent: ['error', 4],
-        'no-return-await': 'off',
         semi: ['error', 'never'],
+        complexity: ['error', { max: 40 }],
+        'no-useless-constructor': 'off',
         '@typescript-eslint/explicit-member-accessibility': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/interface-name-prefix': 'off',
-        '@typescript-eslint/no-useless-constructor': 'off',
-        'no-useless-constructor': 'off',
-        complexity: ['error', { max: 40 }]
+        '@typescript-eslint/no-useless-constructor': 'off'
     },
     env: {
         es6: true,

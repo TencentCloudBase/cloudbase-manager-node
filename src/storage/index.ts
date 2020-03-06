@@ -537,13 +537,12 @@ export class StorageService {
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
 
-        const promises = cloudPathList.map(
-            async file =>
-                await deleteObject({
-                    Bucket: bucket,
-                    Region: region,
-                    Key: file
-                })
+        const promises = cloudPathList.map(async file =>
+            deleteObject({
+                Bucket: bucket,
+                Region: region,
+                Key: file
+            })
         )
 
         await Promise.all(promises)
@@ -620,13 +619,12 @@ export class StorageService {
             prefix: key
         })
 
-        const promises = files.map(
-            async file =>
-                await deleteObject({
-                    Bucket: bucket,
-                    Region: region,
-                    Key: file.Key
-                })
+        const promises = files.map(async file =>
+            deleteObject({
+                Bucket: bucket,
+                Region: region,
+                Key: file.Key
+            })
         )
 
         await Promise.all(promises)
@@ -847,7 +845,7 @@ export class StorageService {
      */
     private getStorageConfig() {
         const envConfig = this.environment.lazyEnvironmentConfig
-        const storageConfig = envConfig.Storages && envConfig.Storages[0]
+        const storageConfig = envConfig?.Storages?.[0]
         const { Region, Bucket } = storageConfig
         const region = process.env.TCB_COS_REGION || Region
 

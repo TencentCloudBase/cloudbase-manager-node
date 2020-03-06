@@ -261,8 +261,8 @@ export class FunctionService {
         params.Runtime = func.runtime || 'Nodejs8.9'
         // VPC 网络
         params.VpcConfig = {
-            SubnetId: (func.vpc && func.vpc.subnetId) || '',
-            VpcId: (func.vpc && func.vpc.vpcId) || ''
+            SubnetId: func?.vpc?.subnetId || '',
+            VpcId: func?.vpc?.vpcId || ''
         }
         // 自动安装依赖
         params.InstallDependency = installDependency
@@ -280,7 +280,7 @@ export class FunctionService {
         }
 
         // 函数层
-        func.layers && func.layers.length && (params.Layers = func.layers)
+        func?.layers?.length && (params.Layers = func.layers)
 
         try {
             // 创建云函数
@@ -519,8 +519,15 @@ export class FunctionService {
         func.runtime && (params.Runtime = func.runtime)
         // VPC 网络
         params.VpcConfig = {
-            SubnetId: (func.vpc && func.vpc.subnetId) || '',
-            VpcId: (func.vpc && func.vpc.vpcId) || ''
+            SubnetId: func?.vpc?.subnetId || '',
+            VpcId: func?.vpc?.vpcId || ''
+        }
+
+        // 当使用 VPC 网络时，开启 EIP 配置
+        if (params.VpcConfig.SubnetId && params.VpcConfig.VpcId) {
+            params.EipConfig = { EipFixed: 'TRUE' }
+        } else {
+            params.EipConfig = { EipFixed: 'FALSE' }
         }
 
         // Node 8.9 默认安装依赖
@@ -531,7 +538,7 @@ export class FunctionService {
         }
 
         // 函数层
-        func.layers && func.layers.length && (params.Layers = func.layers)
+        func?.layers?.length && (params.Layers = func.layers)
 
         return this.scfService.request('UpdateFunctionConfiguration', params)
     }
@@ -892,7 +899,7 @@ export class FunctionService {
         } catch (e) {
             if (count < 3) {
                 await sleep(500)
-                return await this.retryUpdateFunctionCode(param, count + 1)
+                return this.retryUpdateFunctionCode(param, count + 1)
             } else {
                 throw e
             }
