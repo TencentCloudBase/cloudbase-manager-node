@@ -291,7 +291,7 @@ export class FunctionService {
 
             // 如果选择自动安装依赖，且等待依赖安装
             if (params.InstallDependency && func.isWaitInstall === true) {
-                await this.waitFunctionActive(funcName)
+                await this.waitFunctionActive(funcName, codeSecret)
             }
             return res
         } catch (e) {
@@ -594,7 +594,7 @@ export class FunctionService {
             // 更新云函数代码
             const res = await this.scfService.request('UpdateFunctionCode', params)
             if (installDependency && func.isWaitInstall === true) {
-                await this.waitFunctionActive(funcName)
+                await this.waitFunctionActive(funcName, codeSecret)
             }
             return res
         } catch (e) {
@@ -941,11 +941,11 @@ export class FunctionService {
         return SubnetSet
     }
 
-    private async waitFunctionActive(funcName: string) {
+    private async waitFunctionActive(funcName: string, codeSecret?: string) {
         // 检查函数状态
         let status
         do {
-            const { Status } = await this.getFunctionDetail(funcName)
+            const { Status } = await this.getFunctionDetail(funcName, codeSecret)
             await sleep(1000)
             status = Status
         } while (status === SCF_STATUS.CREATING || status === SCF_STATUS.UPDATING)

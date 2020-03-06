@@ -1,5 +1,5 @@
 import { Environment } from '../environment';
-import { IListFileInfo, IFileInfo, ITempUrlInfo, IResponseInfo } from '../interfaces';
+import { IUploadMetadata, IListFileInfo, IFileInfo, ITempUrlInfo, IResponseInfo } from '../interfaces';
 export interface IProgressData {
     loaded: number;
     total: number;
@@ -194,7 +194,7 @@ export declare class StorageService {
     /**
      * 获取文件上传链接属性
      */
-    private getUploadMetadata;
+    getUploadMetadata(path: string): Promise<IUploadMetadata>;
     /**
      * 获取 COS 配置
      */

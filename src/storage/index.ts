@@ -762,7 +762,7 @@ export class StorageService {
     /**
      * 获取文件上传链接属性
      */
-    private async getUploadMetadata(path: string): Promise<IUploadMetadata> {
+    public async getUploadMetadata(path: string): Promise<IUploadMetadata> {
         const config = this.getAuthConfig()
 
         const res = await cloudBaseRequest({

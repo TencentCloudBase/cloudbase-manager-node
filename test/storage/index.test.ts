@@ -19,6 +19,11 @@ beforeEach(() => {
     })
 })
 
+test('uploadmetadata:', async () => {
+    const res = await storage.getUploadMetadata(cloudFilePath)
+    console.log('res:', res)
+})
+
 test('上传文件 storage.uploadFile', async () => {
     await storage.uploadFile({
         localPath: filePath,
