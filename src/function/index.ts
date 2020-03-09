@@ -272,13 +272,6 @@ export class FunctionService {
             params.CodeSecret = codeSecret
         }
 
-        // 当使用 VPC 网络时，开启 EIP 配置
-        if (params.VpcConfig.SubnetId && params.VpcConfig.VpcId) {
-            params.EipConfig = { EipFixed: 'TRUE' }
-        } else {
-            params.EipConfig = { EipFixed: 'FALSE' }
-        }
-
         // 函数层
         func?.layers?.length && (params.Layers = func.layers)
 
@@ -521,13 +514,6 @@ export class FunctionService {
         params.VpcConfig = {
             SubnetId: func?.vpc?.subnetId || '',
             VpcId: func?.vpc?.vpcId || ''
-        }
-
-        // 当使用 VPC 网络时，开启 EIP 配置
-        if (params.VpcConfig.SubnetId && params.VpcConfig.VpcId) {
-            params.EipConfig = { EipFixed: 'TRUE' }
-        } else {
-            params.EipConfig = { EipFixed: 'FALSE' }
         }
 
         // Node 8.9 默认安装依赖
