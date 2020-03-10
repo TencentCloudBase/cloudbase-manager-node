@@ -40,48 +40,35 @@ class CloudBase {
     private cloudBaseConfig: CloudBaseConfig = {}
     private environmentManager: EnvironmentManager
 
-    public constructor(config: CloudBaseConfig) {
+    public constructor(config: CloudBaseConfig = {}) {
+        let { secretId, secretKey, token, envId, proxy } = config
         // config 中传入的 secretid secretkey 必须同时存在
-        if (config.secretId && config.secretKey) {
-            this.cloudBaseConfig.secretId = config.secretId
-            this.cloudBaseConfig.secretKey = config.secretKey
-            if (config.token) {
-                this.cloudBaseConfig.token = config.token
-            }
-        } else {
-            if (getRuntime() === RUN_ENV.SCF) {
-                // 需要在云函数运行环境
-                const secretId = getEnvVar(ENV_NAME.ENV_SECRETID)
-                const secretKey = getEnvVar(ENV_NAME.ENV_SECRETKEY)
-                const token = getEnvVar(ENV_NAME.ENV_SESSIONTOKEN)
-
-                if (!secretId || !secretKey) {
-                    throw new Error(ERROR.MISS_SECRET_INFO_IN_ENV)
-                }
-
-                this.cloudBaseConfig = {
-                    secretId,
-                    secretKey,
-                    token
-                }
-            } else {
-                throw new Error(ERROR.MISS_SECRET_INFO_IN_ARGS) // todo
-            }
+        if ((secretId && !secretKey) || (!secretId && secretKey)) {
+            throw new Error('secretId and secretKey must be a pair')
         }
 
-        if (config.envId) {
-            this.cloudBaseConfig.envId = config.envId
+        this.cloudBaseConfig = {
+            secretId,
+            secretKey
         }
 
-        if (config.proxy) {
-            this.cloudBaseConfig.proxy = config.proxy
+        if (config.token) {
+            this.cloudBaseConfig.token = config.token
+        }
+
+        if (envId) {
+            this.cloudBaseConfig.envId = envId
+        }
+
+        if (proxy) {
+            this.cloudBaseConfig.proxy = proxy
         }
 
         // 初始化 context
         this.context = new CloudBaseContext(this.cloudBaseConfig)
 
         this.environmentManager = new EnvironmentManager(this.context)
-        this.environmentManager.add(config.envId || '')
+        this.environmentManager.add(envId || '')
     }
 
     public addEnvironment(envId: string): void {

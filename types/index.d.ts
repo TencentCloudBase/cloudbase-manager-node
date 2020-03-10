@@ -26,7 +26,7 @@ declare class CloudBase {
     private context;
     private cloudBaseConfig;
     private environmentManager;
-    constructor(config: CloudBaseConfig);
+    constructor(config?: CloudBaseConfig);
     addEnvironment(envId: string): void;
     currentEnvironment(): Environment;
     get functions(): FunctionService;

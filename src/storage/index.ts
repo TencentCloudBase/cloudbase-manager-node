@@ -345,7 +345,7 @@ export class StorageService {
         const urlList = await this.getTemporaryUrl([cloudPath])
         const { url } = urlList[0]
 
-        const { proxy } = await this.getAuthConfig()
+        const { proxy } = await this.environment.getAuthConfig()
         const res = await fetchStream(url, {}, proxy)
         const dest = fs.createWriteStream(resolveLocalPath)
         res.body.pipe(dest)
@@ -456,7 +456,7 @@ export class StorageService {
             max_age: item.maxAge
         }))
 
-        const config = this.getAuthConfig()
+        const config = this.environment.getAuthConfig()
 
         const res = await cloudBaseRequest({
             config,
@@ -494,7 +494,7 @@ export class StorageService {
         const { bucket, env } = this.getStorageConfig()
         const fileIdList = cloudPathList.map(filePath => this.cloudPathToFileId(filePath))
 
-        const config = this.getAuthConfig()
+        const config = this.environment.getAuthConfig()
         const res = await cloudBaseRequest({
             config,
             params: {
@@ -761,7 +761,7 @@ export class StorageService {
      * 获取文件上传链接属性
      */
     public async getUploadMetadata(path: string): Promise<IUploadMetadata> {
-        const config = this.getAuthConfig()
+        const config = this.environment.getAuthConfig()
 
         const res = await cloudBaseRequest({
             config,
@@ -783,7 +783,7 @@ export class StorageService {
      * 获取 COS 配置
      */
     private getCos() {
-        const { secretId, secretKey, token, proxy } = this.getAuthConfig()
+        const { secretId, secretKey, token, proxy } = this.environment.getAuthConfig()
         const cosProxy = process.env.TCB_COS_PROXY
         if (!token) {
             return new COS({
@@ -809,18 +809,18 @@ export class StorageService {
     /**
      * 获取授权信息
      */
-    private getAuthConfig() {
-        const { secretId, secretKey, token, proxy } = this.environment.cloudBaseContext
-        const envId = this.environment.getEnvId()
+    // private getAuthConfig() {
+    //     const { secretId, secretKey, token, proxy } = this.environment.cloudBaseContext
+    //     const envId = this.environment.getEnvId()
 
-        return {
-            envId,
-            secretId,
-            secretKey,
-            token,
-            proxy
-        }
-    }
+    //     return {
+    //         envId,
+    //         secretId,
+    //         secretKey,
+    //         token,
+    //         proxy
+    //     }
+    // }
 
     /**
      * 将 cloudPath 转换成 cloudPath/ 形式

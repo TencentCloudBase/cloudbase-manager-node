@@ -134,7 +134,6 @@ export declare class EnvService {
     private getCOSDomains;
     private modifyCosCorsDomain;
     private getCos;
-    private getAuthConfig;
     private getStorageConfig;
 }
 export {};

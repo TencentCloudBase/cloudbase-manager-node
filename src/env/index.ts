@@ -572,7 +572,7 @@ export class EnvService {
     }
 
     private getCos() {
-        const { secretId, secretKey, token } = this.getAuthConfig()
+        const { secretId, secretKey, token } = this.environment.getAuthConfig()
         if (!token) {
             return new COS({
                 SecretId: secretId,
@@ -592,17 +592,17 @@ export class EnvService {
         })
     }
 
-    private getAuthConfig() {
-        const { secretId, secretKey, token } = this.environment.cloudBaseContext
-        const envId = this.environment.getEnvId()
+    // private getAuthConfig() {
+    //     const { secretId, secretKey, token } = this.environment.cloudBaseContext
+    //     const envId = this.environment.getEnvId()
 
-        return {
-            envId,
-            secretId,
-            secretKey,
-            token
-        }
-    }
+    //     return {
+    //         envId,
+    //         secretId,
+    //         secretKey,
+    //         token
+    //     }
+    // }
 
     private getStorageConfig() {
         const envConfig = this.environment.lazyEnvironmentConfig

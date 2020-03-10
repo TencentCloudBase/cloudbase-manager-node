@@ -4,6 +4,8 @@ import QueryString from 'query-string'
 import { CloudBaseError } from '../error'
 import { CloudBaseContext } from '../context'
 import { fetch } from './http-request'
+import { RUN_ENV, ENV_NAME, ERROR } from '../constant'
+import { getRuntime, getEnvVar } from '../utils'
 
 function isObject(x) {
     return typeof x === 'object' && !Array.isArray(x) && x !== null
@@ -102,7 +104,25 @@ export class CloudService {
 
         this.url = this.baseUrl
 
-        const { secretId, secretKey, token } = this.cloudBaseContext
+        let { secretId, secretKey, token } = this.cloudBaseContext
+
+        if (!secretId || !secretKey) {
+            // 未主动传入密钥，从环境变量中读取
+            const envSecretId = getEnvVar(ENV_NAME.ENV_SECRETID)
+            const envSecretKey = getEnvVar(ENV_NAME.ENV_SECRETKEY)
+            const envToken = getEnvVar(ENV_NAME.ENV_SESSIONTOKEN)
+            if (!envSecretId || !envSecretKey) {
+                if (getRuntime() === RUN_ENV.SCF) {
+                    throw new Error('missing authoration key, redeploy the function')
+                } else {
+                    throw new Error('missing secretId or secretKey of tencent cloud')
+                }
+            } else {
+                secretId = envSecretId
+                secretKey = envSecretKey
+                token = envToken
+            }
+        }
 
         this.secretId = secretId
         this.secretKey = secretKey

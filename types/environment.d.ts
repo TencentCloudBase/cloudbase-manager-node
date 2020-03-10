@@ -22,4 +22,11 @@ export declare class Environment {
     getEnvService(): EnvService;
     getCommonService(serviceType?: string): CommonService;
     getServicesEnvInfo(): Promise<any>;
+    getAuthConfig(): {
+        envId: string;
+        secretId: string;
+        secretKey: string;
+        token: string;
+        proxy: string;
+    };
 }

@@ -202,7 +202,6 @@ export declare class StorageService {
     /**
      * 获取授权信息
      */
-    private getAuthConfig;
     /**
      * 将 cloudPath 转换成 cloudPath/ 形式
      */

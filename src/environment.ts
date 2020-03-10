@@ -7,6 +7,8 @@ import { CommonService } from './common'
 
 import { CloudBaseContext } from './context'
 import { CloudBaseError } from './error'
+import { RUN_ENV, ENV_NAME, ERROR } from './constant'
+import { getRuntime, getEnvVar } from './utils'
 
 export class Environment {
     public inited = false
@@ -76,5 +78,36 @@ export class Environment {
         return envConfig.getEnvInfo().then(envInfo => {
             return envInfo.EnvInfo
         })
+    }
+
+    public getAuthConfig() {
+        let { secretId, secretKey, token, proxy } = this.cloudBaseContext
+        const envId = this.getEnvId()
+
+        if (!secretId || !secretKey) {
+            // 未主动传入密钥，从环境变量中读取
+            const envSecretId = getEnvVar(ENV_NAME.ENV_SECRETID)
+            const envSecretKey = getEnvVar(ENV_NAME.ENV_SECRETKEY)
+            const envToken = getEnvVar(ENV_NAME.ENV_SESSIONTOKEN)
+            if (!envSecretId || !envSecretKey) {
+                if (getRuntime() === RUN_ENV.SCF) {
+                    throw new Error('missing authoration key, redeploy the function')
+                } else {
+                    throw new Error('missing secretId or secretKey of tencent cloud')
+                }
+            } else {
+                secretId = envSecretId
+                secretKey = envSecretKey
+                token = envToken
+            }
+        }
+
+        return {
+            envId,
+            secretId,
+            secretKey,
+            token,
+            proxy
+        }
     }
 }
