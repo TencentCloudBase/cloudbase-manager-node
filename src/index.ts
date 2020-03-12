@@ -49,19 +49,10 @@ class CloudBase {
 
         this.cloudBaseConfig = {
             secretId,
-            secretKey
-        }
-
-        if (config.token) {
-            this.cloudBaseConfig.token = config.token
-        }
-
-        if (envId) {
-            this.cloudBaseConfig.envId = envId
-        }
-
-        if (proxy) {
-            this.cloudBaseConfig.proxy = proxy
+            secretKey,
+            token,
+            envId,
+            proxy
         }
 
         // 初始化 context

@@ -200,9 +200,6 @@ export declare class StorageService {
      */
     private getCos;
     /**
-     * 获取授权信息
-     */
-    /**
      * 将 cloudPath 转换成 cloudPath/ 形式
      */
     private getCloudKey;

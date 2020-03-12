@@ -592,18 +592,6 @@ export class EnvService {
         })
     }
 
-    // private getAuthConfig() {
-    //     const { secretId, secretKey, token } = this.environment.cloudBaseContext
-    //     const envId = this.environment.getEnvId()
-
-    //     return {
-    //         envId,
-    //         secretId,
-    //         secretKey,
-    //         token
-    //     }
-    // }
-
     private getStorageConfig() {
         const envConfig = this.environment.lazyEnvironmentConfig
         const storageConfig = envConfig.Storages && envConfig.Storages[0]

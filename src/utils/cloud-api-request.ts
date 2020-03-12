@@ -106,6 +106,8 @@ export class CloudService {
 
         let { secretId, secretKey, token } = this.cloudBaseContext
 
+        // 当在云函数环境下执行时，可init时不传入密钥，取环境变量中密钥使用
+        // request执行时一般处于main函数内部，取环境变量逻辑写这里更可靠
         if (!secretId || !secretKey) {
             // 未主动传入密钥，从环境变量中读取
             const envSecretId = getEnvVar(ENV_NAME.ENV_SECRETID)

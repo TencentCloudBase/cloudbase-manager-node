@@ -807,22 +807,6 @@ export class StorageService {
     }
 
     /**
-     * 获取授权信息
-     */
-    // private getAuthConfig() {
-    //     const { secretId, secretKey, token, proxy } = this.environment.cloudBaseContext
-    //     const envId = this.environment.getEnvId()
-
-    //     return {
-    //         envId,
-    //         secretId,
-    //         secretKey,
-    //         token,
-    //         proxy
-    //     }
-    // }
-
-    /**
      * 将 cloudPath 转换成 cloudPath/ 形式
      */
     private getCloudKey(cloudPath: string): string {
