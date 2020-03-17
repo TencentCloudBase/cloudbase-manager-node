@@ -2,13 +2,15 @@ import { Environment } from '../environment';
 import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes, IFunctionDownloadUrlRes } from '../interfaces';
 export interface ICreateFunctionParam {
     func: ICloudFunction;
-    functionRootPath: string;
+    functionRootPath?: string;
     force: boolean;
-    base64Code: string;
+    base64Code?: string;
+    functionPath?: string;
     codeSecret?: string;
 }
 export interface IUpdateFunctionCodeParam {
     func: ICloudFunction;
+    functionPath?: string;
     functionRootPath?: string;
     base64Code?: string;
     codeSecret?: string;

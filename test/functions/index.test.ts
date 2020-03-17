@@ -52,8 +52,29 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
             isWaitInstall: true
         },
         functionRootPath: './test/functions/',
-        force: true,
-        base64Code: ''
+        force: true
+    })
+
+    expect(res).toBeTruthy()
+})
+
+test('创建云函数-本地文件上传-通过 functionPath：functions.createFunction', async () => {
+    const res = await functions.createFunction({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'sum',
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
+            // 运行时
+            runtime: 'Nodejs8.9',
+            // 安装依赖
+            installDependency: true,
+            ignore: ['ignore.js'],
+            isWaitInstall: true
+        },
+        functionPath: './test/functions/sum',
+        force: true
     })
 
     expect(res).toBeTruthy()
@@ -131,7 +152,7 @@ test('创建云函数-本地文件上传 加代码保护 验证getFunctionDetail
     // 验证加code调用 getFunctionDownloadUrl
     const res2 = await functions.getFunctionDownloadUrl('sumWithCodeSecret', 'lukekke')
     expect(res2.Url !== undefined).toBe(true)
-})
+}, 10000)
 
 test('增量更新云函数代码 新增文件夹: functions.updateFunctionIncrementalCode', async () => {
     const res = await functions.updateFunctionIncrementalCode({
@@ -452,4 +473,4 @@ test('创建云函数-本地文件上传 设置文件层：functions.createFunct
     const detail = await functions.getFunctionDetail('sumFunction')
 
     // 更新函数配置 设置layers
-})
+}, 10000)

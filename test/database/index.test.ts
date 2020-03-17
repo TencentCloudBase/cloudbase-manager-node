@@ -147,16 +147,15 @@ test('database import and query migrateStatus', async () => {
         console.log(res)
         expect(!res.code && !!res.Status).toBe(true)
     }
-}, 10000)
+}, 20000)
 
 // 导出数据 并查看迁移进度
-
 test('database export and query migrateStatus', async () => {
     let res
     try {
         // await recreateCollection('tcb_collection_need_export')
         res = await manager.database.export(
-            'tcb_collection_need_export',
+            'tcb_collection_need_import',
             {
                 ObjectKey: 'tcb_collection_need_export.json'
             },
@@ -181,7 +180,7 @@ test('database export and query migrateStatus', async () => {
     } finally {
         expect(!res.code && !!res.Status).toBe(true)
     }
-})
+}, 20000)
 
 test('database createCollectionIfNotExists', async () => {
     const res = await manager.database.createCollectionIfNotExists('rooms1')

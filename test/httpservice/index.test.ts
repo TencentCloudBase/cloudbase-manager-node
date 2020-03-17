@@ -49,18 +49,12 @@ test('删除云函数HTTP Service', async () => {
             // APIId: apiId
         }
     })
-    // const res = await httpService.deleteHttpService({
-    //     // name: 'sum'
-    //     path: '/sum'
-    // })
     console.log('删除云函数HTTP Service', res)
     expect(res.RequestId !== undefined).toBe(true)
 })
 
 test('绑定网关自定义域名', async () => {
     // 检查当前是否绑定域名
-    // const { ServiceSet } = await httpService.getHttpServiceDomain({})
-
     const { ServiceSet } = await await commonService.call({
         Action: 'DescribeCloudBaseGWService',
         Param: {
@@ -71,16 +65,13 @@ test('绑定网关自定义域名', async () => {
 
     if (
         ServiceSet.length === 0 ||
-        (ServiceSet.length > 0 && ServiceSet[0].Domain !== 'test.valleywind.net')
+        (ServiceSet.length > 0 && ServiceSet[0].Domain !== 'ci-test.devtoken.club')
     ) {
-        // const res = await httpService.bindHttpServiceDomain({
-        //     domain: 'test.valleywind.net'
-        // })
         const res = await commonService.call({
             Action: 'BindCloudBaseGWDomain',
             Param: {
                 ServiceId: envId,
-                Domain: 'test.valleywind.net'
+                Domain: 'ci-test.devtoken.club'
             }
         })
 
@@ -94,21 +85,18 @@ test('查询网关域名', async () => {
         Action: 'DescribeCloudBaseGWService',
         Param: {
             ServiceId: envId
-            // Domain: ''
         }
     })
-    // const res = await httpService.getHttpServiceDomain({})
     console.log('查询网关域名', res)
     expect(res.RequestId !== undefined).toBe(true)
 })
 
 test('解绑网关域名', async () => {
-    // const res = await httpService.deleteHttpServiceDomain({ domain: 'test.valleywind.net' })
     const res = await commonService.call({
         Action: 'DeleteCloudBaseGWDomain',
         Param: {
             ServiceId: envId,
-            Domain: 'test.valleywind.net'
+            Domain: 'ci-test.devtoken.club'
         }
     })
     console.log('解绑网关域名', res)

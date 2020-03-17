@@ -1,13 +1,24 @@
+import os from 'os'
 import fs from 'fs'
-import path from 'path'
 import del from 'del'
+import path from 'path'
 import makeDir from 'make-dir'
-import { zipDir } from '../utils'
+import { zipDir, checkFullAccess } from '../utils'
 import { CloudBaseError } from '../error'
 
 export enum CodeType {
     File,
     JavaFile
+}
+
+export interface IPackerOptions {
+    // 通过根目录和函数名指定函数路径
+    root?: string
+    name?: string
+    ignore: string | string[]
+    incrementalPath?: string
+    // 直接指定函数的路径
+    functionPath?: string
 }
 
 /**
@@ -16,15 +27,13 @@ export enum CodeType {
  * Java 文件：Jar，ZIP
  */
 export class FunctionPacker {
-    // 项目根目录
-    root: string
     // 函数名
     name: string
     // 代码文件类型
     type: CodeType
     funcPath: string
     funcDistPath: string
-    // 临时目录
+    // 存放打包文件的临时目录
     tmpPath: string
     // 忽略文件模式
     ignore: string | string[]
@@ -32,25 +41,19 @@ export class FunctionPacker {
     incrementalPath: string
 
     /* eslint-disable-next-line */
-    constructor(root: string, name: string, ignore: string | string[], incrementalPath?: string) {
+    constructor(options: IPackerOptions) {
+        const { root, name, ignore, incrementalPath, functionPath } = options
         this.name = name
-        this.root = root
         this.ignore = ignore
-        this.funcPath = path.resolve(path.join(root, name))
+        this.funcPath = functionPath ? functionPath : path.resolve(path.join(root, name))
+        this.tmpPath = root
+            ? path.join(root, '.cloudbase_tmp')
+            : path.join(process.cwd(), '.cloudbase_tmp')
         this.incrementalPath = incrementalPath
     }
 
-    validPath(path: string) {
-        if (!fs.existsSync(path)) {
-            throw new CloudBaseError(`file not exist on ${path}`, {
-                code: 'FILE_NOT_FOUND'
-            })
-        }
-    }
-
     async getFileCode() {
-        this.validPath(this.funcPath)
-        this.tmpPath = path.join(this.root, '.cloudbase_tmp')
+        checkFullAccess(this.funcPath, true)
         // 临时构建文件
         this.funcDistPath = path.join(this.tmpPath, this.name)
         // 清除原打包文件

@@ -93,7 +93,7 @@ test('设置存储安全规则', async () => {
         ).Status
         console.log(status)
     } while (status !== 'FINISHED' && status !== 'ERROR')
-})
+}, 10000)
 
 test('查询存储安全规则', async () => {
     // 获取环境信息 取bucket

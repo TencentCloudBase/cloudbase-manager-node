@@ -2,13 +2,19 @@ export declare enum CodeType {
     File = 0,
     JavaFile = 1
 }
+export interface IPackerOptions {
+    root?: string;
+    name?: string;
+    ignore: string | string[];
+    incrementalPath?: string;
+    functionPath?: string;
+}
 /**
  * 将函数代码转换成 Base64 编码
  * 普通文件：Node，PHP
  * Java 文件：Jar，ZIP
  */
 export declare class FunctionPacker {
-    root: string;
     name: string;
     type: CodeType;
     funcPath: string;
@@ -16,8 +22,7 @@ export declare class FunctionPacker {
     tmpPath: string;
     ignore: string | string[];
     incrementalPath: string;
-    constructor(root: string, name: string, ignore: string | string[], incrementalPath?: string);
-    validPath(path: string): void;
+    constructor(options: IPackerOptions);
     getFileCode(): Promise<string>;
     getJavaFileCode(): string;
     build(type: CodeType): Promise<string>;

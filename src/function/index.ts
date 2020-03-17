@@ -18,14 +18,16 @@ import fs from 'fs'
 
 export interface ICreateFunctionParam {
     func: ICloudFunction // 云函数信息
-    functionRootPath: string // 云函数根目录
+    functionRootPath?: string // 云函数根目录
     force: boolean // 是否覆盖同名云函数
-    base64Code: string
+    base64Code?: string
+    functionPath?: string
     codeSecret?: string // 代码保护密钥
 }
 
 export interface IUpdateFunctionCodeParam {
     func: ICloudFunction // 云函数信息
+    functionPath?: string
     functionRootPath?: string // 云函数的目录路径（可选） functionRootPath 与 base64Code 可任选其中一个
     base64Code?: string // 云函数 ZIP 文件的 base64 编码（可选）
     codeSecret?: string // 代码保护密钥
@@ -170,7 +172,12 @@ export class FunctionService {
 
         if (addFiles) {
             // 将选中的增量文件或增量文件夹  转base64
-            packer = new FunctionPacker(functionRootPath, name, [], addFiles)
+            packer = new FunctionPacker({
+                name,
+                root: functionRootPath,
+                ignore: [],
+                incrementalPath: addFiles
+            })
             const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             base64 = await packer.build(type)
             if (!base64) {
@@ -195,7 +202,14 @@ export class FunctionService {
     ): Promise<IResponseInfo | ICreateFunctionRes> {
         // TODO: 优化处理逻辑
         const { namespace } = this.getFunctionConfig()
-        const { func, functionRootPath, force = false, base64Code, codeSecret } = funcParam
+        const {
+            func,
+            functionRootPath,
+            force = false,
+            base64Code,
+            codeSecret,
+            functionPath
+        } = funcParam
         let base64
         let packer: FunctionPacker
         const funcName = func.name
@@ -217,7 +231,12 @@ export class FunctionService {
                 installDependency === 'TRUE'
                     ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
                     : [...(func.ignore || [])]
-            packer = new FunctionPacker(functionRootPath, funcName, ignore)
+            packer = new FunctionPacker({
+                ignore,
+                functionPath,
+                name: funcName,
+                root: functionRootPath,
+            })
             const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             base64 = await packer.build(type)
 
@@ -280,7 +299,6 @@ export class FunctionService {
             const res = await this.scfService.request('CreateFunction', params)
             // 创建函数触发器、失败自动重试
             await this.retryCreateTrigger(funcName, func.triggers)
-            // await this.createFunctionTriggers(funcName, func.triggers)
 
             // 如果选择自动安装依赖，且等待依赖安装
             if (params.InstallDependency && func.isWaitInstall === true) {
@@ -539,7 +557,7 @@ export class FunctionService {
     async updateFunctionCode(funcParam: IUpdateFunctionCodeParam): Promise<IResponseInfo> {
         let base64
         let packer
-        const { func, functionRootPath, base64Code, codeSecret } = funcParam
+        const { func, functionRootPath, base64Code, codeSecret, functionPath } = funcParam
         const funcName = func.name
 
         const { namespace } = this.getFunctionConfig()
@@ -560,7 +578,13 @@ export class FunctionService {
                 installDependency === 'TRUE'
                     ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
                     : [...(func.ignore || [])]
-            packer = new FunctionPacker(functionRootPath, funcName, ignore)
+
+            packer = new FunctionPacker({
+                ignore,
+                functionPath,
+                name: funcName,
+                root: functionRootPath
+            })
             const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             base64 = await packer.build(type)
 

@@ -14,6 +14,39 @@ export function checkPathExist(dest: string, throwError = false): boolean {
     return exist
 }
 
+// 检查路径是否可以访问（读、写）
+export function checkFullAccess(dest: string, throwError = false): boolean {
+    try {
+        // 可见、可写
+        fs.accessSync(dest, fs.constants.F_OK)
+        fs.accessSync(dest, fs.constants.W_OK)
+        fs.accessSync(dest, fs.constants.R_OK)
+        return true
+    } catch (e) {
+        if (throwError) {
+            throw new CloudBaseError(`路径不存在或无读写权限：${dest}`)
+        } else {
+            return false
+        }
+    }
+}
+
+// 检查路径是否可以写
+export function checkReadable(dest: string, throwError = false): boolean {
+    try {
+        // 可见、可读
+        fs.accessSync(dest, fs.constants.F_OK)
+        fs.accessSync(dest, fs.constants.R_OK)
+        return true
+    } catch (e) {
+        if (throwError) {
+            throw new CloudBaseError(`路径不存在或无读权限：${dest}`)
+        } else {
+            return false
+        }
+    }
+}
+
 export function isDirectory(dest: string) {
     checkPathExist(dest, true)
     return fs.statSync(dest).isDirectory()
