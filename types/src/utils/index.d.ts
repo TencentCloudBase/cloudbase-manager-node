@@ -11,7 +11,7 @@ interface IZipOption {
     ignore?: string | string[];
     pattern?: string;
 }
-export declare function zipDir(option: IZipOption): Promise<unknown>;
+export declare function compressToZip(option: IZipOption): Promise<unknown>;
 export declare function getRuntime(): string;
 export declare function getEnvVar(envName: string): string;
 export declare function rsaEncrypt(data: string): string;

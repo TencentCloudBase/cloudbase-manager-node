@@ -145,6 +145,8 @@ export class CloudService {
         } catch (e) {
             // throw e
 
+            console.log(e)
+
             throw new CloudBaseError(e.message, {
                 action,
                 code: e.code
