@@ -1,5 +1,11 @@
 import { Environment } from '../environment';
 import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes, IFunctionDownloadUrlRes } from '../interfaces';
+export interface IFunctionCode {
+    func: ICloudFunction;
+    functionRootPath?: string;
+    base64Code?: string;
+    functionPath?: string;
+}
 export interface ICreateFunctionParam {
     func: ICloudFunction;
     functionRootPath?: string;
@@ -82,7 +88,6 @@ export declare class FunctionService {
     private environment;
     private vpcService;
     private scfService;
-    private tcbRole;
     constructor(environment: Environment);
     /**
      * 增量更新函数代码
@@ -187,10 +192,12 @@ export declare class FunctionService {
     listLayerVersions(options: IVersionListOptions): Promise<IListLayerVersionsRes>;
     listLayers(options: ILayerListOptions): Promise<IListLayerRes>;
     getLayerVersion(options: ILayerOptions): Promise<IGetLayerVersionRes>;
+    private getCodeParams;
+    private getTempCosInfo;
     private retryCreateTrigger;
     private retryUpdateFunctionCode;
     /**
-     *
+     * 获取函数配置信息
      * @private
      * @returns
      * @memberof FunctionService

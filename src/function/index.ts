@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import { FunctionPacker, CodeType } from './packer'
 import { Environment } from '../environment'
 import {
@@ -10,11 +12,23 @@ import {
     IFunctionDownloadUrlRes
 } from '../interfaces'
 import { CloudBaseError } from '../error'
-import { CloudService, preLazy, sleep, zipDir } from '../utils'
+import {
+    sleep,
+    preLazy,
+    delSync,
+    isDirectory,
+    CloudService,
+    compressToZip,
+    checkFullAccess
+} from '../utils'
 import { SCF_STATUS } from '../constant'
-import { isDirectory, checkPathExist, delSync } from '../utils/fs'
-import path from 'path'
-import fs from 'fs'
+
+export interface IFunctionCode {
+    func: ICloudFunction // 云函数信息
+    functionRootPath?: string // 云函数根目录
+    base64Code?: string
+    functionPath?: string
+}
 
 export interface ICreateFunctionParam {
     func: ICloudFunction // 云函数信息
@@ -127,15 +141,65 @@ function validCreateParams(func: ICloudFunction, codeSecret?: string) {
     }
 }
 
+// 解析函数配置，换成请求参数
+function configToParams(options: { func: ICloudFunction; codeSecret: string; baseParams: any }) {
+    const { func, codeSecret, baseParams } = options
+    let installDependency
+    // Node 8.9 默认安装依赖
+    installDependency = func.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
+    // 是否安装依赖，选项可以覆盖
+    if (typeof func.installDependency !== 'undefined') {
+        installDependency = func.installDependency ? 'TRUE' : 'FALSE'
+    }
+
+    // 转换环境变量
+    const envVariables = Object.keys(func.envVariables || {}).map(key => ({
+        Key: key,
+        Value: func.envVariables[key]
+    }))
+
+    // 当不存在 L5 配置时，不修改 L5 状态，否则根据 true/false 进行修改
+    const l5Enable = typeof func?.l5 === 'undefined' ? null : func?.l5 ? 'TRUE' : 'FALSE'
+
+    const params: any = {
+        ...baseParams,
+        FunctionName: func.name,
+        // 不可选择
+        L5Enable: l5Enable
+    }
+
+    // 修复参数存在 undefined 字段时，会出现鉴权失败的情况
+    // Environment 为覆盖式修改，不保留已有字段
+    envVariables.length && (params.Environment = { Variables: envVariables })
+    // 处理入口
+    params.Handler = func.handler || 'index.main'
+    // 默认超时时间为 10S
+    params.Timeout = Number(func.timeout) || 10
+    // 默认运行环境 Nodejs8.9
+    params.Runtime = func.runtime || 'Nodejs8.9'
+    // VPC 网络
+    params.VpcConfig = {
+        SubnetId: func?.vpc?.subnetId || '',
+        VpcId: func?.vpc?.vpcId || ''
+    }
+    // 自动安装依赖
+    params.InstallDependency = installDependency
+
+    // 代码保护
+    if (codeSecret) {
+        params.CodeSecret = codeSecret
+    }
+
+    // 函数层
+    func?.layers?.length && (params.Layers = func.layers)
+
+    return params
+}
+
 export class FunctionService {
     private environment: Environment
     private vpcService: CloudService
     private scfService: CloudService
-
-    private tcbRole: any = {
-        Role: 'TCB_QcsRole',
-        Stamp: 'MINI_QCBASE'
-    }
 
     constructor(environment: Environment) {
         this.environment = environment
@@ -172,18 +236,19 @@ export class FunctionService {
 
         if (addFiles) {
             // 将选中的增量文件或增量文件夹  转base64
+            const codeType: CodeType = runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
             packer = new FunctionPacker({
+                codeType,
                 name,
                 root: functionRootPath,
                 ignore: [],
                 incrementalPath: addFiles
             })
-            const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
-            base64 = await packer.build(type)
+            await packer.build()
+            base64 = await packer.getBase64Code()
             if (!base64) {
                 throw new CloudBaseError('函数不存在！')
             }
-
             params.AddFiles = base64
         }
 
@@ -210,89 +275,31 @@ export class FunctionService {
             codeSecret,
             functionPath
         } = funcParam
-        let base64
-        let packer: FunctionPacker
         const funcName = func.name
 
         validCreateParams(func, codeSecret)
 
-        let installDependency
-        // Node 8.9 默认安装依赖
-        installDependency = func.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
-        // 是否安装依赖，选项可以覆盖
-        if (typeof func.installDependency !== 'undefined') {
-            installDependency = func.installDependency ? 'TRUE' : 'FALSE'
-        }
-
-        // CLI 从本地读取
-        if (!base64Code) {
-            // 云端安装依赖，自动忽略 node_modules 目录
-            const ignore =
-                installDependency === 'TRUE'
-                    ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
-                    : [...(func.ignore || [])]
-            packer = new FunctionPacker({
-                ignore,
-                functionPath,
-                name: funcName,
-                root: functionRootPath,
-            })
-            const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
-            base64 = await packer.build(type)
-
-            if (!base64) {
-                throw new CloudBaseError('函数不存在！')
+        const params: any = configToParams({
+            func,
+            codeSecret,
+            baseParams: {
+                Namespace: namespace,
+                // 不可选择
+                MemorySize: 256,
+                Role: 'TCB_QcsRole',
+                Stamp: 'MINI_QCBASE'
             }
-        } else {
-            base64 = base64Code
-        }
+        })
 
-        // 转换环境变量
-        const envVariables = Object.keys(func.envVariables || {}).map(key => ({
-            Key: key,
-            Value: func.envVariables[key]
-        }))
-
-        // 当不存在 L5 配置时，不修改 L5 状态，否则根据 true/false 进行修改
-        const l5Enable = typeof func?.l5 === 'undefined' ? null : func?.l5 ? 'TRUE' : 'FALSE'
-
-        const params: any = {
-            FunctionName: funcName,
-            Namespace: namespace,
-            Code: {
-                ZipFile: base64
+        params.Code = await this.getCodeParams(
+            {
+                func,
+                base64Code,
+                functionPath,
+                functionRootPath
             },
-            // 不可选择
-            MemorySize: 256,
-            Role: 'TCB_QcsRole',
-            Stamp: 'MINI_QCBASE',
-            L5Enable: l5Enable
-        }
-
-        // 修复参数存在 undefined 字段时，会出现鉴权失败的情况
-        // Environment 为覆盖式修改，不保留已有字段
-        envVariables.length && (params.Environment = { Variables: envVariables })
-        // 处理入口
-        params.Handler = func.handler || 'index.main'
-        // 默认超时时间为 20S
-        params.Timeout = Number(func.timeout) || 20
-        // 默认运行环境 Nodejs8.9
-        params.Runtime = func.runtime || 'Nodejs8.9'
-        // VPC 网络
-        params.VpcConfig = {
-            SubnetId: func?.vpc?.subnetId || '',
-            VpcId: func?.vpc?.vpcId || ''
-        }
-        // 自动安装依赖
-        params.InstallDependency = installDependency
-
-        // 代码保护
-        if (codeSecret) {
-            params.CodeSecret = codeSecret
-        }
-
-        // 函数层
-        func?.layers?.length && (params.Layers = func.layers)
+            params.InstallDependency
+        )
 
         try {
             // 创建云函数
@@ -308,15 +315,16 @@ export class FunctionService {
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
-                // 创建函数触发器
-                const triggerRes = await this.createFunctionTriggers(funcName, func.triggers)
                 // 更新函数配置和代码
                 const configRes = await this.updateFunctionConfig(func)
+                // 创建函数触发器
+                const triggerRes = await this.createFunctionTriggers(funcName, func.triggers)
                 // 更新函数代码
                 const codeRes = await this.retryUpdateFunctionCode({
                     func,
+                    base64Code,
+                    functionPath,
                     functionRootPath,
-                    base64Code: base64,
                     codeSecret: codeSecret
                 })
                 // 返回全部操作的响应值
@@ -555,8 +563,6 @@ export class FunctionService {
      */
     @preLazy()
     async updateFunctionCode(funcParam: IUpdateFunctionCodeParam): Promise<IResponseInfo> {
-        let base64
-        let packer
         const { func, functionRootPath, base64Code, codeSecret, functionPath } = funcParam
         const funcName = func.name
 
@@ -572,35 +578,22 @@ export class FunctionService {
             installDependency = func.installDependency ? 'TRUE' : 'FALSE'
         }
 
-        // CLI 从本地读取
-        if (!base64Code) {
-            const ignore =
-                installDependency === 'TRUE'
-                    ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
-                    : [...(func.ignore || [])]
-
-            packer = new FunctionPacker({
-                ignore,
+        const codeParams = await this.getCodeParams(
+            {
+                func,
                 functionPath,
-                name: funcName,
-                root: functionRootPath
-            })
-            const type: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
-            base64 = await packer.build(type)
-
-            if (!base64) {
-                throw new CloudBaseError('函数不存在！')
-            }
-        } else {
-            base64 = base64Code
-        }
+                functionRootPath,
+                base64Code
+            },
+            installDependency
+        )
 
         const params: any = {
             FunctionName: funcName,
             Namespace: namespace,
-            ZipFile: base64,
             Handler: func.handler || 'index.main',
-            InstallDependency: installDependency
+            InstallDependency: installDependency,
+            ...codeParams
         }
 
         if (codeSecret) {
@@ -771,6 +764,7 @@ export class FunctionService {
     }
 
     // 创建文件层版本
+    @preLazy()
     public async createLayer(options: IFunctionLayerOptions): Promise<ICreateLayerResponse> {
         const {
             contentPath = '',
@@ -799,10 +793,10 @@ export class FunctionService {
             const dirName = path.parse(contentPath).name
             const dest = path.join(process.cwd(), `temp-${dirName}.zip`)
             // ZIP 文件存在，删除 ZIP 文件
-            if (checkPathExist(dest)) {
+            if (checkFullAccess(dest)) {
                 delSync(dest)
             }
-            await zipDir({
+            await compressToZip({
                 dirPath: contentPath,
                 outputPath: dest
             })
@@ -832,6 +826,7 @@ export class FunctionService {
     }
 
     // 删除文件层版本
+    @preLazy()
     public async deleteLayerVersion(options: ILayerOptions): Promise<IResponseInfo> {
         const { name, version } = options
 
@@ -842,6 +837,7 @@ export class FunctionService {
     }
 
     // 获取层版本列表
+    @preLazy()
     public async listLayerVersions(options: IVersionListOptions): Promise<IListLayerVersionsRes> {
         const { name, runtimes } = options
         let param: any = {
@@ -860,6 +856,7 @@ export class FunctionService {
     }
 
     // 获取文件层列表
+    @preLazy()
     public async listLayers(options: ILayerListOptions): Promise<IListLayerRes> {
         const { limit = 20, offset = 0, runtime, searchKey } = options
         let param: any = {
@@ -881,12 +878,77 @@ export class FunctionService {
     }
 
     // 获取层版本详细信息
+    @preLazy()
     public async getLayerVersion(options: ILayerOptions): Promise<IGetLayerVersionRes> {
         const { name, version } = options
 
         return this.scfService.request('GetLayerVersion', {
             LayerName: name,
             LayerVersion: version
+        })
+    }
+
+    @preLazy()
+    private async getCodeParams(options: IFunctionCode, installDependency: 'TRUE' | 'FALSE') {
+        const { func, functionPath, functionRootPath, base64Code } = options
+        // 20MB
+        const BIG_LENGTH = 167772160
+        if (base64Code?.length > BIG_LENGTH) {
+            throw new CloudBaseError('base64 不能大于 20 MB')
+        }
+
+        if (base64Code?.length) {
+            return {
+                ZipFile: base64Code
+            }
+        }
+
+        const codeType: CodeType = func.runtime === 'Java8' ? CodeType.JavaFile : CodeType.File
+        // 云端安装依赖，自动忽略 node_modules 目录
+        const ignore =
+            installDependency === 'TRUE'
+                ? ['node_modules/**/*', 'node_modules', ...(func.ignore || [])]
+                : [...(func.ignore || [])]
+
+        const packer = new FunctionPacker({
+            ignore,
+            codeType,
+            functionPath,
+            name: func.name,
+            root: functionRootPath
+        })
+
+        await packer.build()
+
+        // 通过云 API 传输的代码大小不能超过 50MB
+        const reachMax = await packer.isReachMaxSize()
+
+        if (reachMax) {
+            throw new CloudBaseError('函数代码不能大于 50MB')
+        }
+
+        const base64 = await packer.getBase64Code()
+        if (!base64?.length) {
+            throw new CloudBaseError('文件不能为空')
+        }
+        return {
+            ZipFile: base64
+        }
+    }
+
+    // 获取 COS 临时信息
+    @preLazy()
+    private async getTempCosInfo(name: string) {
+        const { env, appId } = await this.getFunctionConfig()
+
+        /**
+         * Response:
+         * Date: "2020-03-18"
+         * RequestId: "91876f56-7cd3-42bb-bc32-b74df5d0516e"
+         * Sign: "Gc8QvXD50dx7yBfsl2yEYFwIL45hPTEyNTM2NjU4MTkm
+         */
+        return this.scfService.request('GetTempCosInfo', {
+            ObjectPath: `${appId}/${env}/${name}.zip"`
         })
     }
 
@@ -917,7 +979,7 @@ export class FunctionService {
     }
 
     /**
-     *
+     * 获取函数配置信息
      * @private
      * @returns
      * @memberof FunctionService
@@ -925,8 +987,12 @@ export class FunctionService {
     private getFunctionConfig() {
         const envConfig = this.environment.lazyEnvironmentConfig
         const namespace = envConfig.Functions[0].Namespace
+        const appId = envConfig.Storages[0]?.AppId
+        const { proxy } = this.environment.cloudBaseContext
 
         return {
+            proxy,
+            appId,
             namespace,
             env: envConfig.EnvId
         }

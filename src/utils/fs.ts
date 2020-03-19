@@ -4,16 +4,6 @@ import del from 'del'
 
 type SizeUnit = 'MB' | 'GB'
 
-export function checkPathExist(dest: string, throwError = false): boolean {
-    const exist = fs.existsSync(dest)
-
-    if (!exist && throwError) {
-        throw new CloudBaseError(`路径不存在：${dest}`)
-    }
-
-    return exist
-}
-
 // 检查路径是否可以访问（读、写）
 export function checkFullAccess(dest: string, throwError = false): boolean {
     try {
@@ -48,7 +38,7 @@ export function checkReadable(dest: string, throwError = false): boolean {
 }
 
 export function isDirectory(dest: string) {
-    checkPathExist(dest, true)
+    checkFullAccess(dest, true)
     return fs.statSync(dest).isDirectory()
 }
 

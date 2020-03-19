@@ -279,6 +279,28 @@ test('创建云函数：functions.createFunction', async () => {
     expect(res).toBeTruthy()
 })
 
+test('批量创建云函数：create multi function', async () => {
+    const createFunction = async name =>
+        functions.createFunction({
+            func: {
+                // functions 文件夹下函数文件夹的名称，即函数名
+                name,
+                // 超时时间
+                timeout: 5
+            },
+            functionRootPath: './test/functions',
+            force: true
+        })
+
+    const promises = await Promise.all([
+        createFunction('big'),
+        createFunction('sum'),
+        createFunction('app')
+    ])
+
+    expect(promises).toBeTruthy()
+})
+
 test('更新云函数代码：functions.updateFunctionCode', async () => {
     const res = await functions.updateFunctionCode({
         func: {

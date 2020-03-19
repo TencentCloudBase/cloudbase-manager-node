@@ -18,7 +18,7 @@ interface IZipOption {
     pattern?: string
 }
 
-export async function zipDir(option: IZipOption) {
+export async function compressToZip(option: IZipOption) {
     const { dirPath, outputPath, ignore, pattern = '**/*' } = option
 
     return new Promise((resolve, reject) => {
