@@ -5,7 +5,14 @@ import makeDir from 'make-dir'
 import walkdir from 'walkdir'
 import micromatch from 'micromatch'
 import COS from 'cos-nodejs-sdk-v5'
-import { cloudBaseRequest, CloudService, fetchStream, preLazy, isDirectory } from '../utils'
+import {
+    cloudBaseRequest,
+    CloudService,
+    fetchStream,
+    preLazy,
+    isDirectory,
+    checkFullAccess
+} from '../utils'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
 
@@ -97,16 +104,14 @@ export class StorageService {
         const { localPath, cloudPath, bucket, region, onProgress, fileId = true } = options
         let localFilePath = ''
         let resolveLocalPath = path.resolve(localPath)
-        if (!fs.existsSync(resolveLocalPath)) {
-            throw new CloudBaseError(`本地路径不存在：${resolveLocalPath}`)
-        }
+        checkFullAccess(resolveLocalPath, true)
 
         // 如果 localPath 是一个文件夹，尝试在文件下寻找 cloudPath 中的文件
         const fileStats = fs.statSync(resolveLocalPath)
         if (fileStats.isDirectory()) {
             const fileName = path.parse(cloudPath).base
             const attemptFilePath = path.join(localPath, fileName)
-            if (fs.existsSync(attemptFilePath)) {
+            if (checkFullAccess(attemptFilePath)) {
                 localFilePath = path.resolve(attemptFilePath)
             }
         } else {
@@ -338,9 +343,7 @@ export class StorageService {
         const resolveLocalPath = path.resolve(localPath)
         const fileDir = path.dirname(localPath)
 
-        if (!fs.existsSync(fileDir)) {
-            throw new CloudBaseError('路径文件夹不存在')
-        }
+        checkFullAccess(fileDir, true)
 
         const urlList = await this.getTemporaryUrl([cloudPath])
         const { url } = urlList[0]
@@ -362,9 +365,7 @@ export class StorageService {
         const { cloudPath, localPath } = options
         const resolveLocalPath = path.resolve(localPath)
 
-        if (!fs.existsSync(resolveLocalPath)) {
-            throw new CloudBaseError('本地存储路径不存在！')
-        }
+        checkFullAccess(resolveLocalPath, true)
 
         const cloudDirectoryKey = this.getCloudKey(cloudPath)
         const files = await this.walkCloudDir(cloudDirectoryKey)

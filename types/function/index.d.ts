@@ -5,7 +5,6 @@ export interface IFunctionCode {
     functionRootPath?: string;
     base64Code?: string;
     functionPath?: string;
-    addFiles?: string;
 }
 export interface ICreateFunctionParam {
     func: ICloudFunction;

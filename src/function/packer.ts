@@ -8,6 +8,7 @@ import { CloudBaseError } from '../error'
 
 // 10 MB
 export const BIG_FILE_SIZE = 10485760
+export const API_MAX_SIZE = 52428800
 
 export enum CodeType {
     File,
@@ -52,7 +53,7 @@ export class FunctionPacker {
         this.ignore = ignore
         this.codeType = codeType
         this.incrementalPath = incrementalPath
-        this.funcPath = functionPath ? functionPath : path.resolve(path.join(root, name))
+        this.funcPath = functionPath ? functionPath : path.resolve(root, name)
         this.tmpPath = root
             ? path.join(root, '.cloudbase_tmp')
             : path.join(process.cwd(), '.cloudbase_tmp')
@@ -118,8 +119,8 @@ export class FunctionPacker {
         }
     }
 
+    // 函数压缩后的代码大于 10M，建议使用 COS 上传（当前暂不支持）
     async isBigFile() {
-        console.log(this.zipFilePath)
         if (!this.zipFilePath) {
             await this.build()
         }
@@ -128,6 +129,18 @@ export class FunctionPacker {
         const fileStats = await promiseStat(this.zipFilePath)
 
         return fileStats.size > BIG_FILE_SIZE
+    }
+
+    // API 最大 50MB
+    async isReachMaxSize() {
+        if (!this.zipFilePath) {
+            await this.build()
+        }
+
+        const promiseStat = util.promisify(fs.stat)
+        const fileStats = await promiseStat(this.zipFilePath)
+
+        return fileStats.size > API_MAX_SIZE
     }
 
     async getBase64Code() {

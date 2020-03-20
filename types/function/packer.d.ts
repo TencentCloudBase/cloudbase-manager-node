@@ -1,4 +1,5 @@
 export declare const BIG_FILE_SIZE = 10485760;
+export declare const API_MAX_SIZE = 52428800;
 export declare enum CodeType {
     File = 0,
     JavaFile = 1
@@ -30,6 +31,7 @@ export declare class FunctionPacker {
     getJavaFile(): void;
     build(): Promise<void>;
     isBigFile(): Promise<boolean>;
+    isReachMaxSize(): Promise<boolean>;
     getBase64Code(): Promise<string>;
     clean(): Promise<void>;
 }

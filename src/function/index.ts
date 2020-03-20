@@ -1,7 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import Util from 'util'
-import COS from 'cos-nodejs-sdk-v5'
 import { FunctionPacker, CodeType } from './packer'
 import { Environment } from '../environment'
 import {
@@ -15,13 +13,13 @@ import {
 } from '../interfaces'
 import { CloudBaseError } from '../error'
 import {
-    CloudService,
-    preLazy,
     sleep,
-    compressToZip,
+    preLazy,
+    delSync,
     isDirectory,
-    checkPathExist,
-    delSync
+    CloudService,
+    compressToZip,
+    checkFullAccess
 } from '../utils'
 import { SCF_STATUS } from '../constant'
 
@@ -30,7 +28,6 @@ export interface IFunctionCode {
     functionRootPath?: string // 云函数根目录
     base64Code?: string
     functionPath?: string
-    addFiles?: string
 }
 
 export interface ICreateFunctionParam {
@@ -248,7 +245,7 @@ export class FunctionService {
                 incrementalPath: addFiles
             })
             await packer.build()
-            base64 = packer.getBase64Code()
+            base64 = await packer.getBase64Code()
             if (!base64) {
                 throw new CloudBaseError('函数不存在！')
             }
@@ -297,9 +294,9 @@ export class FunctionService {
         params.Code = await this.getCodeParams(
             {
                 func,
-                functionRootPath,
                 base64Code,
-                functionPath
+                functionPath,
+                functionRootPath
             },
             params.InstallDependency
         )
@@ -318,14 +315,15 @@ export class FunctionService {
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
-                // 创建函数触发器
-                const triggerRes = await this.createFunctionTriggers(funcName, func.triggers)
                 // 更新函数配置和代码
                 const configRes = await this.updateFunctionConfig(func)
+                // 创建函数触发器
+                const triggerRes = await this.createFunctionTriggers(funcName, func.triggers)
                 // 更新函数代码
                 const codeRes = await this.retryUpdateFunctionCode({
                     func,
                     base64Code,
+                    functionPath,
                     functionRootPath,
                     codeSecret: codeSecret
                 })
@@ -565,8 +563,6 @@ export class FunctionService {
      */
     @preLazy()
     async updateFunctionCode(funcParam: IUpdateFunctionCodeParam): Promise<IResponseInfo> {
-        let base64
-        let packer
         const { func, functionRootPath, base64Code, codeSecret, functionPath } = funcParam
         const funcName = func.name
 
@@ -797,7 +793,7 @@ export class FunctionService {
             const dirName = path.parse(contentPath).name
             const dest = path.join(process.cwd(), `temp-${dirName}.zip`)
             // ZIP 文件存在，删除 ZIP 文件
-            if (checkPathExist(dest)) {
+            if (checkFullAccess(dest)) {
                 delSync(dest)
             }
             await compressToZip({
@@ -894,7 +890,7 @@ export class FunctionService {
 
     @preLazy()
     private async getCodeParams(options: IFunctionCode, installDependency: 'TRUE' | 'FALSE') {
-        const { func, functionPath, functionRootPath, base64Code, addFiles } = options
+        const { func, functionPath, functionRootPath, base64Code } = options
         // 20MB
         const BIG_LENGTH = 167772160
         if (base64Code?.length > BIG_LENGTH) {
@@ -919,60 +915,24 @@ export class FunctionService {
             codeType,
             functionPath,
             name: func.name,
-            root: functionRootPath,
-            incrementalPath: addFiles
+            root: functionRootPath
         })
 
         await packer.build()
-        console.log('打包完成')
-        const isBig = await packer.isBigFile()
 
-        console.log(isBig)
+        // 通过云 API 传输的代码大小不能超过 50MB
+        const reachMax = await packer.isReachMaxSize()
 
-        if (isBig) {
-            const { Date, Sign } = await this.getTempCosInfo(func.name)
-            console.log(Sign)
-            const { appId, env, proxy } = await this.getFunctionConfig()
-            const objPath = `/${Date}/${appId}/${env}/${func.name}.zip`
-            const cosProxy = process.env.TCB_COS_PROXY
+        if (reachMax) {
+            throw new CloudBaseError('函数代码不能大于 50MB')
+        }
 
-            const cos = new COS({
-                getAuthorization: function(_, callback) {
-                    callback({
-                        Authorization: Sign,
-                        Proxy: cosProxy || proxy
-                    })
-                }
-            })
-
-            const sliceUploadFile = Util.promisify(cos.sliceUploadFile).bind(cos)
-
-            // 大文件，分块上传
-            const res = await sliceUploadFile({
-                Bucket: `shtempcos-1253665819`,
-                Region: 'ap-shanghai',
-                Key: objPath,
-                FilePath: packer.zipFilePath,
-                StorageClass: 'STANDARD',
-                AsyncLimit: 5,
-                onProgress: console.log
-            })
-
-            if (res.statusCode !== 200) {
-                throw new CloudBaseError(`上传文件错误：${JSON.stringify(res)}`)
-            }
-
-            return {
-                TempCosObjectName: objPath
-            }
-        } else {
-            const base64 = await packer.getBase64Code()
-            if (!base64?.length) {
-                throw new CloudBaseError('文件不能为空！')
-            }
-            return {
-                ZipFile: base64
-            }
+        const base64 = await packer.getBase64Code()
+        if (!base64?.length) {
+            throw new CloudBaseError('文件不能为空')
+        }
+        return {
+            ZipFile: base64
         }
     }
 
@@ -987,7 +947,6 @@ export class FunctionService {
          * RequestId: "91876f56-7cd3-42bb-bc32-b74df5d0516e"
          * Sign: "Gc8QvXD50dx7yBfsl2yEYFwIL45hPTEyNTM2NjU4MTkm
          */
-        console.log('get sign')
         return this.scfService.request('GetTempCosInfo', {
             ObjectPath: `${appId}/${env}/${name}.zip"`
         })

@@ -39,14 +39,14 @@ test('下载文件 storage.downloadFile', async () => {
         cloudPath: cloudFilePath,
         localPath: path.join(path.resolve(dirPath), 'data.txt')
     })
-})
+}, 10000)
 
 test('上传文件夹 storage.uploadDirectory', async () => {
     await storage.uploadDirectory({
         localPath: dirPath,
         cloudPath: cloudDirPath
     })
-})
+}, 1000)
 
 test('下载文件夹 storage.downloadDirectory', async () => {
     await storage.downloadDirectory({
