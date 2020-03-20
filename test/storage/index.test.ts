@@ -46,14 +46,14 @@ test('上传文件夹 storage.uploadDirectory', async () => {
         localPath: dirPath,
         cloudPath: cloudDirPath
     })
-}, 1000)
+}, 10000)
 
 test('下载文件夹 storage.downloadDirectory', async () => {
     await storage.downloadDirectory({
         cloudPath: cloudDirPath,
         localPath: downloadLocalPath
     })
-})
+}, 10000)
 
 test('获取文件临时下载链接 storage.getTemporaryUrl', async () => {
     const res = await storage.getTemporaryUrl([cloudFilePath])
