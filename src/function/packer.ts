@@ -26,6 +26,8 @@ export interface IPackerOptions {
     codeType: CodeType
 }
 
+const TEMPDIR_NAME = '.cloudbase_temp'
+
 /**
  * 将函数代码转换成 Base64 编码
  * 普通文件：Node，PHP
@@ -54,9 +56,10 @@ export class FunctionPacker {
         this.codeType = codeType
         this.incrementalPath = incrementalPath
         this.funcPath = functionPath ? functionPath : path.resolve(root, name)
+        // 每个函数采用不同的文件夹
         this.tmpPath = root
-            ? path.join(root, '.cloudbase_tmp')
-            : path.join(process.cwd(), '.cloudbase_tmp')
+            ? path.join(root, `${TEMPDIR_NAME}_${name}`)
+            : path.join(process.cwd(), `${TEMPDIR_NAME}_${name}`)
     }
 
     async compressFiles() {
@@ -87,12 +90,12 @@ export class FunctionPacker {
         // funcPath 可能以 .jar 或 .zip 结尾
         const filePath = funcPath.replace(/\.jar$|\.zip$/g, '')
         // Java 代码为 jar 或 zip 包
-        const jarExist = checkFullAccess(`${funcPath}.jar`)
-        const zipExist = checkFullAccess(`${funcPath}.zip`)
+        const jarExist = checkFullAccess(`${filePath}.jar`)
+        const zipExist = checkFullAccess(`${filePath}.zip`)
         if (!jarExist && !zipExist) {
             throw new CloudBaseError('未找到部署函数的 Jar 或者 ZIP 格式文件！')
         }
-        this.zipFilePath = jarExist ? `${funcPath}.jar` : `${funcPath}.zip`
+        this.zipFilePath = jarExist ? `${filePath}.jar` : `${filePath}.zip`
     }
 
     async build() {
@@ -155,7 +158,6 @@ export class FunctionPacker {
 
     async clean(): Promise<void> {
         // allow deleting the current working directory and outside
-        this.zipFilePath && del.sync([this.zipFilePath], { force: true })
         this.tmpPath && del.sync([this.tmpPath], { force: true })
         return
     }
