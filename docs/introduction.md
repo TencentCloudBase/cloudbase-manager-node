@@ -1,3 +1,5 @@
+# 文档已迁移，请访问新的[文档站点](https://docs.cloudbase.net/api-reference/manager/node/introduction.html)查看详细的文档。
+
 # 介绍
 
 云开发 manager-node sdk 支持开发者通过接口形式对云开发提供的云函数、数据库、文件存储等资源进行创建、管理、配置等操作。更多源码内容请参见 [cloudbase-manager-node](https://github.com/TencentCloudBase/cloudbase-manager-node)。

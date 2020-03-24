@@ -1,3 +1,6 @@
+# 文档已迁移，请访问新的[文档站点](https://docs.cloudbase.net/api-reference/manager/node/introduction.html)查看详细的文档。
+
+
 # 安全规则
 
 安全规则的接口，可通过 [commonService ](./common.md)来调用
