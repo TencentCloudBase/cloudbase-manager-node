@@ -1,3 +1,8 @@
+# v3.0.0
+
+-   [fix] common 方法改造
+-   [add] 支持数据库 CRUD
+
 # v2.4.1
 
 -   [fix] 修复并行调用 createFunction 接口报错的问题
