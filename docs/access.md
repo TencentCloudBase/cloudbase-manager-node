@@ -1,6 +1,5 @@
 # 文档已迁移，请访问新的[文档站点](https://docs.cloudbase.net/api-reference/manager/node/introduction.html)查看详细的文档。
 
-
 # 安全规则
 
 安全规则的接口，可通过 [commonService ](./common.md)来调用
@@ -19,7 +18,9 @@
 
 接口功能：获取数据库简易权限
 
-接口声明：`commonService.call({Action: 'DescribeDatabaseACL',Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({Action: 'DescribeDatabaseACL',Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -51,10 +52,10 @@ const cloudbaseConfig = {
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
-let { commonService } = new CloudBase(cloudbaseConfig)
+let manager = new CloudBase(cloudbaseConfig)
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeDatabaseACL',
         Param: {
             CollectionName: 'xxx',
@@ -74,7 +75,9 @@ test()
 
 接口功能：修改数据库简易权限
 
-接口声明：`commonService.call({Action: 'ModifyDatabaseACL',Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({Action: 'ModifyDatabaseACL',Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -106,10 +109,10 @@ const cloudbaseConfig = {
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
-let { commonService } = new CloudBase(cloudBaseConfig)
+let manager = new CloudBase(cloudBaseConfig)
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'ModifyDatabaseACL',
         Param: {
             CollectionName: 'xxx',
@@ -129,7 +132,9 @@ test()
 
 接口功能：设置数据库安全规则
 
-接口声明：`commonService.call({Action: 'ModifySafeRule',Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({Action: 'ModifySafeRule',Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -162,10 +167,10 @@ const cloudbaseConfig = {
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
-let { commonService } = new CloudBase(cloudBaseConfig)
+let manager = new CloudBase(cloudBaseConfig)
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'ModifySafeRule',
         Param: {
             CollectionName: 'coll-1',
@@ -189,7 +194,9 @@ test()
 
 接口功能：查询数据库安全规则
 
-接口声明：`commonService.call({Action: 'DescribeSafeRule',Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({Action: 'DescribeSafeRule',Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -222,10 +229,10 @@ const cloudbaseConfig = {
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
-let { commonService } = new CloudBase(cloudBaseConfig)
+let manager = new CloudBase(cloudBaseConfig)
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeSafeRule',
         Param: {
             CollectionName: 'coll-1',
@@ -244,7 +251,9 @@ test()
 
 接口功能：设置存储安全规则
 
-接口声明：`commonService.call({Action: 'ModifyStorageSafeRule',Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({Action: 'ModifyStorageSafeRule',Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -271,11 +280,14 @@ test()
 ### 4. 示例代码
 
 ```js
-const { commonService, env } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
+
+const { env } = manager
+
 // 先获取桶名
 const {
     EnvInfo: { Storages }
@@ -283,7 +295,7 @@ const {
 const { Bucket } = Storages[0]
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'ModifyStorageSafeRule',
         Param: {
             Bucket,
@@ -306,7 +318,9 @@ test()
 
 接口功能：查询存储安全规则
 
-接口声明：`commonService.call({Action: 'DescribeStorageSafeRule',Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({Action: 'DescribeStorageSafeRule',Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -339,10 +353,10 @@ const cloudbaseConfig = {
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
-let { commonService } = new CloudBase(cloudBaseConfig)
+let manager = new CloudBase(cloudBaseConfig)
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeStorageSafeRule',
         Param: {
             Bucket: 'xxx',
@@ -362,7 +376,9 @@ test()
 
 接口功能：查询存储安全规则修改异步任务状态
 
-接口声明：`commonService.call({Action: 'DescribeCDNChainTask',Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({Action: 'DescribeCDNChainTask',Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -394,7 +410,7 @@ const cloudbaseConfig = {
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 }
 
-let { commonService } = new CloudBase(cloudBaseConfig)
+let manager = new CloudBase(cloudBaseConfig)
 
 async function test() {
     // 获取环境信息 取bucket
@@ -403,7 +419,7 @@ async function test() {
     } = await env.getEnvInfo()
     console.log(Storages)
     const { Bucket } = Storages[0]
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'ModifyStorageSafeRule',
         Param: {
             Bucket,

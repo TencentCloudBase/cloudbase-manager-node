@@ -80,8 +80,8 @@ class CloudBase {
         return this.currentEnvironment().getDatabaseService()
     }
 
-    public get commonService(): CommonService {
-        return this.currentEnvironment().getCommonService()
+    public commonService(service?: string, version?: string): CommonService {
+        return this.currentEnvironment().getCommonService(service, version)
     }
 
     public get env(): EnvService {

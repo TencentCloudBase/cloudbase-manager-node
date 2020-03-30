@@ -10,7 +10,9 @@
 
 接口功能：新增安全来源
 
-接口声明：`commonService.call({ Action: 'CreateSafetySource', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'CreateSafetySource', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -30,14 +32,14 @@
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    await commonService.call({
+    await manager.commonService().call({
         Action: 'CreateSafetySource',
         Param: { EnvId: 'Your envId', AppName: 'xxx' }
     })
@@ -52,7 +54,9 @@ test()
 
 接口功能：获取安全来源列表
 
-接口声明：`commonService.call({ Action: 'DescribeSafetySource', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'DescribeSafetySource', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -84,14 +88,14 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeSafetySource',
         Param: {
             EnvId: 'Your envId',
@@ -114,7 +118,9 @@ test()
 
 接口功能：查看安全来源的密钥
 
-接口声明：`commonService.call({ Action: 'DescribeSafetySourceSecretKey', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'DescribeSafetySourceSecretKey', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -135,19 +141,19 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeSafetySource',
         Param: { EnvId: envId, Offset: 0, Limit: 20 }
     })
 
-    const res1 = await commonService.call({
+    const res1 = await manager.commonService().call({
         Action: 'DescribeSafetySourceSecretKey',
         Param: {
             EnvId: envId,
@@ -167,7 +173,9 @@ test()
 
 接口功能：删除安全来源
 
-接口声明：`commonService.call({ Action: 'DeleteSafetySource', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'DeleteSafetySource', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -187,14 +195,14 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeSafetySource',
         Param: { EnvId: envId, Offset: 0, Limit: 20 }
     })

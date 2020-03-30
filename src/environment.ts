@@ -69,8 +69,8 @@ export class Environment {
         return this.envService
     }
 
-    public getCommonService(serviceType = 'tcb'): CommonService {
-        return new CommonService(this, serviceType)
+    public getCommonService(serviceType = 'tcb', serviceVersion): CommonService {
+        return new CommonService(this, serviceType, serviceVersion)
     }
 
     public getServicesEnvInfo(): Promise<any> {

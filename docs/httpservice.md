@@ -12,7 +12,9 @@ HTTP Service 的接口，可通过 [commonService ](./common.md)来调用
 
 接口功能：创建云函数 HTTPService
 
-接口声明：`commonService.call({ Action: 'CreateCloudBaseGWAPI', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'CreateCloudBaseGWAPI', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -42,14 +44,14 @@ HTTP Service 的接口，可通过 [commonService ](./common.md)来调用
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'CreateCloudBaseGWAPI',
         Param: { ServiceId: envId, Path: '/sum', Type: 1, Name: 'sum' }
     })
@@ -66,7 +68,9 @@ test()
 
 接口功能：查询云函数 HTTP Service
 
-接口声明：`commonService.call({ Action: 'DescribeCloudBaseGWAPI', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'DescribeCloudBaseGWAPI', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -110,14 +114,14 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeCloudBaseGWAPI',
         Param: {
             ServiceId: envId,
@@ -139,7 +143,9 @@ test()
 
 接口功能：删除云函数 HTTP Service
 
-接口声明：`commonService.call({ Action: 'DeleteCloudBaseGWAPI', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'DeleteCloudBaseGWAPI', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -168,14 +174,14 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DeleteCloudBaseGWAPI',
         Param: {
             ServiceId: envId,
@@ -195,7 +201,9 @@ test()
 
 接口功能：绑定 HTTP Service 自定义域名
 
-接口声明：`commonService.call({ Action: 'BindCloudBaseGWDomain', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'BindCloudBaseGWDomain', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 > 绑定自定义域名时，请务必在你的自定义域名厂商处 配置 CNAME 域名解析
 
@@ -225,14 +233,14 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    await commonService.call({
+    await manager.commonService().call({
         Action: 'BindCloudBaseGWDomain',
         Param: {
             ServiceId: envId,
@@ -250,7 +258,9 @@ test()
 
 接口功能：查询 HTTP Service 域名
 
-接口声明：`commonService.call({ Action: 'DescribeCloudBaseGWService', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'DescribeCloudBaseGWService', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -290,14 +300,14 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeCloudBaseGWService',
         Param: {
             ServiceId: envId
@@ -315,7 +325,9 @@ test()
 
 接口功能：解绑 HTTP Service 域名
 
-接口声明：`commonService.call({ Action: 'DeleteCloudBaseGWDomain', Param: {}}): Promise<Object>`
+接口声明：`manager.commonService().call({ Action: 'DeleteCloudBaseGWDomain', Param: {}}): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
 
@@ -343,14 +355,14 @@ test()
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
+const manager = new CloudBase({
     secretId: 'Your SecretId',
     secretKey: 'Your SecretKey',
     envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DeleteCloudBaseGWDomain',
         Param: {
             ServiceId: envId,

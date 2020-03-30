@@ -6,9 +6,20 @@
 
 接口功能：manager-node 针对 部分接口形式相对固定的功能， 提供了 commonService 的公共方法调用
 
-接口声明：`commonService.call(option): Promise<Object>`
+接口声明：`manager.commonService(service, version).call(option): Promise<Object>`
+
+> ⚠️ 本接口从 3.0.0 版本后，commonService 作为方法使用，请求参数为(service?:string, version?:string) ，属于不兼容变更
 
 ### 2. 输入参数
+
+commonService 方法
+
+| 字段    | 类型   | 必填 | 说明         |
+| ------- | ------ | ---- | ------------ |
+| service | string | 否   | 请求资源所属 |
+| version | string | 否   | 接口版本     |
+
+call 方法
 
 | 字段 | 类型                    | 必填 | 说明         |
 | ---- | ----------------------- | ---- | ------------ |
@@ -32,21 +43,21 @@
 ```javascript
 import CloudBase from '@cloudbase/manager-node'
 
-const { commonService } = new CloudBase({
-  secretId: 'Your SecretId',
-  secretKey: 'Your SecretKey',
-  envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+const manager = new CloudBase({
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
 })
 
 async function test() {
-  const res = await commonService.call({
-    Action: 'DescribeDatabaseACL',
-    Param: {
-      CollectionName: 'xxx',
-      EnvId: 'xxx'
-    }
-  })
-  console.log(res)
+    const res = await manager.commonService().call({
+        Action: 'DescribeDatabaseACL',
+        Param: {
+            CollectionName: 'xxx',
+            EnvId: 'xxx'
+        }
+    })
+    console.log(res)
 }
 
 test()

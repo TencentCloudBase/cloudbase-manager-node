@@ -32,7 +32,7 @@ declare class CloudBase {
     get functions(): FunctionService;
     get storage(): StorageService;
     get database(): DatabaseService;
-    get commonService(): CommonService;
+    commonService(service?: string, version?: string): CommonService;
     get env(): EnvService;
     getEnvironmentManager(): EnvironmentManager;
     getManagerConfig(): CloudBaseConfig;

@@ -627,3 +627,249 @@ async function test() {
 
 test()
 ```
+
+## 数据库插入文档
+
+### 1. 接口描述
+
+接口功能：该接口用于向数据库中插入数据
+
+接口声明：`manager.commonService('flexdb').call(option): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段   | 必填 | 类型   | 说明     |
+| ------ | ---- | ------ | -------- |
+| Action | 是   | String | 接口名称 |
+| Param  | 是   | Object | 接口参数 |
+
+#### Param 字段说明
+
+| 字段      | 必填 | 类型                 | 说明                                    |
+| --------- | ---- | -------------------- | --------------------------------------- |
+| TableName | 是   | String               | 表名                                    |
+| MgoDocs   | 是   | Array.&lt;String&gt; | 待插入文档                              |
+| Tag       | 是   | String               | mongo 实例 ID， 可通过 envInfo 接口获取 |
+
+### 3. 返回结果
+
+| 字段        | 必填 | 类型                 | 说明                       |
+| ----------- | ---- | -------------------- | -------------------------- |
+| RequestId   | 是   | String               | 请求唯一标识               |
+| InsertedIds | 是   | Array.&lt;String&gt; | 插入成功的数据集合主键\_id |
+
+### 4. 示例代码
+
+```javascript
+const cloudbaseConfig = {
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+}
+const manager = new CloudBase(cloudBaseConfig)
+
+const data = JSON.stringify({
+    a: 1
+})
+
+// 获取数据库实例ID
+const { EnvInfo } = await manager.env.getEnvInfo()
+
+const { Databases } = EnvInfo
+console.log('Databases:', Databases)
+const { InsertedIds } = await manager.commonService('flexdb').call({
+    Action: 'PutItem',
+    Param: {
+        TableName: 'coll-1',
+        MgoDocs: [data],
+        Tag: Databases[0].InstanceId
+    }
+})
+console.log('InsertedIds:', InsertedIds)
+```
+
+## 数据库查询文档
+
+### 1. 接口描述
+
+接口功能：该接口用于查询数据库文档
+
+接口声明：`manager.commonService('flexdb').call(option): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段   | 必填 | 类型   | 说明     |
+| ------ | ---- | ------ | -------- |
+| Action | 是   | String | 接口名称 |
+| Param  | 是   | Object | 接口参数 |
+
+#### Param 字段说明
+
+| 字段          | 必填 | 类型   | 说明                                                                                                                 |
+| ------------- | ---- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| TableName     | 是   | String | 表名                                                                                                                 |
+| MgoLimit      | 是   | Number | 查询返回结果 limit 数                                                                                                |
+| MgoProjection | 否   | String | 投影条件，为一个 json 串，如{ item: 1, status: 1 }表示结果中返回 item 和 status 两个列；{ item: 0}表示不返回 item 列 |
+| Tag           | 是   | String | mongo 实例 ID， 可通过 envInfo 接口获取                                                                              |
+| MgoQuery      | 否   | String | 查询条件，查询条件为一个 json 串，如{"test":1}                                                                       |
+| MgoOffset     | 否   | Number | 查询结果从 offset 条开始返回                                                                                         |
+| MgoSort       | 否   | String | 排序条件，排序条件为一个 json 串                                                                                     |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型                 | 说明                   |
+| --------- | ---- | -------------------- | ---------------------- |
+| RequestId | 是   | String               | 请求唯一标识           |
+| Pager     | 是   | Pager                | 分页信息               |
+| Data      | 是   | Array.&lt;String&gt; | 满足查询条件的数据集合 |
+
+| 字段   | 必填 | 类型   | 说明           |
+| ------ | ---- | ------ | -------------- |
+| Offset | 是   | Number | 分页偏移量     |
+| Limit  | 是   | Number | 每页返回记录数 |
+
+### 4. 示例代码
+
+```javascript
+const cloudbaseConfig = {
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+}
+const manager = new CloudBase(cloudBaseConfig)
+
+// 获取数据库实例ID
+const { EnvInfo } = await manager.env.getEnvInfo()
+
+const { Databases } = EnvInfo
+console.log('Databases:', Databases)
+const { Data } = await manager.commonService('flexdb').call({
+    Action: 'Query',
+    Param: {
+        TableName: 'coll-1',
+        MgoQuery: JSON.stringify({ a: 1 }),
+        Tag: Databases[0].InstanceId,
+        MgoLimit: 20
+    }
+})
+console.log('Data:', Data)
+```
+
+## 数据库更新文档
+
+### 1. 接口描述
+
+接口功能：该接口用于更新数据库文档
+
+接口声明：`manager.commonService('flexdb').call(option): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段   | 必填 | 类型   | 说明     |
+| ------ | ---- | ------ | -------- |
+| Action | 是   | String | 接口名称 |
+| Param  | 是   | Object | 接口参数 |
+
+#### Param 字段说明
+
+| 字段       | 必填 | 类型    | 说明                                           |
+| ---------- | ---- | ------- | ---------------------------------------------- |
+| Tag        | 是   | String  | mongo 实例 ID， 可通过 envInfo 接口获取        |
+| MgoQuery   | 否   | String  | 查询条件，查询条件为一个 json 串，如{"test":1} |
+| MgoUpdate  | 是   | String  | 更新内容                                       |
+| TableName  | 是   | String  | 表名                                           |
+| MgoIsMulti | 否   | Boolean | 是否更新多条                                   |
+| MgoUpsert  | 否   | Boolean | 是否使用 upsert 模式                           |
+
+### 3. 返回结果
+
+| 字段        | 必填 | 类型   | 说明                   |
+| ----------- | ---- | ------ | ---------------------- |
+| RequestId   | 是   | String | 请求唯一标识           |
+| UpsertedId  | 是   | String | 插入的数据\_id         |
+| ModifiedNum | 是   | Number | 已经修改的行数         |
+| MatchedNum  | 是   | Number | 更新条件匹配到的结果数 |
+
+### 4. 示例代码
+
+```javascript
+const cloudbaseConfig = {
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+}
+const manager = new CloudBase(cloudBaseConfig)
+
+// 获取数据库实例ID
+const { EnvInfo } = await manager.env.getEnvInfo()
+
+const { Databases } = EnvInfo
+console.log('Databases:', Databases)
+const { ModifiedNum } = await manager.commonService('flexdb').call({
+    Action: 'UpdateItem',
+    Param: {
+        TableName: 'coll-1',
+        MgoUpdate: JSON.stringify({ a: 2 }),
+        MgoQuery: JSON.stringify({ a: 1 }),
+        Tag: Databases[0].InstanceId
+    }
+})
+console.log('ModifiedNum:', ModifiedNum)
+```
+
+## 数据库删除文档
+
+### 1. 接口描述
+
+接口功能：该接口用于删除数据库文档
+
+接口声明：`manager.commonService('flexdb').call(option): Promise<Object>`
+
+### 2. 输入参数
+
+| 字段   | 必填 | 类型   | 说明     |
+| ------ | ---- | ------ | -------- |
+| Action | 是   | String | 接口名称 |
+| Param  | 是   | Object | 接口参数 |
+
+#### Param 字段说明
+
+| 字段       | 必填 | 类型    | 说明                                           |
+| ---------- | ---- | ------- | ---------------------------------------------- |
+| Tag        | 是   | String  | mongo 实例 ID， 可通过 envInfo 接口获取        |
+| MgoQuery   | 否   | String  | 查询条件，查询条件为一个 json 串，如{"test":1} |
+| TableName  | 是   | String  | 表名                                           |
+| MgoIsMulti | 否   | Boolean | 是否更新多条                                   |
+
+### 3. 返回结果
+
+| 字段      | 必填 | 类型   | 说明           |
+| --------- | ---- | ------ | -------------- |
+| RequestId | 是   | String | 请求唯一标识   |
+| Deleted   | 是   | Number | 删除数据的条数 |
+
+### 4. 示例代码
+
+```javascript
+const cloudbaseConfig = {
+    secretId: 'Your SecretId',
+    secretKey: 'Your SecretKey',
+    envId: 'Your envId' // 云开发环境ID，可在腾讯云云开发控制台获取
+}
+const manager = new CloudBase(cloudBaseConfig)
+
+// 获取数据库实例ID
+const { EnvInfo } = await manager.env.getEnvInfo()
+
+const { Databases } = EnvInfo
+console.log('Databases:', Databases)
+const { Deleted } = await manager.commonService('flexdb').call({
+    Action: 'DeleteItem',
+    Param: {
+        TableName: 'coll-1',
+        MgoQuery: JSON.stringify({ a: 2 }),
+        Tag: Databases[0].InstanceId
+    }
+})
+console.log('Deleted:', Deleted)
+```

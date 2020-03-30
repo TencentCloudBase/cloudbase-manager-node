@@ -192,3 +192,77 @@ test('database checkIndexExists', async () => {
     const res = await manager.database.checkIndexExists('tcb_collection_need_update', 'index_b_1')
     expect(res).toBeTruthy()
 })
+
+test('database addDocument', async () => {
+    const data = JSON.stringify({
+        a: 1
+    })
+
+    // 获取数据库实例ID
+    const { EnvInfo } = await manager.env.getEnvInfo()
+
+    const { Databases } = EnvInfo
+    console.log('Databases:', Databases)
+    const { InsertedIds } = await manager.commonService('flexdb').call({
+        Action: 'PutItem',
+        Param: {
+            TableName: 'coll-1',
+            MgoDocs: [data],
+            Tag: Databases[0].InstanceId
+        }
+    })
+    console.log('InsertedIds:', InsertedIds)
+})
+
+test('database queryDocument', async () => {
+    // 获取数据库实例ID
+    const { EnvInfo } = await manager.env.getEnvInfo()
+
+    const { Databases } = EnvInfo
+    console.log('Databases:', Databases)
+    const { Data } = await manager.commonService('flexdb').call({
+        Action: 'Query',
+        Param: {
+            TableName: 'coll-1',
+            MgoQuery: JSON.stringify({ a: 1 }),
+            Tag: Databases[0].InstanceId,
+            MgoLimit: 20
+        }
+    })
+    console.log('Data:', Data)
+})
+
+test('database updateDocument', async () => {
+    // 获取数据库实例ID
+    const { EnvInfo } = await manager.env.getEnvInfo()
+
+    const { Databases } = EnvInfo
+    console.log('Databases:', Databases)
+    const { ModifiedNum } = await manager.commonService('flexdb').call({
+        Action: 'UpdateItem',
+        Param: {
+            TableName: 'coll-1',
+            MgoUpdate: JSON.stringify({ a: 2 }),
+            MgoQuery: JSON.stringify({ a: 1 }),
+            Tag: Databases[0].InstanceId
+        }
+    })
+    console.log('ModifiedNum:', ModifiedNum)
+})
+
+test('database deleteDocument', async () => {
+    // 获取数据库实例ID
+    const { EnvInfo } = await manager.env.getEnvInfo()
+
+    const { Databases } = EnvInfo
+    console.log('Databases:', Databases)
+    const { Deleted } = await manager.commonService('flexdb').call({
+        Action: 'DeleteItem',
+        Param: {
+            TableName: 'coll-1',
+            MgoQuery: JSON.stringify({ a: 2 }),
+            Tag: Databases[0].InstanceId
+        }
+    })
+    console.log('Deleted:', Deleted)
+})

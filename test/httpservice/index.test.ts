@@ -3,10 +3,10 @@ import CloudBase from '../../src/index'
 
 const { envId } = cloudBaseConfig
 
-let { commonService } = new CloudBase(cloudBaseConfig)
+let manager = new CloudBase(cloudBaseConfig)
 
 test('创建云函数HTTP Service', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'CreateCloudBaseGWAPI',
         Param: { ServiceId: envId, Path: '/sum', Type: 1, Name: 'sum' }
     })
@@ -22,7 +22,7 @@ test('创建云函数HTTP Service', async () => {
 })
 
 test('获取云函数HTTP Service', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeCloudBaseGWAPI',
         Param: {
             ServiceId: envId,
@@ -41,7 +41,7 @@ test('获取云函数HTTP Service', async () => {
 })
 
 test('删除云函数HTTP Service', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DeleteCloudBaseGWAPI',
         Param: {
             ServiceId: envId,
@@ -55,7 +55,7 @@ test('删除云函数HTTP Service', async () => {
 
 test('绑定网关自定义域名', async () => {
     // 检查当前是否绑定域名
-    const { ServiceSet } = await await commonService.call({
+    const { ServiceSet } = await manager.commonService().call({
         Action: 'DescribeCloudBaseGWService',
         Param: {
             ServiceId: envId
@@ -67,7 +67,7 @@ test('绑定网关自定义域名', async () => {
         ServiceSet.length === 0 ||
         (ServiceSet.length > 0 && ServiceSet[0].Domain !== 'ci-test.devtoken.club')
     ) {
-        const res = await commonService.call({
+        const res = await manager.commonService().call({
             Action: 'BindCloudBaseGWDomain',
             Param: {
                 ServiceId: envId,
@@ -81,7 +81,7 @@ test('绑定网关自定义域名', async () => {
 })
 
 test('查询网关域名', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeCloudBaseGWService',
         Param: {
             ServiceId: envId
@@ -92,7 +92,7 @@ test('查询网关域名', async () => {
 })
 
 test('解绑网关域名', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DeleteCloudBaseGWDomain',
         Param: {
             ServiceId: envId,

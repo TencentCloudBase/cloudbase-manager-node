@@ -16,10 +16,28 @@ export class CommonService {
     private commonService: CloudService
     private environment: Environment
 
-    constructor(environment: Environment, serviceType: string) {
+    constructor(environment: Environment, serviceType: string, serviceVersion: string) {
         this.environment = environment
         if (serviceType === 'tcb') {
-            this.commonService = new CloudService(environment.cloudBaseContext, 'tcb', '2018-06-08')
+            this.commonService = new CloudService(
+                environment.cloudBaseContext,
+                'tcb',
+                serviceVersion || '2018-06-08'
+            )
+        }
+        if (serviceType === 'flexdb') {
+            this.commonService = new CloudService(
+                environment.cloudBaseContext,
+                'flexdb',
+                serviceVersion || '2018-11-27'
+            )
+        }
+        if (serviceType === 'scf') {
+            this.commonService = new CloudService(
+                environment.cloudBaseContext,
+                'scf',
+                serviceVersion || '2018-04-16'
+            )
         }
     }
 

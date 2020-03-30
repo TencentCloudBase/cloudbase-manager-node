@@ -20,7 +20,7 @@ export declare class Environment {
     getDatabaseService(): DatabaseService;
     getFunctionService(): FunctionService;
     getEnvService(): EnvService;
-    getCommonService(serviceType?: string): CommonService;
+    getCommonService(serviceType: string, serviceVersion: any): CommonService;
     getServicesEnvInfo(): Promise<any>;
     getAuthConfig(): {
         envId: string;

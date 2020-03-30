@@ -11,7 +11,7 @@ interface ICommonApiServiceOption {
 export declare class CommonService {
     private commonService;
     private environment;
-    constructor(environment: Environment, serviceType: string);
+    constructor(environment: Environment, serviceType: string, serviceVersion: string);
     /**
      * 公共方法调用
      * @param {ICommonApiServiceParam} param

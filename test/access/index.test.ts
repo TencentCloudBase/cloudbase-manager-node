@@ -1,11 +1,13 @@
 import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src/index'
 
-let { commonService, env } = new CloudBase(cloudBaseConfig)
+let manager = new CloudBase(cloudBaseConfig)
+const { env } = manager
+
 const { envId } = cloudBaseConfig
 
 test('数据库简易权限获取', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeDatabaseACL',
         Param: {
             CollectionName: 'coll-1',
@@ -17,7 +19,7 @@ test('数据库简易权限获取', async () => {
 })
 
 test('数据库简易权限修改', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'ModifyDatabaseACL',
         Param: {
             CollectionName: 'coll-1',
@@ -30,7 +32,7 @@ test('数据库简易权限修改', async () => {
 })
 
 test('数据库安全规则设置', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'ModifySafeRule',
         Param: {
             CollectionName: 'coll-1',
@@ -47,7 +49,7 @@ test('数据库安全规则设置', async () => {
 })
 
 test('查询数据库安全规则', async () => {
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeSafeRule',
         Param: {
             CollectionName: 'coll-1',
@@ -65,7 +67,7 @@ test('设置存储安全规则', async () => {
     } = await env.getEnvInfo()
     console.log(Storages)
     const { Bucket } = Storages[0]
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'ModifyStorageSafeRule',
         Param: {
             Bucket,
@@ -83,7 +85,7 @@ test('设置存储安全规则', async () => {
     let status = ''
     do {
         status = (
-            await commonService.call({
+            await manager.commonService().call({
                 Action: 'DescribeCDNChainTask',
                 Param: {
                     Bucket,
@@ -102,7 +104,7 @@ test('查询存储安全规则', async () => {
     } = await env.getEnvInfo()
     console.log(Storages)
     const { Bucket } = Storages[0]
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeStorageSafeRule',
         Param: {
             Bucket,
@@ -120,7 +122,7 @@ test('获取CDN防盗链任务状态', async () => {
     } = await env.getEnvInfo()
     console.log(Storages)
     const { Bucket } = Storages[0]
-    const res = await commonService.call({
+    const res = await manager.commonService().call({
         Action: 'DescribeCDNChainTask',
         Param: {
             Bucket,
