@@ -4,7 +4,15 @@ import { sleep } from '../../src/utils/index'
 import { SCF_STATUS } from '../../src/constant'
 
 const { functions } = new CloudBase(cloudBaseConfig)
-const layerName = 'luke' + Date.now()
+
+// 每个测试用例间隔 2000ms
+beforeEach(() => {
+    return new Promise((resolve, reject) => {
+        setTimeout(async () => {
+            resolve()
+        }, 2000)
+    })
+})
 
 test('列出所有函数: functions.listFunctions', async () => {
     const data = await functions.listFunctions()
@@ -152,7 +160,7 @@ test('创建云函数-本地文件上传 加代码保护 验证getFunctionDetail
     // 验证加code调用 getFunctionDownloadUrl
     const res2 = await functions.getFunctionDownloadUrl('sumWithCodeSecret', 'lukekke')
     expect(res2.Url !== undefined).toBe(true)
-}, 10000)
+}, 30000)
 
 test('增量更新云函数代码 新增文件夹: functions.updateFunctionIncrementalCode', async () => {
     const res = await functions.updateFunctionIncrementalCode({
