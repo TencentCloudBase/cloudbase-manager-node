@@ -265,7 +265,6 @@ export class FunctionService {
     public async createFunction(
         funcParam: ICreateFunctionParam
     ): Promise<IResponseInfo | ICreateFunctionRes> {
-        // TODO: 优化处理逻辑
         const { namespace } = this.getFunctionConfig()
         const {
             func,
@@ -315,10 +314,10 @@ export class FunctionService {
         } catch (e) {
             // 已存在同名函数，强制更新
             if (e.code === 'ResourceInUse.FunctionName' && force) {
+                // 创建函数触发器
+                const triggerRes = await this.retryCreateTrigger(funcName, func.triggers)
                 // 更新函数配置和代码
                 const configRes = await this.updateFunctionConfig(func)
-                // 创建函数触发器
-                const triggerRes = await this.createFunctionTriggers(funcName, func.triggers)
                 // 更新函数代码
                 const codeRes = await this.retryUpdateFunctionCode({
                     func,
@@ -954,11 +953,13 @@ export class FunctionService {
 
     private async retryCreateTrigger(name, triggers, count = 0) {
         try {
-            await this.createFunctionTriggers(name, triggers)
+            const res = await this.createFunctionTriggers(name, triggers)
+            return res
         } catch (e) {
             if (count < 3) {
                 await sleep(500)
-                await this.retryCreateTrigger(name, triggers, count + 1)
+                const res = await this.retryCreateTrigger(name, triggers, count + 1)
+                return res
             } else {
                 throw e
             }
