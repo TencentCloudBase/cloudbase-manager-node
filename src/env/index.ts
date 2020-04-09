@@ -98,7 +98,7 @@ export class EnvService {
         // 5. 创建环境
         // 6. 购买环境，选择预付费 或 后付费 套餐
         // 7. 若购买失败，将当前环境销毁，若购买成功，返回envId
-        const { name, paymentMode, channel } = param
+        const { name, paymentMode, channel = 'qc_console' } = param
 
         // 1. 检查TCB服务是否开通
         const { Initialized } = await this.checkTcbService()
