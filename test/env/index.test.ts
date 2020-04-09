@@ -81,19 +81,20 @@ test('env UpdateLoginConfig', async () => {
 })
 
 // 创建新环境
-// test('env createEnv', async () => {
-//     // 忽略此方法
-//     try {
-//         const res = await manager.env.createEnv({
-//             name: 'aaa',
-//             paymentMode: 'postpay'
-//         })
-//         console.log('createEnv ', res)
-//         expect(res.envId !== undefined).toBe(true)
-//     } catch (err) {
-//         console.log(err)
-//     }
-// })
+test('env createEnv', async () => {
+    // 忽略此方法
+    try {
+        const res = await manager.env.createEnv({
+            name: 'aaaluke',
+            paymentMode: 'postpay',
+            channel: 'dcloud'
+        })
+        console.log('createEnv ', res)
+        expect(res.envId !== undefined).toBe(true)
+    } catch (err) {
+        console.log(err)
+    }
+})
 
 // 拉取环境列表信息
 test('env listEnvs', async () => {

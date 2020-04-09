@@ -7,7 +7,7 @@ interface ICreateEnvParam {
 }
 declare type PAYMENT_MODE = 'prepay' | 'postpay';
 declare type SOURCE = 'miniapp' | 'qcloud';
-declare type QCLOUD_CHANNEL = 'web' | 'cocos' | 'qq' | 'cloudgame';
+declare type QCLOUD_CHANNEL = 'cocos' | 'qq' | 'cloudgame' | 'qc_console' | 'dcloud';
 interface IDeleteDomainRes {
     RequestId: string;
     Deleted: number;
@@ -23,6 +23,10 @@ interface IListEnvRes {
 interface IEnvLoginConfigRes {
     RequestId: string;
     ConfigList: LoginConfigItem[];
+}
+interface IInitParam {
+    Channel?: string;
+    Source?: string;
 }
 export declare class EnvService {
     private environment;
@@ -72,7 +76,7 @@ export declare class EnvService {
      * @returns {Promise<IResponseInfo>}
      * @memberof EnvService
      */
-    initTcb(): Promise<IResponseInfo>;
+    initTcb(param: IInitParam): Promise<IResponseInfo>;
     /**
      * 开通后付费套餐
      * @param {string} envId

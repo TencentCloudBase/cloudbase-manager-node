@@ -30,7 +30,8 @@ interface ICreateEnvRes {
 
 type PAYMENT_MODE = 'prepay' | 'postpay'
 type SOURCE = 'miniapp' | 'qcloud'
-type QCLOUD_CHANNEL = 'web' | 'cocos' | 'qq' | 'cloudgame'
+type WX_CHANNEL = 'ide' | 'api'
+type QCLOUD_CHANNEL = 'cocos' | 'qq' | 'cloudgame' | 'qc_console' | 'dcloud'
 
 interface IDeleteDomainRes {
     RequestId: string
@@ -50,6 +51,11 @@ interface IListEnvRes {
 interface IEnvLoginConfigRes {
     RequestId: string
     ConfigList: LoginConfigItem[]
+}
+
+interface IInitParam {
+    Channel?: string
+    Source?: string
 }
 
 export class EnvService {
@@ -132,7 +138,7 @@ export class EnvService {
             }
 
             // 4. 未开通则初始化TCB
-            await this.initTcb()
+            await this.initTcb({ Channel: channel, Source: 'qcloud' })
         }
 
         // 5. 创建环境
@@ -362,8 +368,13 @@ export class EnvService {
      * @returns {Promise<IResponseInfo>}
      * @memberof EnvService
      */
-    public async initTcb(): Promise<IResponseInfo> {
-        const res = await this.cloudService.request('InitTcb', {})
+    public async initTcb(param: IInitParam): Promise<IResponseInfo> {
+        let initParam = {}
+        if (param) {
+            initParam = { ...param }
+        }
+
+        const res = await this.cloudService.request('InitTcb', initParam)
         return res
     }
 

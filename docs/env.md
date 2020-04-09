@@ -89,7 +89,7 @@ ICreateEnvParam 结构体
 | ----------- | ---- | ------ | ------------------------------------------------------------------------------------- |
 | name        | 是   | String | 环境名                                                                                |
 | paymentMode | 否   | String | 环境套餐类型: 预付费(包年包月) prepay, 后付费(按量付费) postpay，不传默认使用 postpay |
-| channel     | 否   | String | 支持以下选项 'web'，'cocos'，'qq'，'cloudgame'                                        |
+| channel     | 否   | String | 支持以下选项 'web'，'cocos'，'qq'，'cloudgame'，'qc_console'，'dcloud'                                        |
 
 ### 3. 返回结果
 
