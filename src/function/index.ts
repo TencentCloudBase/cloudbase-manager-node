@@ -412,34 +412,10 @@ export class FunctionService {
             params.CodeSecret = codeSecret
         }
 
-        const res = await this.scfService.request('GetFunction', params)
+        const data = await this.scfService.request('GetFunction', params)
 
-        const data: Record<string, any> = {}
-        // 提取信息的键
-        const validKeys = [
-            'Status',
-            'CodeInfo',
-            'CodeSize',
-            'Environment',
-            'FunctionName',
-            'Handler',
-            'MemorySize',
-            'ModTime',
-            'Namespace',
-            'Runtime',
-            'Timeout',
-            'Triggers',
-            'VpcConfig'
-        ]
-
-        // 响应字段为 Duration 首字母大写形式，将字段转换成驼峰命名
-        Object.keys(res).forEach(key => {
-            if (!validKeys.includes(key)) return
-            data[key] = res[key]
-        })
-
+        // 解析 VPC 配置
         const { VpcId = '', SubnetId = '' } = data.VpcConfig || {}
-
         if (VpcId && SubnetId) {
             try {
                 const vpcs = await this.getVpcs()
