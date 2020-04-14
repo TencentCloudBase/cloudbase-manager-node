@@ -3,14 +3,44 @@ import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
 import { CloudService, preLazy, checkReadable, isDirectory } from '../utils'
 
-interface IHostingFileOptions {
-    localPath: string
-    cloudPath: string
-    onProgress?: (data: any) => void
-    onFileFinish?: (...args) => void
+export interface IProgressData {
+    loaded: number // 已经上传的部分 字节
+    total: number // 整个文件的大小 字节
+    speed: number // 文件上传速度 字节/秒
+    percent: number // 百分比 小数 0 - 1
 }
 
-interface IHostingCloudOptions {
+export type OnProgress = (progressData: IProgressData) => void
+export type OnFileFinish = (error: Error, res: any, fileData: any) => void
+
+export interface IHostingFileOptions {
+    localPath: string
+    cloudPath: string
+    // 上传文件并发数量
+    parallel?: number
+    files?: {
+        localPath: string
+        cloudPath: string
+    }[]
+    onProgress?: OnProgress
+    onFileFinish?: OnFileFinish
+}
+
+export interface IHostingFilesOptions {
+    // 上传文件并发数量
+    localPath?: string
+    cloudPath?: string
+    parallel?: number
+    files: {
+        localPath: string
+        cloudPath: string
+    }[]
+    onProgress?: OnProgress
+    onFileFinish?: OnFileFinish
+}
+export type IHostingOptions = IHostingFileOptions | IHostingFilesOptions
+
+export interface IHostingCloudOptions {
     cloudPath: string
     isDir: boolean
 }
@@ -152,41 +182,56 @@ export class HostingService {
     }
 
     /**
-     * 上传文件或文件夹
+     * 支持上传单个文件，文件夹，或多个文件
      * @param options
      */
     @preLazy()
-    async uploadFiles(options: IHostingFileOptions) {
-        const { localPath, cloudPath, onProgress, onFileFinish } = options
-        const resolvePath = path.resolve(localPath)
-        // 检查路径是否存在
-        checkReadable(resolvePath, true)
+    async uploadFiles(options: IHostingOptions) {
+        const { localPath, cloudPath, files = [], onProgress, onFileFinish, parallel } = options
 
         const hosting = await this.checkStatus()
         const { Bucket, Regoin } = hosting
         const storageService = await this.environment.getStorageService()
 
-        if (isDirectory(resolvePath)) {
-            await storageService.uploadDirectoryCustom({
-                localPath: resolvePath,
-                cloudPath,
-                bucket: Bucket,
-                region: Regoin,
-                onProgress,
-                onFileFinish,
-                fileId: false
-            })
-        } else {
-            const assignCloudPath = cloudPath || path.parse(resolvePath).base
-            await storageService.uploadFileCustom({
-                localPath: resolvePath,
-                cloudPath: assignCloudPath,
-                bucket: Bucket,
-                region: Regoin,
-                onProgress,
-                fileId: false
-            })
+        const uploadFiles = Array.isArray(files) ? files : []
+
+        // localPath 存在，上传文件夹/文件
+        if (localPath) {
+            const resolvePath = path.resolve(localPath)
+            // 检查路径是否存在
+            checkReadable(resolvePath, true)
+
+            if (isDirectory(resolvePath)) {
+                await storageService.uploadDirectoryCustom({
+                    localPath: resolvePath,
+                    cloudPath,
+                    bucket: Bucket,
+                    region: Regoin,
+                    onProgress,
+                    onFileFinish,
+                    fileId: false
+                })
+                return
+            } else {
+                // 文件上传统一通过批量上传接口
+                const assignCloudPath = cloudPath || path.parse(resolvePath).base
+                uploadFiles.push({
+                    localPath: resolvePath,
+                    cloudPath: assignCloudPath
+                })
+            }
         }
+
+        // 文件上传统一通过批量上传接口
+        await storageService.uploadFilesCustom({
+            parallel,
+            onProgress,
+            onFileFinish,
+            bucket: Bucket,
+            region: Regoin,
+            files: uploadFiles,
+            fileId: false
+        })
     }
 
     /**

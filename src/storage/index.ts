@@ -37,6 +37,7 @@ export interface IOptions {
     onProgress?: OnProgress
     // 文件上传完成的回调
     onFileFinish?: OnFileFinish
+    // 忽略文件匹配规则
     ignore?: string | string[]
     // 是否获取文件 fileId
     fileId?: boolean
@@ -44,7 +45,15 @@ export interface IOptions {
 
 export interface IFileOptions extends IOptions {
     localPath: string
+    // cloudPath 可以为空
     cloudPath?: string
+}
+
+export interface IFilesOptions extends IOptions {
+    // 并发数量
+    parallel?: number
+    // 文件列表
+    files: { localPath: string; cloudPath?: string }[]
 }
 
 export interface ICustomOptions {
@@ -92,6 +101,25 @@ export class StorageService {
             bucket,
             region,
             onProgress
+        })
+    }
+
+    /**
+     * 批量上传文件，默认并发 5
+     * @param options
+     */
+    @preLazy()
+    public async uploadFiles(options: IFilesOptions): Promise<void> {
+        const { files, onProgress, parallel, onFileFinish } = options
+        const { bucket, region } = this.getStorageConfig()
+
+        await this.uploadFilesCustom({
+            files,
+            bucket,
+            region,
+            parallel,
+            onProgress,
+            onFileFinish
         })
     }
 
@@ -168,6 +196,8 @@ export class StorageService {
         if (res.statusCode !== 200) {
             throw new CloudBaseError(`上传文件错误：${JSON.stringify(res)}`)
         }
+
+        return res
     }
 
     /**
@@ -295,6 +325,69 @@ export class StorageService {
             SliceSize: BIG_FILE_SIZE,
             onProgress,
             onFileFinish
+        })
+    }
+
+    /**
+     * 批量上传文件
+     * @param options
+     */
+    @preLazy()
+    public async uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<void> {
+        const {
+            files,
+            bucket,
+            region,
+            onProgress,
+            onFileFinish,
+            fileId = true,
+            parallel = 5
+        } = options
+
+        if (!files || !files.length) {
+            return
+        }
+
+        let fileList = files.map((item) => {
+            const { localPath, cloudPath } = item
+
+            return {
+                filePath: localPath,
+                cloudFileKey: cloudPath
+            }
+        })
+
+        // 生成上传文件属性
+        const tasks = fileList.map((stats) => async () => {
+            let cosFileId
+            if (fileId) {
+                const res = await this.getUploadMetadata(stats.cloudFileKey)
+                cosFileId = res.cosFileId
+            }
+
+            return {
+                Bucket: bucket,
+                Region: region,
+                Key: stats.cloudFileKey,
+                FilePath: stats.filePath,
+                'x-cos-meta-fileid': cosFileId
+            }
+        })
+
+        // 控制请求并发
+        const asyncTaskController = new AsyncTaskParallelController(100, 50)
+        asyncTaskController.loadTasks(tasks)
+        fileList = await asyncTaskController.run()
+
+        const cos = this.getCos()
+        const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
+
+        await uploadFiles({
+            onProgress,
+            onFileFinish,
+            files: fileList,
+            SliceSize: BIG_FILE_SIZE,
+            FileParallelLimit: parallel
         })
     }
 

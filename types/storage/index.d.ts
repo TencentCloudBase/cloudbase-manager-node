@@ -16,6 +16,13 @@ export interface IFileOptions extends IOptions {
     localPath: string;
     cloudPath?: string;
 }
+export interface IFilesOptions extends IOptions {
+    parallel?: number;
+    files: {
+        localPath: string;
+        cloudPath?: string;
+    }[];
+}
 export interface ICustomOptions {
     bucket: string;
     region: string;
@@ -42,13 +49,18 @@ export declare class StorageService {
      */
     uploadFile(options: IFileOptions): Promise<void>;
     /**
+     * 批量上传文件，默认并发 5
+     * @param options
+     */
+    uploadFiles(options: IFilesOptions): Promise<void>;
+    /**
      * 上传文件，支持自定义 Bucket 和 Region
      * @param {string} localPath
      * @param {string} cloudPath
      * @param {string} bucket
      * @param {string} region
      */
-    uploadFileCustom(options: IFileOptions & ICustomOptions): Promise<void>;
+    uploadFileCustom(options: IFileOptions & ICustomOptions): Promise<any>;
     /**
      * 上传文件夹
      * @param {string} localPath 本地文件夹路径
@@ -68,6 +80,11 @@ export declare class StorageService {
      * @returns {Promise<void>}
      */
     uploadDirectoryCustom(options: IFileOptions & ICustomOptions): Promise<void>;
+    /**
+     * 批量上传文件
+     * @param options
+     */
+    uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<void>;
     /**
      * 创建一个空的文件夹
      * @param {string} cloudPath

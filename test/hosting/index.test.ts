@@ -31,6 +31,38 @@ test('上传文件夹 hosting.uploadDirectory', async () => {
     })
 }, 10000)
 
+test('上传多个文件 hosting.uploadFiles', async () => {
+    let fileCount = 0
+    await hosting.uploadFiles({
+        files: [
+            {
+                localPath: 'test/storage/test_data/data.txt',
+                cloudPath: 'test/storage/test_data/data.txt'
+            },
+            {
+                localPath: 'test/storage/test_data/download.txt',
+                cloudPath: 'test/storage/test_data/download.txt'
+            },
+            {
+                localPath: 'test/storage/test_data/download.txt',
+                cloudPath: 'download.txt'
+            },
+            {
+                localPath: 'test/storage/test_data/download.txt',
+                cloudPath: 'index.txt'
+            },
+            {
+                localPath: 'test/storage/test_data/download.txt',
+                cloudPath: 'a.txt'
+            }
+        ],
+        onFileFinish: () => {
+            fileCount++
+        }
+    })
+
+    expect(fileCount).toEqual(5)
+}, 10000)
 
 test('列出文件夹下的所有文件 hosting.listFiles', async () => {
     const res = await hosting.listFiles()
@@ -38,7 +70,6 @@ test('列出文件夹下的所有文件 hosting.listFiles', async () => {
     expect(res.length).toBeGreaterThanOrEqual(1)
     expect(res[0].Key).toBeTruthy()
 })
-
 
 test('删除文件 hosting.deleteFile', async () => {
     await hosting.deleteFiles({

@@ -1,11 +1,36 @@
 import { Environment } from '../environment';
-interface IHostingFileOptions {
+export interface IProgressData {
+    loaded: number;
+    total: number;
+    speed: number;
+    percent: number;
+}
+export declare type OnProgress = (progressData: IProgressData) => void;
+export declare type OnFileFinish = (error: Error, res: any, fileData: any) => void;
+export interface IHostingFileOptions {
     localPath: string;
     cloudPath: string;
-    onProgress?: (data: any) => void;
-    onFileFinish?: (...args: any[]) => void;
+    parallel?: number;
+    files?: {
+        localPath: string;
+        cloudPath: string;
+    }[];
+    onProgress?: OnProgress;
+    onFileFinish?: OnFileFinish;
 }
-interface IHostingCloudOptions {
+export interface IHostingFilesOptions {
+    localPath?: string;
+    cloudPath?: string;
+    parallel?: number;
+    files: {
+        localPath: string;
+        cloudPath: string;
+    }[];
+    onProgress?: OnProgress;
+    onFileFinish?: OnFileFinish;
+}
+export declare type IHostingOptions = IHostingFileOptions | IHostingFilesOptions;
+export interface IHostingCloudOptions {
     cloudPath: string;
     isDir: boolean;
 }
@@ -46,10 +71,10 @@ export declare class HostingService {
         requestId: any;
     }>;
     /**
-     * 上传文件或文件夹
+     * 支持上传单个文件，文件夹，或多个文件
      * @param options
      */
-    uploadFiles(options: IHostingFileOptions): Promise<void>;
+    uploadFiles(options: IHostingOptions): Promise<void>;
     /**
      * 删除文件或文件夹
      * @param options
@@ -65,4 +90,3 @@ export declare class HostingService {
      */
     private getHostingConfig;
 }
-export {};
