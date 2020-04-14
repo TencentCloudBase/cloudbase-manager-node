@@ -188,6 +188,28 @@ test('增量更新云函数代码 删除文件夹: functions.updateFunctionIncre
     expect(res.RequestId !== undefined).toBe(true)
 })
 
+test('创建云函数-本地文件上传-通过 functionPath：functions.createFunction', async () => {
+    const res = await functions.createFunction({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'app',
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
+            // 运行时
+            runtime: 'Nodejs8.9',
+            // 安装依赖
+            installDependency: true,
+            ignore: ['ignore.js'],
+            isWaitInstall: true
+        },
+        functionPath: './test/functions/sum',
+        force: true
+    })
+
+    expect(res).toBeTruthy()
+}, 30000)
+
 test('更新云函数代码：functions.updateFunctionCode 加代码保护 验证 getFunctionDeatil getFunctionDownloadUrl', async () => {
     const res = await functions.updateFunctionCode({
         func: {
