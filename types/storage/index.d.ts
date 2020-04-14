@@ -54,6 +54,7 @@ export declare class StorageService {
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
      * @param {(string | string[])} ignore
+     * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
     uploadDirectory(options: IFileOptions): Promise<void>;

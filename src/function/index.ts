@@ -33,7 +33,7 @@ export interface IFunctionCode {
 export interface ICreateFunctionParam {
     func: ICloudFunction // 云函数信息
     functionRootPath?: string // 云函数根目录
-    force: boolean // 是否覆盖同名云函数
+    force?: boolean // 是否覆盖同名云函数
     base64Code?: string
     functionPath?: string
     codeSecret?: string // 代码保护密钥
@@ -121,6 +121,9 @@ export interface IGetLayerVersionRes extends IResponseInfo {
     Status: string // 	层的具体版本当前状态
 }
 
+// 合法的函数运行时
+const validRuntime = ['Nodejs8.9', 'Php7', 'Java8', 'Nodejs10.15']
+
 // 校验函数参数
 function validCreateParams(func: ICloudFunction, codeSecret?: string) {
     // 校验 CodeSecret 格式
@@ -131,7 +134,6 @@ function validCreateParams(func: ICloudFunction, codeSecret?: string) {
     }
 
     // 校验运行时
-    const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
     if (func?.runtime && !validRuntime.includes(func.runtime)) {
         throw new CloudBaseError(
             `${func.name} Invalid runtime value：${
@@ -141,19 +143,24 @@ function validCreateParams(func: ICloudFunction, codeSecret?: string) {
     }
 }
 
+// 是否为 Node 函数
+function isNodeFunction(runtime: string) {
+    return runtime === 'Nodejs10.15' || runtime === 'Nodejs8.9'
+}
+
 // 解析函数配置，换成请求参数
 function configToParams(options: { func: ICloudFunction; codeSecret: string; baseParams: any }) {
     const { func, codeSecret, baseParams } = options
     let installDependency
-    // Node 8.9 默认安装依赖
-    installDependency = func.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
+    // Node 函数默认安装依赖
+    installDependency = isNodeFunction(func.runtime) ? 'TRUE' : 'FALSE'
     // 是否安装依赖，选项可以覆盖
     if (typeof func.installDependency !== 'undefined') {
         installDependency = func.installDependency ? 'TRUE' : 'FALSE'
     }
 
     // 转换环境变量
-    const envVariables = Object.keys(func.envVariables || {}).map(key => ({
+    const envVariables = Object.keys(func.envVariables || {}).map((key) => ({
         Key: key,
         Value: func.envVariables[key]
     }))
@@ -364,7 +371,7 @@ export class FunctionService {
         })
         const { Functions = [] } = res
         const data: Record<string, string>[] = []
-        Functions.forEach(func => {
+        Functions.forEach((func) => {
             const { FunctionId, FunctionName, Runtime, AddTime, ModTime, Status } = func
             data.push({
                 FunctionId,
@@ -420,8 +427,8 @@ export class FunctionService {
             try {
                 const vpcs = await this.getVpcs()
                 const subnets = await this.getSubnets(VpcId)
-                const vpc = vpcs.find(item => item.VpcId === VpcId)
-                const subnet = subnets.find(item => item.SubnetId === SubnetId)
+                const vpc = vpcs.find((item) => item.VpcId === VpcId)
+                const subnet = subnets.find((item) => item.SubnetId === SubnetId)
                 data.VpcConfig = {
                     vpc,
                     subnet
@@ -490,7 +497,7 @@ export class FunctionService {
     async updateFunctionConfig(func: ICloudFunction): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
 
-        const envVariables = Object.keys(func.envVariables || {}).map(key => ({
+        const envVariables = Object.keys(func.envVariables || {}).map((key) => ({
             Key: key,
             Value: func.envVariables[key]
         }))
@@ -517,8 +524,8 @@ export class FunctionService {
             VpcId: func?.vpc?.vpcId || ''
         }
 
-        // Node 8.9 默认安装依赖
-        func.runtime === 'Nodejs8.9' && (params.InstallDependency = 'TRUE')
+        // Node 函数默认安装依赖
+        isNodeFunction(func.runtime) && (params.InstallDependency = 'TRUE')
         // 是否安装依赖，选项可以覆盖
         if (typeof func.installDependency !== 'undefined') {
             params.InstallDependency = func.installDependency ? 'TRUE' : 'FALSE'
@@ -546,8 +553,8 @@ export class FunctionService {
         validCreateParams(func)
 
         let installDependency
-        // Node 8.9 默认安装依赖
-        installDependency = func.runtime === 'Nodejs8.9' ? 'TRUE' : 'FALSE'
+        // Node 函数默认安装依赖
+        installDependency = isNodeFunction(func.runtime) ? 'TRUE' : 'FALSE'
         // 是否安装依赖，选项可以覆盖
         if (typeof func.installDependency !== 'undefined') {
             installDependency = func.installDependency ? 'TRUE' : 'FALSE'
@@ -665,7 +672,7 @@ export class FunctionService {
         if (!triggers || !triggers.length) return null
         const { namespace } = this.getFunctionConfig()
 
-        const parsedTriggers = triggers.map(item => {
+        const parsedTriggers = triggers.map((item) => {
             if (item.type !== 'timer') {
                 throw new CloudBaseError(
                     `不支持的触发器类型 [${item.type}]，目前仅支持定时触发器（timer）！`
@@ -752,8 +759,7 @@ export class FunctionService {
 
         // checkFullAccess(contentPath)
 
-        const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
-        if (runtimes.some(item => validRuntime.indexOf(item) === -1)) {
+        if (runtimes.some((item) => validRuntime.indexOf(item) === -1)) {
             throw new CloudBaseError(
                 `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
             )
@@ -819,8 +825,7 @@ export class FunctionService {
             LayerName: name
         }
         if (runtimes?.length) {
-            const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
-            if (runtimes.some(item => validRuntime.indexOf(item) === -1)) {
+            if (runtimes.some((item) => validRuntime.indexOf(item) === -1)) {
                 throw new CloudBaseError(
                     `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
                 )
@@ -840,7 +845,6 @@ export class FunctionService {
             SearchKey: searchKey
         }
         if (runtime) {
-            const validRuntime = ['Nodejs8.9', 'Php7', 'Java8']
             if (validRuntime.indexOf(runtime) === -1) {
                 throw new CloudBaseError(
                     `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`

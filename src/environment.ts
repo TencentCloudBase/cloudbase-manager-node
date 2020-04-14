@@ -9,6 +9,7 @@ import { CloudBaseContext } from './context'
 import { CloudBaseError } from './error'
 import { RUN_ENV, ENV_NAME, ERROR } from './constant'
 import { getRuntime, getEnvVar } from './utils'
+import { HostingService } from './hosting'
 
 export class Environment {
     public inited = false
@@ -20,6 +21,7 @@ export class Environment {
     private databaseService: DatabaseService
     private storageService: StorageService
     private envService: EnvService
+    private hostingService: HostingService
 
     constructor(context: CloudBaseContext, envId: string) {
         this.envId = envId
@@ -30,6 +32,7 @@ export class Environment {
         this.databaseService = new DatabaseService(this)
         this.storageService = new StorageService(this)
         this.envService = new EnvService(this)
+        this.hostingService = new HostingService(this)
     }
 
     async lazyInit(): Promise<any> {
@@ -67,6 +70,10 @@ export class Environment {
 
     public getEnvService(): EnvService {
         return this.envService
+    }
+
+    public getHostingService(): HostingService {
+        return this.hostingService
     }
 
     public getCommonService(serviceType = 'tcb', serviceVersion): CommonService {
