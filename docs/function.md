@@ -789,12 +789,10 @@ const { functions } = new CloudBase({
 })
 
 async function test() {
-    const res = await functions.updateFunctionIncrementalCode({
-        func: {
-            name: 'sum',
-            runTime: 'Nodejs8.9'
-        },
-        addFiles: 'test/index.js'
+    const res = await functions.createLayer({
+        name: layerName,
+        contentPath: './test/functions/luke/',
+        runtimes: ['Nodejs8.9']
     })
     console.log(res.LayerVersion)
 }
