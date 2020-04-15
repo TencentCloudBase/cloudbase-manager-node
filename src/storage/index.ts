@@ -687,10 +687,15 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async deleteDirectory(cloudPath: string): Promise<void> {
+    public async deleteDirectory(
+        cloudPath: string
+    ): Promise<{
+        Deleted: { Key: string }[]
+        Error: Object[]
+    }> {
         const { bucket, region } = this.getStorageConfig()
 
-        await this.deleteDirectoryCustom({
+        return this.deleteDirectoryCustom({
             cloudPath,
             bucket,
             region
@@ -707,28 +712,39 @@ export class StorageService {
     @preLazy()
     public async deleteDirectoryCustom(
         options: { cloudPath: string } & ICustomOptions
-    ): Promise<void> {
+    ): Promise<{
+        Deleted: { Key: string }[]
+        Error: Object[]
+    }> {
         const { cloudPath, bucket, region } = options
         const key = this.getCloudKey(cloudPath)
 
         const cos = this.getCos()
-        const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
+        const deleteMultipleObject = Util.promisify(cos.deleteMultipleObject).bind(cos)
 
+        // 遍历获取全部文件
         const files = await this.walkCloudDirCustom({
             bucket,
             region,
             prefix: key
         })
 
-        const promises = files.map(async (file) =>
-            deleteObject({
-                Bucket: bucket,
-                Region: region,
-                Key: file.Key
-            })
-        )
+        // 文件为空时，不能调用删除接口
+        if (!files.length) {
+            return {
+                Deleted: [],
+                Error: []
+            }
+        }
 
-        await Promise.all(promises)
+        // 删除多个文件
+        const res = await deleteMultipleObject({
+            Bucket: bucket,
+            Region: region,
+            Objects: files.map((file) => ({ Key: file.Key }))
+        })
+
+        return res
     }
 
     /**
@@ -914,6 +930,12 @@ export class StorageService {
         if (!cloudPath) {
             return ''
         }
+
+        // 单个 / 转换成根目录
+        if (cloudPath === '/') {
+            return ''
+        }
+
         return cloudPath[cloudPath.length - 1] === '/' ? cloudPath : `${cloudPath}/`
     }
 

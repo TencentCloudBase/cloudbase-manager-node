@@ -154,7 +154,12 @@ export declare class StorageService {
      * @param {string} cloudPath 云端文件夹路径
      * @returns {Promise<void>}
      */
-    deleteDirectory(cloudPath: string): Promise<void>;
+    deleteDirectory(cloudPath: string): Promise<{
+        Deleted: {
+            Key: string;
+        }[];
+        Error: Object[];
+    }>;
     /**
      * 删除文件，可以指定 bucket 和 region
      * @param {string} cloudPath
@@ -164,7 +169,12 @@ export declare class StorageService {
      */
     deleteDirectoryCustom(options: {
         cloudPath: string;
-    } & ICustomOptions): Promise<void>;
+    } & ICustomOptions): Promise<{
+        Deleted: {
+            Key: string;
+        }[];
+        Error: Object[];
+    }>;
     /**
      * 获取文件存储权限
      * READONLY：所有用户可读，仅创建者和管理员可写
