@@ -36,8 +36,10 @@ export class AsyncTaskParallelController {
     async run(): Promise<any[]> {
         // 存储任务执行结果
         const results = []
-        // 标志任务是否执行过
-        const tasksDone = []
+        // 记录已经运行的任务
+        const taskHasRun = []
+        // 记录任务是否执行完成
+        const taskDone = []
         // 当前正在运行的任务数量
         let runningTask = 0
 
@@ -45,10 +47,12 @@ export class AsyncTaskParallelController {
             // 使用定时器，不阻塞线程
             const timer = setInterval(() => {
                 // 全部任务运行完成
-                if (runningTask === 0 && tasksDone.length === this.totalTasks) {
+                const taskDoneLength = taskDone.filter((item) => item).length
+                if (runningTask === 0 && taskDoneLength === this.totalTasks) {
                     clearInterval(timer)
                     resolve(results)
                 }
+
                 // 当前运行任务数超过最大并发，不再执行新的任务
                 if (runningTask >= this.maxParallel) {
                     return
@@ -56,8 +60,9 @@ export class AsyncTaskParallelController {
 
                 // 遍历任务列表，开始执行还没有执行的任务
                 this.tasks.forEach((task, index) => {
-                    if (!tasksDone[index] && runningTask < this.maxParallel) {
+                    if (!taskHasRun[index] && runningTask < this.maxParallel) {
                         runningTask++
+                        taskHasRun[index] = 1
                         task()
                             .then((res) => {
                                 results[index] = res
@@ -67,7 +72,7 @@ export class AsyncTaskParallelController {
                             })
                             .finally(() => {
                                 runningTask--
-                                tasksDone[index] = 1
+                                taskDone[index] = 1
                             })
                     }
                 })

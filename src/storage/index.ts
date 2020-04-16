@@ -88,14 +88,14 @@ export class StorageService {
      * localPath 为文件夹时，会尝试在文件夹中寻找 cloudPath 中的文件名
      * @param {string} localPath 本地文件的绝对路径
      * @param {string} cloudPath 云端文件路径，如 img/test.png
-     * @returns {Promise<void>}
+     * @returns {Promise<any>}
      */
     @preLazy()
-    public async uploadFile(options: IFileOptions): Promise<void> {
+    public async uploadFile(options: IFileOptions): Promise<any> {
         const { localPath, cloudPath = '', onProgress } = options
         const { bucket, region } = this.getStorageConfig()
 
-        await this.uploadFileCustom({
+        return this.uploadFileCustom({
             localPath,
             cloudPath,
             bucket,
@@ -113,7 +113,7 @@ export class StorageService {
         const { files, onProgress, parallel, onFileFinish } = options
         const { bucket, region } = this.getStorageConfig()
 
-        await this.uploadFilesCustom({
+        return this.uploadFilesCustom({
             files,
             bucket,
             region,
@@ -131,7 +131,7 @@ export class StorageService {
      * @param {string} region
      */
     @preLazy()
-    public async uploadFileCustom(options: IFileOptions & ICustomOptions) {
+    public async uploadFileCustom(options: IFileOptions & ICustomOptions): Promise<any> {
         const { localPath, cloudPath, bucket, region, onProgress, fileId = true } = options
         let localFilePath = ''
         let resolveLocalPath = path.resolve(localPath)
@@ -214,7 +214,7 @@ export class StorageService {
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
         const { bucket, region } = this.getStorageConfig()
-        await this.uploadDirectoryCustom({
+        return this.uploadDirectoryCustom({
             localPath,
             cloudPath,
             bucket,
@@ -320,7 +320,7 @@ export class StorageService {
         const cos = this.getCos()
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
 
-        await uploadFiles({
+        return uploadFiles({
             files,
             SliceSize: BIG_FILE_SIZE,
             onProgress,
@@ -333,7 +333,7 @@ export class StorageService {
      * @param options
      */
     @preLazy()
-    public async uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<void> {
+    public async uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<any> {
         const {
             files,
             bucket,
@@ -382,7 +382,7 @@ export class StorageService {
         const cos = this.getCos()
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
 
-        await uploadFiles({
+        return uploadFiles({
             onProgress,
             onFileFinish,
             files: fileList,
@@ -497,9 +497,7 @@ export class StorageService {
      */
     @preLazy()
     public async listDirectoryFiles(cloudPath: string): Promise<IListFileInfo[]> {
-        const files = await this.walkCloudDir(cloudPath)
-
-        return files
+        return this.walkCloudDir(cloudPath)
     }
 
     /**

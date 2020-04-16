@@ -15,7 +15,7 @@ export type OnFileFinish = (error: Error, res: any, fileData: any) => void
 
 export interface IHostingFileOptions {
     localPath: string
-    cloudPath: string
+    cloudPath?: string
     // 上传文件并发数量
     parallel?: number
     files?: {
@@ -202,7 +202,7 @@ export class HostingService {
             checkReadable(resolvePath, true)
 
             if (isDirectory(resolvePath)) {
-                await storageService.uploadDirectoryCustom({
+                return storageService.uploadDirectoryCustom({
                     localPath: resolvePath,
                     cloudPath,
                     bucket: Bucket,
@@ -211,7 +211,6 @@ export class HostingService {
                     onFileFinish,
                     fileId: false
                 })
-                return
             } else {
                 // 文件上传统一通过批量上传接口
                 const assignCloudPath = cloudPath || path.parse(resolvePath).base
@@ -223,7 +222,7 @@ export class HostingService {
         }
 
         // 文件上传统一通过批量上传接口
-        await storageService.uploadFilesCustom({
+        return storageService.uploadFilesCustom({
             parallel,
             onProgress,
             onFileFinish,

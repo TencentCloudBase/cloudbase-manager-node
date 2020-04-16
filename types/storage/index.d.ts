@@ -45,9 +45,9 @@ export declare class StorageService {
      * localPath 为文件夹时，会尝试在文件夹中寻找 cloudPath 中的文件名
      * @param {string} localPath 本地文件的绝对路径
      * @param {string} cloudPath 云端文件路径，如 img/test.png
-     * @returns {Promise<void>}
+     * @returns {Promise<any>}
      */
-    uploadFile(options: IFileOptions): Promise<void>;
+    uploadFile(options: IFileOptions): Promise<any>;
     /**
      * 批量上传文件，默认并发 5
      * @param options
@@ -84,7 +84,7 @@ export declare class StorageService {
      * 批量上传文件
      * @param options
      */
-    uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<void>;
+    uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<any>;
     /**
      * 创建一个空的文件夹
      * @param {string} cloudPath

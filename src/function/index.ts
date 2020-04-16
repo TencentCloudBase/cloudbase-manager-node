@@ -121,31 +121,10 @@ export interface IGetLayerVersionRes extends IResponseInfo {
     Status: string // 	层的具体版本当前状态
 }
 
-// 合法的函数运行时
-const validRuntime = ['Nodejs8.9', 'Php7', 'Java8', 'Nodejs10.15']
-
-// 校验函数参数
-function validCreateParams(func: ICloudFunction, codeSecret?: string) {
-    // 校验 CodeSecret 格式
-    if (codeSecret && !/^[A-Za-z0-9+=/]{1,160}$/.test(codeSecret)) {
-        throw new CloudBaseError(
-            'CodeSecret 格式错误，CodeSecret 只能包含 1-160 位大小字母、数字、"+"、"="、"/"'
-        )
-    }
-
-    // 校验运行时
-    if (func?.runtime && !validRuntime.includes(func.runtime)) {
-        throw new CloudBaseError(
-            `${func.name} Invalid runtime value：${
-                func.runtime
-            }. Now only support: ${validRuntime.join(', ')}`
-        )
-    }
-}
-
 // 是否为 Node 函数
 function isNodeFunction(runtime: string) {
-    return runtime === 'Nodejs10.15' || runtime === 'Nodejs8.9'
+    // 不严格限制
+    return runtime === 'Nodejs10.15' || runtime === 'Nodejs8.9' || runtime.includes('Nodejs')
 }
 
 // 解析函数配置，换成请求参数
@@ -189,6 +168,8 @@ function configToParams(options: { func: ICloudFunction; codeSecret: string; bas
         SubnetId: func?.vpc?.subnetId || '',
         VpcId: func?.vpc?.vpcId || ''
     }
+    // 运行内存
+    params.MemorySize = func.memorySize || 256
     // 自动安装依赖
     params.InstallDependency = installDependency
 
@@ -234,8 +215,6 @@ export class FunctionService {
 
         let packer: FunctionPacker
         let base64
-
-        validCreateParams(func)
 
         if (deleteFiles) {
             params.DeleteFiles = deleteFiles
@@ -283,15 +262,11 @@ export class FunctionService {
         } = funcParam
         const funcName = func.name
 
-        validCreateParams(func, codeSecret)
-
         const params: any = configToParams({
             func,
             codeSecret,
             baseParams: {
                 Namespace: namespace,
-                // 不可选择
-                MemorySize: 256,
                 Role: 'TCB_QcsRole',
                 Stamp: 'MINI_QCBASE'
             }
@@ -523,6 +498,8 @@ export class FunctionService {
             SubnetId: func?.vpc?.subnetId || '',
             VpcId: func?.vpc?.vpcId || ''
         }
+        // 内存
+        func.memorySize && (params.MemorySize = func.memorySize)
 
         // Node 函数默认安装依赖
         isNodeFunction(func.runtime) && (params.InstallDependency = 'TRUE')
@@ -549,8 +526,6 @@ export class FunctionService {
         const funcName = func.name
 
         const { namespace } = this.getFunctionConfig()
-
-        validCreateParams(func)
 
         let installDependency
         // Node 函数默认安装依赖
@@ -757,14 +732,6 @@ export class FunctionService {
             licenseInfo = ''
         } = options
 
-        // checkFullAccess(contentPath)
-
-        if (runtimes.some((item) => validRuntime.indexOf(item) === -1)) {
-            throw new CloudBaseError(
-                `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
-            )
-        }
-
         let base64
 
         if (base64Content) {
@@ -825,11 +792,6 @@ export class FunctionService {
             LayerName: name
         }
         if (runtimes?.length) {
-            if (runtimes.some((item) => validRuntime.indexOf(item) === -1)) {
-                throw new CloudBaseError(
-                    `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
-                )
-            }
             param.CompatibleRuntime = runtimes
         }
         return this.scfService.request('ListLayerVersions', param)
@@ -845,11 +807,6 @@ export class FunctionService {
             SearchKey: searchKey
         }
         if (runtime) {
-            if (validRuntime.indexOf(runtime) === -1) {
-                throw new CloudBaseError(
-                    `Invalid runtime value. Now only support: ${validRuntime.join(', ')}`
-                )
-            }
             param.CompatibleRuntime = runtime
         }
 

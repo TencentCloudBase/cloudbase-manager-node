@@ -9,7 +9,7 @@ export declare type OnProgress = (progressData: IProgressData) => void;
 export declare type OnFileFinish = (error: Error, res: any, fileData: any) => void;
 export interface IHostingFileOptions {
     localPath: string;
-    cloudPath: string;
+    cloudPath?: string;
     parallel?: number;
     files?: {
         localPath: string;
@@ -74,7 +74,7 @@ export declare class HostingService {
      * 支持上传单个文件，文件夹，或多个文件
      * @param options
      */
-    uploadFiles(options: IHostingOptions): Promise<void>;
+    uploadFiles(options: IHostingOptions): Promise<any>;
     /**
      * 删除文件或文件夹
      * @param options

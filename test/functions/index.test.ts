@@ -42,6 +42,8 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
             envVariables: {},
             // 运行时
             runtime: 'Nodejs8.9',
+            // 内存 128 M
+            memorySize: 128,
             // 安装依赖
             installDependency: true,
 
@@ -65,6 +67,31 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
 
     expect(res).toBeTruthy()
 }, 30000)
+
+
+test('创建 Node 10 云函数 - 本地文件上传：functions.createFunction', async () => {
+    const res = await functions.createFunction({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'node10',
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
+            // 运行时
+            runtime: 'Nodejs10.15',
+            // 内存 512 M
+            memorySize: 512,
+            // 安装依赖
+            installDependency: true,
+            ignore: [],
+            isWaitInstall: false
+        },
+        functionRootPath: './test/functions/',
+        force: true
+    })
+
+    expect(res).toBeTruthy()
+}, 10000)
 
 test('创建云函数-本地文件上传-通过 functionPath：functions.createFunction', async () => {
     const res = await functions.createFunction({
@@ -310,7 +337,7 @@ test('创建云函数：functions.createFunction', async () => {
 }, 20000)
 
 test('批量创建云函数：create multi function', async () => {
-    const createFunction = async name =>
+    const createFunction = async (name) =>
         functions.createFunction({
             func: {
                 // functions 文件夹下函数文件夹的名称，即函数名
@@ -365,12 +392,14 @@ test('获取函数日志: functions.getFunctionLog', async () => {
 test('更新函数配置: functions.updateFunctionConfig', async () => {
     const res = await functions.updateFunctionConfig({
         name: 'app',
-        timeout: 6
+        timeout: 6,
+        memorySize: 512
     })
     expect(res.RequestId).toBeTruthy()
     const detail = await functions.getFunctionDetail('app')
 
     expect(detail.Timeout).toEqual(6)
+    expect(detail.MemorySize).toEqual(512)
 })
 
 test('创建触发器: functions.createFunctionTriggers', async () => {
