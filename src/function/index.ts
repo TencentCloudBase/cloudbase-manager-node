@@ -124,7 +124,7 @@ export interface IGetLayerVersionRes extends IResponseInfo {
 // 是否为 Node 函数
 function isNodeFunction(runtime: string) {
     // 不严格限制
-    return runtime === 'Nodejs10.15' || runtime === 'Nodejs8.9' || runtime.includes('Nodejs')
+    return runtime === 'Nodejs10.15' || runtime === 'Nodejs8.9' || runtime?.includes('Nodejs')
 }
 
 // 解析函数配置，换成请求参数
