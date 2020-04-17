@@ -5,8 +5,8 @@ const { hosting } = new CloudBase(cloudBaseConfig)
 
 const filePath = 'test/storage/test_data/data.txt'
 const dirPath = 'test/storage/test_data/test_dir'
-const cloudFilePath = 'test_data/data.txt'
-const cloudDirPath = 'test_dir'
+const cloudFilePath = 'hosting/data.txt'
+const cloudDirPath = 'hosting'
 
 // 每个测试用例间隔 500ms
 beforeEach(() => {
@@ -27,7 +27,8 @@ test('上传文件 hosting.uploadFile', async () => {
 test('上传文件夹 hosting.uploadDirectory', async () => {
     await hosting.uploadFiles({
         localPath: dirPath,
-        cloudPath: cloudDirPath
+        cloudPath: cloudDirPath,
+        ignore: ['**/ignore.*']
     })
 }, 10000)
 
@@ -37,32 +38,40 @@ test('上传多个文件 hosting.uploadFiles', async () => {
         files: [
             {
                 localPath: 'test/storage/test_data/data.txt',
-                cloudPath: 'test/storage/test_data/data.txt'
+                cloudPath: 'hosting/test_data/data.txt'
             },
             {
                 localPath: 'test/storage/test_data/download.txt',
-                cloudPath: 'test/storage/test_data/download.txt'
+                cloudPath: 'hosting/test_data/download.txt'
             },
             {
                 localPath: 'test/storage/test_data/download.txt',
-                cloudPath: 'download.txt'
+                cloudPath: 'hosting/download.txt'
             },
             {
                 localPath: 'test/storage/test_data/download.txt',
-                cloudPath: 'index.txt'
+                cloudPath: 'hosting/index.txt'
             },
             {
                 localPath: 'test/storage/test_data/download.txt',
-                cloudPath: 'a.txt'
+                cloudPath: 'hosting/a.txt'
+            },
+            {
+                localPath: 'test/storage/test_data/ignore.txt',
+                cloudPath: 'hosting/ignore.txt'
             }
         ],
+        ignore: ['**/ignore.*'],
         onFileFinish: () => {
             fileCount++
         }
     })
 
+    const files = await hosting.listFiles()
+    const ignoreFile = files.find((file) => file.Key.includes('ignore.txt'))
     expect(fileCount).toEqual(5)
-}, 10000)
+    expect(ignoreFile).toBeFalsy()
+}, 20000)
 
 test('列出文件夹下的所有文件 hosting.listFiles', async () => {
     const res = await hosting.listFiles()

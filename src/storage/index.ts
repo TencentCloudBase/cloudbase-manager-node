@@ -52,6 +52,8 @@ export interface IFileOptions extends IOptions {
 export interface IFilesOptions extends IOptions {
     // 并发数量
     parallel?: number
+    // 忽略文件
+    ignore?: string | string[]
     // 文件列表
     files: { localPath: string; cloudPath?: string }[]
 }
@@ -110,13 +112,14 @@ export class StorageService {
      */
     @preLazy()
     public async uploadFiles(options: IFilesOptions): Promise<void> {
-        const { files, onProgress, parallel, onFileFinish } = options
+        const { files, onProgress, parallel, onFileFinish, ignore } = options
         const { bucket, region } = this.getStorageConfig()
 
         return this.uploadFilesCustom({
             files,
             bucket,
             region,
+            ignore,
             parallel,
             onProgress,
             onFileFinish
@@ -338,6 +341,7 @@ export class StorageService {
             files,
             bucket,
             region,
+            ignore,
             onProgress,
             onFileFinish,
             fileId = true,
@@ -348,14 +352,16 @@ export class StorageService {
             return
         }
 
-        let fileList = files.map((item) => {
-            const { localPath, cloudPath } = item
+        let fileList = files
+            .map((item) => {
+                const { localPath, cloudPath } = item
 
-            return {
-                filePath: localPath,
-                cloudFileKey: cloudPath
-            }
-        })
+                return {
+                    filePath: localPath,
+                    cloudFileKey: cloudPath
+                }
+            })
+            .filter((item) => (ignore?.length ? !micromatch.isMatch(item.filePath, ignore) : true))
 
         // 生成上传文件属性
         const tasks = fileList.map((stats) => async () => {
@@ -435,10 +441,13 @@ export class StorageService {
      * 下载文件
      * @param {string} cloudPath 云端文件路径
      * @param {string} localPath 文件本地存储路径，文件需指定文件名称
-     * @returns {Promise<void>}
+     * @returns {Promise<NodeJS.ReadableStream>}
      */
     @preLazy()
-    public async downloadFile(options: IFileOptions): Promise<void> {
+    public async downloadFile(options: {
+        cloudPath: string
+        localPath?: string
+    }): Promise<NodeJS.ReadableStream | string> {
         const { cloudPath, localPath } = options
         const resolveLocalPath = path.resolve(localPath)
         const fileDir = path.dirname(localPath)
@@ -450,18 +459,34 @@ export class StorageService {
 
         const { proxy } = await this.environment.getAuthConfig()
         const res = await fetchStream(url, {}, proxy)
+
+        // localPath 不存在时，返回 ReadableStream
+        if (!localPath) {
+            return res.body
+        }
         const dest = fs.createWriteStream(resolveLocalPath)
         res.body.pipe(dest)
+
+        // 写完成后返回
+        return new Promise((resolve) => {
+            dest.on('close', () => {
+                // 返回文件地址
+                resolve(resolveLocalPath)
+            })
+        })
     }
 
     /**
      * 下载文件夹
      * @param {string} cloudPath 云端文件路径
      * @param {string} localPath 本地文件夹存储路径
-     * @returns {Promise<void>}
+     * @returns {Promise<(NodeJS.ReadableStream | string)[]>}
      */
     @preLazy()
-    public async downloadDirectory(options: IFileOptions): Promise<void> {
+    public async downloadDirectory(options: {
+        cloudPath: string
+        localPath?: string
+    }): Promise<(NodeJS.ReadableStream | string)[]> {
         const { cloudPath, localPath } = options
         const resolveLocalPath = path.resolve(localPath)
 
@@ -480,13 +505,13 @@ export class StorageService {
             // 创建文件的父文件夹
             const fileDir = path.dirname(localFilePath)
             await makeDir(fileDir)
-            await this.downloadFile({
+            return this.downloadFile({
                 cloudPath: file.Key,
                 localPath: localFilePath
             })
         })
 
-        await Promise.all(promises)
+        return Promise.all(promises)
     }
 
     /**
