@@ -9,7 +9,7 @@ export interface IFunctionCode {
 export interface ICreateFunctionParam {
     func: ICloudFunction;
     functionRootPath?: string;
-    force: boolean;
+    force?: boolean;
     base64Code?: string;
     functionPath?: string;
     codeSecret?: string;

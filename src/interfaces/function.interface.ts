@@ -17,6 +17,7 @@ export interface ICloudFunctionConfig {
     vpc?: IFunctionVPC
     installDependency?: boolean
     l5?: boolean
+    memorySize?: number
 }
 
 export interface LayerVersionSimple {

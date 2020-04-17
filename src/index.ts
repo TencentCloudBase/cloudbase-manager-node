@@ -1,13 +1,12 @@
-import { EnvironmentManager } from './environmentManager'
-import { Environment } from './environment'
-import { getRuntime, getEnvVar } from './utils'
-import { RUN_ENV, ENV_NAME, ERROR } from './constant'
+import { EnvService } from './env'
 import { FunctionService } from './function'
 import { StorageService } from './storage'
 import { DatabaseService } from './database'
-import { EnvService } from './env'
 import { CloudBaseContext } from './context'
 import { CommonService } from './common'
+import { HostingService } from './hosting'
+import { Environment } from './environment'
+import { EnvironmentManager } from './environmentManager'
 
 interface CloudBaseConfig {
     secretId?: string
@@ -78,6 +77,10 @@ class CloudBase {
     }
     public get database(): DatabaseService {
         return this.currentEnvironment().getDatabaseService()
+    }
+
+    public get hosting(): HostingService {
+        return this.currentEnvironment().getHostingService()
     }
 
     public commonService(service?: string, version?: string): CommonService {

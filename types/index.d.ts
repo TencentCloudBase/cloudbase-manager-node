@@ -1,10 +1,11 @@
-import { EnvironmentManager } from './environmentManager';
-import { Environment } from './environment';
+import { EnvService } from './env';
 import { FunctionService } from './function';
 import { StorageService } from './storage';
 import { DatabaseService } from './database';
-import { EnvService } from './env';
 import { CommonService } from './common';
+import { HostingService } from './hosting';
+import { Environment } from './environment';
+import { EnvironmentManager } from './environmentManager';
 interface CloudBaseConfig {
     secretId?: string;
     secretKey?: string;
@@ -32,6 +33,7 @@ declare class CloudBase {
     get functions(): FunctionService;
     get storage(): StorageService;
     get database(): DatabaseService;
+    get hosting(): HostingService;
     commonService(service?: string, version?: string): CommonService;
     get env(): EnvService;
     getEnvironmentManager(): EnvironmentManager;

@@ -23,6 +23,7 @@ import {
     ITempUrlInfo,
     IResponseInfo
 } from '../interfaces'
+import { AsyncTaskParallelController } from '../utils/parallel'
 
 export interface IProgressData {
     loaded: number // 已经上传的部分 字节
@@ -32,8 +33,11 @@ export interface IProgressData {
 }
 
 export interface IOptions {
+    // 进度
     onProgress?: OnProgress
+    // 文件上传完成的回调
     onFileFinish?: OnFileFinish
+    // 忽略文件匹配规则
     ignore?: string | string[]
     // 是否获取文件 fileId
     fileId?: boolean
@@ -41,7 +45,15 @@ export interface IOptions {
 
 export interface IFileOptions extends IOptions {
     localPath: string
+    // cloudPath 可以为空
     cloudPath?: string
+}
+
+export interface IFilesOptions extends IOptions {
+    // 并发数量
+    parallel?: number
+    // 文件列表
+    files: { localPath: string; cloudPath?: string }[]
 }
 
 export interface ICustomOptions {
@@ -76,19 +88,38 @@ export class StorageService {
      * localPath 为文件夹时，会尝试在文件夹中寻找 cloudPath 中的文件名
      * @param {string} localPath 本地文件的绝对路径
      * @param {string} cloudPath 云端文件路径，如 img/test.png
-     * @returns {Promise<void>}
+     * @returns {Promise<any>}
      */
     @preLazy()
-    public async uploadFile(options: IFileOptions): Promise<void> {
+    public async uploadFile(options: IFileOptions): Promise<any> {
         const { localPath, cloudPath = '', onProgress } = options
         const { bucket, region } = this.getStorageConfig()
 
-        await this.uploadFileCustom({
+        return this.uploadFileCustom({
             localPath,
             cloudPath,
             bucket,
             region,
             onProgress
+        })
+    }
+
+    /**
+     * 批量上传文件，默认并发 5
+     * @param options
+     */
+    @preLazy()
+    public async uploadFiles(options: IFilesOptions): Promise<void> {
+        const { files, onProgress, parallel, onFileFinish } = options
+        const { bucket, region } = this.getStorageConfig()
+
+        return this.uploadFilesCustom({
+            files,
+            bucket,
+            region,
+            parallel,
+            onProgress,
+            onFileFinish
         })
     }
 
@@ -100,7 +131,7 @@ export class StorageService {
      * @param {string} region
      */
     @preLazy()
-    public async uploadFileCustom(options: IFileOptions & ICustomOptions) {
+    public async uploadFileCustom(options: IFileOptions & ICustomOptions): Promise<any> {
         const { localPath, cloudPath, bucket, region, onProgress, fileId = true } = options
         let localFilePath = ''
         let resolveLocalPath = path.resolve(localPath)
@@ -165,12 +196,15 @@ export class StorageService {
         if (res.statusCode !== 200) {
             throw new CloudBaseError(`上传文件错误：${JSON.stringify(res)}`)
         }
+
+        return res
     }
 
     /**
      * 上传文件夹
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
+     * @param {(string | string[])} ignore
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
@@ -180,7 +214,7 @@ export class StorageService {
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
         const { bucket, region } = this.getStorageConfig()
-        await this.uploadDirectoryCustom({
+        return this.uploadDirectoryCustom({
             localPath,
             cloudPath,
             bucket,
@@ -223,7 +257,7 @@ export class StorageService {
             return
         }
 
-        const fileStatsList = filePaths.map(filePath => {
+        const fileStatsList = filePaths.map((filePath) => {
             // 处理 windows 路径
             const fileKeyPath = filePath.replace(resolveLocalPath, '').replace(/\\/g, '/')
             // 解析 cloudPath
@@ -247,8 +281,8 @@ export class StorageService {
 
         // 创建文件夹对象
         const createDirs = fileStatsList
-            .filter(info => info.isDir)
-            .map(info => {
+            .filter((info) => info.isDir)
+            .map((info) => {
                 // 如果是文件夹，则创建空文件夹对象
                 return this.createCloudDirectroyCustom({
                     cloudPath: info.cloudFileKey,
@@ -260,9 +294,9 @@ export class StorageService {
         await Promise.all(createDirs)
 
         // 上传文件对象
-        const promises = fileStatsList
-            .filter(stats => !stats.isDir)
-            .map(async stats => {
+        const tasks = fileStatsList
+            .filter((stats) => !stats.isDir)
+            .map((stats) => async () => {
                 let cosFileId
                 if (fileId) {
                     const res = await this.getUploadMetadata(stats.cloudFileKey)
@@ -278,16 +312,82 @@ export class StorageService {
                 }
             })
 
-        const files = await Promise.all(promises)
+        // 控制请求并发
+        const asyncTaskController = new AsyncTaskParallelController(100, 50)
+        asyncTaskController.loadTasks(tasks)
+        const files = await asyncTaskController.run()
 
         const cos = this.getCos()
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
 
-        await uploadFiles({
+        return uploadFiles({
             files,
             SliceSize: BIG_FILE_SIZE,
             onProgress,
             onFileFinish
+        })
+    }
+
+    /**
+     * 批量上传文件
+     * @param options
+     */
+    @preLazy()
+    public async uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<any> {
+        const {
+            files,
+            bucket,
+            region,
+            onProgress,
+            onFileFinish,
+            fileId = true,
+            parallel = 5
+        } = options
+
+        if (!files || !files.length) {
+            return
+        }
+
+        let fileList = files.map((item) => {
+            const { localPath, cloudPath } = item
+
+            return {
+                filePath: localPath,
+                cloudFileKey: cloudPath
+            }
+        })
+
+        // 生成上传文件属性
+        const tasks = fileList.map((stats) => async () => {
+            let cosFileId
+            if (fileId) {
+                const res = await this.getUploadMetadata(stats.cloudFileKey)
+                cosFileId = res.cosFileId
+            }
+
+            return {
+                Bucket: bucket,
+                Region: region,
+                Key: stats.cloudFileKey,
+                FilePath: stats.filePath,
+                'x-cos-meta-fileid': cosFileId
+            }
+        })
+
+        // 控制请求并发
+        const asyncTaskController = new AsyncTaskParallelController(100, 50)
+        asyncTaskController.loadTasks(tasks)
+        fileList = await asyncTaskController.run()
+
+        const cos = this.getCos()
+        const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
+
+        return uploadFiles({
+            onProgress,
+            onFileFinish,
+            files: fileList,
+            SliceSize: BIG_FILE_SIZE,
+            FileParallelLimit: parallel
         })
     }
 
@@ -370,7 +470,7 @@ export class StorageService {
         const cloudDirectoryKey = this.getCloudKey(cloudPath)
         const files = await this.walkCloudDir(cloudDirectoryKey)
 
-        const promises = files.map(async file => {
+        const promises = files.map(async (file) => {
             const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
             // 空路径和文件夹跳过
             if (!fileRelativePath || /\/$/g.test(fileRelativePath)) {
@@ -397,9 +497,7 @@ export class StorageService {
      */
     @preLazy()
     public async listDirectoryFiles(cloudPath: string): Promise<IListFileInfo[]> {
-        const files = await this.walkCloudDir(cloudPath)
-
-        return files
+        return this.walkCloudDir(cloudPath)
     }
 
     /**
@@ -415,7 +513,7 @@ export class StorageService {
             throw new CloudBaseError('fileList 必须是非空的数组')
         }
 
-        const files: ITempUrlInfo[] = fileList.map(item => {
+        const files: ITempUrlInfo[] = fileList.map((item) => {
             if (typeof item === 'string') {
                 return { cloudPath: item, maxAge: 3600 }
             } else {
@@ -424,7 +522,7 @@ export class StorageService {
         })
 
         const invalidData = files.find(
-            item => !item.cloudPath || !item.maxAge || typeof item.cloudPath !== 'string'
+            (item) => !item.cloudPath || !item.maxAge || typeof item.cloudPath !== 'string'
         )
 
         if (invalidData) {
@@ -433,7 +531,7 @@ export class StorageService {
 
         const notExistsFiles = []
 
-        const checkFileRequests = files.map(file =>
+        const checkFileRequests = files.map((file) =>
             (async () => {
                 try {
                     await this.getFileInfo(file.cloudPath)
@@ -452,7 +550,7 @@ export class StorageService {
             throw new CloudBaseError(`以下文件不存在：${notExistsFiles.join(', ')}`)
         }
 
-        const data = files.map(item => ({
+        const data = files.map((item) => ({
             fileid: this.cloudPathToFileId(item.cloudPath),
             max_age: item.maxAge
         }))
@@ -468,7 +566,7 @@ export class StorageService {
             method: 'POST'
         })
 
-        const downloadList = res.data.download_list.map(item => ({
+        const downloadList = res.data.download_list.map((item) => ({
             url: item.download_url,
             fileId: item.fileid || item.fileID
         }))
@@ -487,13 +585,13 @@ export class StorageService {
             throw new CloudBaseError('fileList必须是非空的数组')
         }
 
-        const hasInvalidFileId = cloudPathList.some(file => !file || typeof file !== 'string')
+        const hasInvalidFileId = cloudPathList.some((file) => !file || typeof file !== 'string')
         if (hasInvalidFileId) {
             throw new CloudBaseError('fileList的元素必须是非空的字符串')
         }
 
         const { bucket, env } = this.getStorageConfig()
-        const fileIdList = cloudPathList.map(filePath => this.cloudPathToFileId(filePath))
+        const fileIdList = cloudPathList.map((filePath) => this.cloudPathToFileId(filePath))
 
         const config = this.environment.getAuthConfig()
         const res = await cloudBaseRequest({
@@ -506,8 +604,8 @@ export class StorageService {
         })
 
         const failedList = res.data.delete_list
-            .filter(item => item.code !== 'SUCCESS')
-            .map(item => `${item.fileID} : ${item.code}`)
+            .filter((item) => item.code !== 'SUCCESS')
+            .map((item) => `${item.fileID} : ${item.code}`)
         if (failedList.length) {
             throw new CloudBaseError(`部分删除文件失败：${JSON.stringify(failedList)}`)
         }
@@ -530,7 +628,7 @@ export class StorageService {
             throw new CloudBaseError('fileList必须是非空的数组')
         }
 
-        const hasInvalidFileId = cloudPathList.some(file => !file || typeof file !== 'string')
+        const hasInvalidFileId = cloudPathList.some((file) => !file || typeof file !== 'string')
         if (hasInvalidFileId) {
             throw new CloudBaseError('fileList的元素必须是非空的字符串')
         }
@@ -538,7 +636,7 @@ export class StorageService {
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
 
-        const promises = cloudPathList.map(async file =>
+        const promises = cloudPathList.map(async (file) =>
             deleteObject({
                 Bucket: bucket,
                 Region: region,
@@ -587,10 +685,15 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async deleteDirectory(cloudPath: string): Promise<void> {
+    public async deleteDirectory(
+        cloudPath: string
+    ): Promise<{
+        Deleted: { Key: string }[]
+        Error: Object[]
+    }> {
         const { bucket, region } = this.getStorageConfig()
 
-        await this.deleteDirectoryCustom({
+        return this.deleteDirectoryCustom({
             cloudPath,
             bucket,
             region
@@ -607,28 +710,39 @@ export class StorageService {
     @preLazy()
     public async deleteDirectoryCustom(
         options: { cloudPath: string } & ICustomOptions
-    ): Promise<void> {
+    ): Promise<{
+        Deleted: { Key: string }[]
+        Error: Object[]
+    }> {
         const { cloudPath, bucket, region } = options
         const key = this.getCloudKey(cloudPath)
 
         const cos = this.getCos()
-        const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
+        const deleteMultipleObject = Util.promisify(cos.deleteMultipleObject).bind(cos)
 
+        // 遍历获取全部文件
         const files = await this.walkCloudDirCustom({
             bucket,
             region,
             prefix: key
         })
 
-        const promises = files.map(async file =>
-            deleteObject({
-                Bucket: bucket,
-                Region: region,
-                Key: file.Key
-            })
-        )
+        // 文件为空时，不能调用删除接口
+        if (!files.length) {
+            return {
+                Deleted: [],
+                Error: []
+            }
+        }
 
-        await Promise.all(promises)
+        // 删除多个文件
+        const res = await deleteMultipleObject({
+            Bucket: bucket,
+            Region: region,
+            Objects: files.map((file) => ({ Key: file.Key }))
+        })
+
+        return res
     }
 
     /**
@@ -795,7 +909,7 @@ export class StorageService {
         }
 
         return new COS({
-            getAuthorization: function(_, callback) {
+            getAuthorization: function (_, callback) {
                 callback({
                     TmpSecretId: secretId,
                     TmpSecretKey: secretKey,
@@ -814,6 +928,12 @@ export class StorageService {
         if (!cloudPath) {
             return ''
         }
+
+        // 单个 / 转换成根目录
+        if (cloudPath === '/') {
+            return ''
+        }
+
         return cloudPath[cloudPath.length - 1] === '/' ? cloudPath : `${cloudPath}/`
     }
 

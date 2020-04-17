@@ -1,6 +1,6 @@
 {
     "name": "@cloudbase/manager-node",
-    "version": "3.0.0",
+    "version": "3.1.1",
     "description": "The node manage service api for cloudbase.",
     "main": "lib/index.js",
     "scripts": {
@@ -34,7 +34,7 @@
     "dependencies": {
         "@cloudbase/database": "^0.6.2",
         "archiver": "^3.1.1",
-        "cos-nodejs-sdk-v5": "^2.5.14",
+        "cos-nodejs-sdk-v5": "^2.5.20",
         "del": "^5.1.0",
         "https-proxy-agent": "^2.2.4",
         "make-dir": "^3.0.0",

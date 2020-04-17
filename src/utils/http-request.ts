@@ -1,6 +1,8 @@
 import { URL } from 'url'
 import _fetch from 'node-fetch'
 import HttpsProxyAgent from 'https-proxy-agent'
+import CloudBase from '..'
+import { CloudBaseError } from '../error'
 
 // 使用 fetch + 代理
 export async function fetch(url: string, config: Record<string, any> = {}, proxy) {
@@ -9,8 +11,21 @@ export async function fetch(url: string, config: Record<string, any> = {}, proxy
     }
     // 解决中文编码问题
     const escapeUrl = new URL(url).toString()
-    const res = await _fetch(escapeUrl, config)
-    return res.json()
+    let json
+    let text
+    try {
+        const res = await _fetch(escapeUrl, config)
+        text = await res.text()
+        json = JSON.parse(text)
+    } catch (e) {
+        // 某些情况下回返回 HTML 文本异常
+        // JSON 解析错误，抛出原响应文本
+        if (e.name === 'SyntaxError') {
+            throw new CloudBaseError(text)
+        }
+        throw new CloudBase(e)
+    }
+    return json
 }
 
 export async function fetchStream(url: string, config: Record<string, any> = {}, proxy) {

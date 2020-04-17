@@ -16,6 +16,13 @@ export interface IFileOptions extends IOptions {
     localPath: string;
     cloudPath?: string;
 }
+export interface IFilesOptions extends IOptions {
+    parallel?: number;
+    files: {
+        localPath: string;
+        cloudPath?: string;
+    }[];
+}
 export interface ICustomOptions {
     bucket: string;
     region: string;
@@ -38,9 +45,14 @@ export declare class StorageService {
      * localPath 为文件夹时，会尝试在文件夹中寻找 cloudPath 中的文件名
      * @param {string} localPath 本地文件的绝对路径
      * @param {string} cloudPath 云端文件路径，如 img/test.png
-     * @returns {Promise<void>}
+     * @returns {Promise<any>}
      */
-    uploadFile(options: IFileOptions): Promise<void>;
+    uploadFile(options: IFileOptions): Promise<any>;
+    /**
+     * 批量上传文件，默认并发 5
+     * @param options
+     */
+    uploadFiles(options: IFilesOptions): Promise<void>;
     /**
      * 上传文件，支持自定义 Bucket 和 Region
      * @param {string} localPath
@@ -48,11 +60,12 @@ export declare class StorageService {
      * @param {string} bucket
      * @param {string} region
      */
-    uploadFileCustom(options: IFileOptions & ICustomOptions): Promise<void>;
+    uploadFileCustom(options: IFileOptions & ICustomOptions): Promise<any>;
     /**
      * 上传文件夹
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
+     * @param {(string | string[])} ignore
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
@@ -67,6 +80,11 @@ export declare class StorageService {
      * @returns {Promise<void>}
      */
     uploadDirectoryCustom(options: IFileOptions & ICustomOptions): Promise<void>;
+    /**
+     * 批量上传文件
+     * @param options
+     */
+    uploadFilesCustom(options: IFilesOptions & ICustomOptions): Promise<any>;
     /**
      * 创建一个空的文件夹
      * @param {string} cloudPath
@@ -136,7 +154,12 @@ export declare class StorageService {
      * @param {string} cloudPath 云端文件夹路径
      * @returns {Promise<void>}
      */
-    deleteDirectory(cloudPath: string): Promise<void>;
+    deleteDirectory(cloudPath: string): Promise<{
+        Deleted: {
+            Key: string;
+        }[];
+        Error: Object[];
+    }>;
     /**
      * 删除文件，可以指定 bucket 和 region
      * @param {string} cloudPath
@@ -146,7 +169,12 @@ export declare class StorageService {
      */
     deleteDirectoryCustom(options: {
         cloudPath: string;
-    } & ICustomOptions): Promise<void>;
+    } & ICustomOptions): Promise<{
+        Deleted: {
+            Key: string;
+        }[];
+        Error: Object[];
+    }>;
     /**
      * 获取文件存储权限
      * READONLY：所有用户可读，仅创建者和管理员可写

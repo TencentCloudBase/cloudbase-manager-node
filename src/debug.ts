@@ -1,25 +1,34 @@
 import CloudBase from './index'
+// import { cloudBaseConfig } from '../test/config'
 
 // const app = new CloudBase(cloudBaseConfig)
 const app = new CloudBase({})
 
 async function test() {
-    const res = await app.functions.createFunction({
-        func: {
-            // functions 文件夹下函数文件夹的名称，即函数名
-            name: 'sum',
-            timeout: 5,
-            // 环境变量
-            envVariables: {},
-            // 运行时
-            runtime: 'Nodejs8.9',
-            // 安装依赖
-            installDependency: true,
-            ignore: ['ignore.js'],
-            isWaitInstall: true
-        },
-        functionPath: './test/functions/sum',
-        force: true
+    // const hosting = await app.hosting.getInfo()
+    // const { Bucket, Regoin } = hosting[0]
+    // const res = await app.storage.uploadFilesCustom({
+    //     files: [
+    //         {
+    //             localPath: 'test/storage/test_data/data.txt',
+    //             cloudPath: 'test/storage/test_data/data.txt'
+    //         },
+    //         {
+    //             localPath: 'test/storage/test_data/download.txt',
+    //             cloudPath: 'test/storage/test_data/download.txt'
+    //         }
+    //     ],
+    //     region: Regoin,
+    //     bucket: Bucket
+    // })
+
+    const res = await app.hosting.uploadFiles({
+        localPath: '/Users/wuyiqing/Desktop/cloudbase-demo/functions/node-sdk',
+        cloudPath: '',
+        onProgress: console.log
     })
+
+    console.log(res)
 }
-test()
+
+test().catch(console.log)

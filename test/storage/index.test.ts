@@ -19,9 +19,9 @@ beforeEach(() => {
     })
 })
 
-test('uploadmetadata:', async () => {
+test('获取上传 uploadmetadata:', async () => {
     const res = await storage.getUploadMetadata(cloudFilePath)
-    console.log('res:', res)
+    expect(res).toBeTruthy()
 })
 
 test('上传文件 storage.uploadFile', async () => {
@@ -58,8 +58,6 @@ test('下载文件夹 storage.downloadDirectory', async () => {
 test('获取文件临时下载链接 storage.getTemporaryUrl', async () => {
     const res = await storage.getTemporaryUrl([cloudFilePath])
 
-    console.log(res)
-
     expect(res.length).toBeGreaterThanOrEqual(1)
     expect(res[0].url).toBeTruthy()
 })
@@ -89,4 +87,19 @@ test('删除文件夹 storage.deleteDirectory', async () => {
     await storage.deleteDirectory(cloudDirPath)
 
     expect(storage.getFileInfo(`${cloudDirPath}/data.txt`)).rejects.toBeTruthy()
+})
+
+test('批量上传文件 storage.uploadFiles', async () => {
+    await storage.uploadFiles({
+        files: [
+            {
+                localPath: 'test/storage/test_data/data.txt',
+                cloudPath: 'test/storage/test_data/data.txt'
+            },
+            {
+                localPath: 'test/storage/test_data/download.txt',
+                cloudPath: 'test/storage/test_data/download.txt'
+            }
+        ]
+    })
 })

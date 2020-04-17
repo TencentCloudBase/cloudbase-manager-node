@@ -42,6 +42,8 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
             envVariables: {},
             // 运行时
             runtime: 'Nodejs8.9',
+            // 内存 128 M
+            memorySize: 128,
             // 安装依赖
             installDependency: true,
 
@@ -64,7 +66,32 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
     })
 
     expect(res).toBeTruthy()
-})
+}, 30000)
+
+
+test('创建 Node 10 云函数 - 本地文件上传：functions.createFunction', async () => {
+    const res = await functions.createFunction({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'node10',
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
+            // 运行时
+            runtime: 'Nodejs10.15',
+            // 内存 512 M
+            memorySize: 512,
+            // 安装依赖
+            installDependency: true,
+            ignore: [],
+            isWaitInstall: false
+        },
+        functionRootPath: './test/functions/',
+        force: true
+    })
+
+    expect(res).toBeTruthy()
+}, 10000)
 
 test('创建云函数-本地文件上传-通过 functionPath：functions.createFunction', async () => {
     const res = await functions.createFunction({
@@ -86,7 +113,7 @@ test('创建云函数-本地文件上传-通过 functionPath：functions.createF
     })
 
     expect(res).toBeTruthy()
-})
+}, 30000)
 
 test('获取函数代码的下载链接: functions.getFunctionDownloadUrl', async () => {
     const res = await functions.getFunctionDownloadUrl('sumFunction')
@@ -188,6 +215,28 @@ test('增量更新云函数代码 删除文件夹: functions.updateFunctionIncre
     expect(res.RequestId !== undefined).toBe(true)
 })
 
+test('创建云函数-本地文件上传-通过 functionPath：functions.createFunction', async () => {
+    const res = await functions.createFunction({
+        func: {
+            // functions 文件夹下函数文件夹的名称，即函数名
+            name: 'app',
+            timeout: 5,
+            // 环境变量
+            envVariables: {},
+            // 运行时
+            runtime: 'Nodejs8.9',
+            // 安装依赖
+            installDependency: true,
+            ignore: ['ignore.js'],
+            isWaitInstall: true
+        },
+        functionPath: './test/functions/sum',
+        force: true
+    })
+
+    expect(res).toBeTruthy()
+}, 30000)
+
 test('更新云函数代码：functions.updateFunctionCode 加代码保护 验证 getFunctionDeatil getFunctionDownloadUrl', async () => {
     const res = await functions.updateFunctionCode({
         func: {
@@ -253,7 +302,7 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
     })
 
     expect(res).toBeTruthy()
-})
+}, 20000)
 
 test('创建云函数：functions.createFunction', async () => {
     const res = await functions.createFunction({
@@ -285,10 +334,10 @@ test('创建云函数：functions.createFunction', async () => {
             'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA'
     })
     expect(res).toBeTruthy()
-})
+}, 20000)
 
 test('批量创建云函数：create multi function', async () => {
-    const createFunction = async name =>
+    const createFunction = async (name) =>
         functions.createFunction({
             func: {
                 // functions 文件夹下函数文件夹的名称，即函数名
@@ -307,7 +356,7 @@ test('批量创建云函数：create multi function', async () => {
     ])
 
     expect(promises).toBeTruthy()
-})
+}, 20000)
 
 test('更新云函数代码：functions.updateFunctionCode', async () => {
     const res = await functions.updateFunctionCode({
@@ -343,12 +392,14 @@ test('获取函数日志: functions.getFunctionLog', async () => {
 test('更新函数配置: functions.updateFunctionConfig', async () => {
     const res = await functions.updateFunctionConfig({
         name: 'app',
-        timeout: 6
+        timeout: 6,
+        memorySize: 512
     })
     expect(res.RequestId).toBeTruthy()
     const detail = await functions.getFunctionDetail('app')
 
     expect(detail.Timeout).toEqual(6)
+    expect(detail.MemorySize).toEqual(512)
 })
 
 test('创建触发器: functions.createFunctionTriggers', async () => {
