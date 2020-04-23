@@ -1,4 +1,5 @@
 import { Environment } from '../environment';
+import { IListFileInfo } from '../interfaces';
 export interface IProgressData {
     loaded: number;
     total: number;
@@ -17,6 +18,7 @@ export interface IHostingFileOptions {
     }[];
     onProgress?: OnProgress;
     onFileFinish?: OnFileFinish;
+    ignore?: string | string[];
 }
 export interface IHostingFilesOptions {
     localPath?: string;
@@ -28,6 +30,7 @@ export interface IHostingFilesOptions {
     }[];
     onProgress?: OnProgress;
     onFileFinish?: OnFileFinish;
+    ignore?: string | string[];
 }
 export declare type IHostingOptions = IHostingFileOptions | IHostingFilesOptions;
 export interface IHostingCloudOptions {
@@ -62,7 +65,7 @@ export declare class HostingService {
     /**
      * 展示文件列表
      */
-    listFiles(): Promise<import("../interfaces").IListFileInfo[]>;
+    listFiles(): Promise<IListFileInfo[]>;
     /**
      * 销毁静态托管服务
      */

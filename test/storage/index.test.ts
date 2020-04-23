@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src/index'
@@ -7,8 +8,8 @@ const { storage } = new CloudBase(cloudBaseConfig)
 const filePath = 'test/storage/test_data/data.txt'
 const dirPath = 'test/storage/test_data/test_dir'
 const downloadLocalPath = 'test/storage/test_data/download_dir'
-const cloudFilePath = 'test_data/data.txt'
-const cloudDirPath = 'test_dir'
+const cloudFilePath = 'test/data.txt'
+const cloudDirPath = 'test'
 
 // 每个测试用例间隔 500ms
 beforeEach(() => {
@@ -38,6 +39,25 @@ test('下载文件 storage.downloadFile', async () => {
     await storage.downloadFile({
         cloudPath: cloudFilePath,
         localPath: path.join(path.resolve(dirPath), 'data.txt')
+    })
+}, 10000)
+
+test('下载文件 - 流 storage.downloadFile', async () => {
+    const res = (await storage.downloadFile({
+        cloudPath: cloudFilePath,
+        localPath: ''
+    })) as NodeJS.ReadableStream
+
+    const write = fs.createWriteStream(path.join(path.resolve(dirPath), 'data-stream.txt'))
+    res.pipe(write)
+
+    return new Promise((resolve, reject) => {
+        write.on('close', (err) => {
+            if (err) {
+                reject(err)
+            }
+            resolve()
+        })
     })
 }, 10000)
 
@@ -83,12 +103,6 @@ test('列出文件夹下的所有文件 storage.listDirectoryFiles', async () =>
     expect(res[0].Key).toBeTruthy()
 })
 
-test('删除文件夹 storage.deleteDirectory', async () => {
-    await storage.deleteDirectory(cloudDirPath)
-
-    expect(storage.getFileInfo(`${cloudDirPath}/data.txt`)).rejects.toBeTruthy()
-})
-
 test('批量上传文件 storage.uploadFiles', async () => {
     await storage.uploadFiles({
         files: [
@@ -102,4 +116,10 @@ test('批量上传文件 storage.uploadFiles', async () => {
             }
         ]
     })
+})
+
+test('删除文件夹 storage.deleteDirectory', async () => {
+    await storage.deleteDirectory(cloudDirPath)
+
+    expect(storage.getFileInfo(`${cloudDirPath}/data.txt`)).rejects.toBeTruthy()
 })

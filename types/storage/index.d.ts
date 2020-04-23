@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Environment } from '../environment';
 import { IUploadMetadata, IListFileInfo, IFileInfo, ITempUrlInfo, IResponseInfo } from '../interfaces';
 export interface IProgressData {
@@ -18,6 +19,7 @@ export interface IFileOptions extends IOptions {
 }
 export interface IFilesOptions extends IOptions {
     parallel?: number;
+    ignore?: string | string[];
     files: {
         localPath: string;
         cloudPath?: string;
@@ -103,16 +105,22 @@ export declare class StorageService {
      * 下载文件
      * @param {string} cloudPath 云端文件路径
      * @param {string} localPath 文件本地存储路径，文件需指定文件名称
-     * @returns {Promise<void>}
+     * @returns {Promise<NodeJS.ReadableStream>}
      */
-    downloadFile(options: IFileOptions): Promise<void>;
+    downloadFile(options: {
+        cloudPath: string;
+        localPath?: string;
+    }): Promise<NodeJS.ReadableStream | string>;
     /**
      * 下载文件夹
      * @param {string} cloudPath 云端文件路径
      * @param {string} localPath 本地文件夹存储路径
-     * @returns {Promise<void>}
+     * @returns {Promise<(NodeJS.ReadableStream | string)[]>}
      */
-    downloadDirectory(options: IFileOptions): Promise<void>;
+    downloadDirectory(options: {
+        cloudPath: string;
+        localPath?: string;
+    }): Promise<(NodeJS.ReadableStream | string)[]>;
     /**
      * 列出文件夹下的文件
      * @link https://cloud.tencent.com/document/product/436/7734

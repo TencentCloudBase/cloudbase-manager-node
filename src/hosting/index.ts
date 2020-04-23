@@ -2,6 +2,7 @@ import path from 'path'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
 import { CloudService, preLazy, checkReadable, isDirectory } from '../utils'
+import { IListFileInfo } from '../interfaces'
 
 export interface IProgressData {
     loaded: number // 已经上传的部分 字节
@@ -24,6 +25,7 @@ export interface IHostingFileOptions {
     }[]
     onProgress?: OnProgress
     onFileFinish?: OnFileFinish
+    ignore?: string | string[]
 }
 
 export interface IHostingFilesOptions {
@@ -37,7 +39,9 @@ export interface IHostingFilesOptions {
     }[]
     onProgress?: OnProgress
     onFileFinish?: OnFileFinish
+    ignore?: string | string[]
 }
+
 export type IHostingOptions = IHostingFileOptions | IHostingFilesOptions
 
 export interface IHostingCloudOptions {
@@ -121,7 +125,7 @@ export class HostingService {
      * 展示文件列表
      */
     @preLazy()
-    async listFiles() {
+    async listFiles(): Promise<IListFileInfo[]> {
         const hosting = await this.checkStatus()
         const { Bucket, Regoin } = hosting
         const storageService = await this.environment.getStorageService()
@@ -187,13 +191,21 @@ export class HostingService {
      */
     @preLazy()
     async uploadFiles(options: IHostingOptions) {
-        const { localPath, cloudPath, files = [], onProgress, onFileFinish, parallel } = options
+        const {
+            localPath,
+            cloudPath,
+            files = [],
+            onProgress,
+            onFileFinish,
+            parallel,
+            ignore
+        } = options
 
         const hosting = await this.checkStatus()
         const { Bucket, Regoin } = hosting
         const storageService = await this.environment.getStorageService()
 
-        const uploadFiles = Array.isArray(files) ? files : []
+        let uploadFiles = Array.isArray(files) ? files : []
 
         // localPath 存在，上传文件夹/文件
         if (localPath) {
@@ -209,7 +221,8 @@ export class HostingService {
                     region: Regoin,
                     onProgress,
                     onFileFinish,
-                    fileId: false
+                    fileId: false,
+                    ignore
                 })
             } else {
                 // 文件上传统一通过批量上传接口
@@ -223,6 +236,7 @@ export class HostingService {
 
         // 文件上传统一通过批量上传接口
         return storageService.uploadFilesCustom({
+            ignore,
             parallel,
             onProgress,
             onFileFinish,
