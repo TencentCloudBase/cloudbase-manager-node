@@ -49,6 +49,11 @@ export interface IHostingCloudOptions {
     isDir: boolean
 }
 
+export interface IBindDomainOptions {
+    domain: string
+    certId: string
+}
+
 const HostingStatusMap = {
     init: '初始化中',
     process: '处理中',
@@ -68,6 +73,17 @@ export interface IHostingInfo {
     MaxDomain: number
     Id: number
     PolicyId: number
+}
+
+export interface IBucketWebsiteOptiosn {
+    indexDocument?: string
+    errorDocument?: string
+}
+
+export interface IFindOptions {
+    prefix?: string
+    marker?: string
+    maxKeys?: number
 }
 
 export class HostingService {
@@ -119,6 +135,22 @@ export class HostingService {
             code,
             requestId: res.RequestId
         }
+    }
+
+    async findFiles(options: IFindOptions): Promise<any> {
+        const hosting = await this.checkStatus()
+        const { Bucket, Regoin } = hosting
+        const { maxKeys, marker, prefix } = options
+
+        const storageService = await this.environment.getStorageService()
+        const res = await storageService.getBucket({
+            bucket: Bucket,
+            region: Regoin,
+            maxKeys,
+            marker,
+            prefix
+        })
+        return res
     }
 
     /**
@@ -274,6 +306,40 @@ export class HostingService {
     async walkLocalDir(envId: string, dir: string) {
         const storageService = await this.environment.getStorageService()
         return storageService.walkLocalDir(dir)
+    }
+
+    /**
+     * 绑定自定义域名
+     * @param {IBindDomainOptions} options
+     * @returns
+     * @memberof HostingService
+     */
+    @preLazy()
+    async CreateHostingDomain(options: IBindDomainOptions) {
+        const { envId } = this.getHostingConfig()
+        const { certId, domain } = options
+        const res = await this.tcbService.request('CreateHostingDomain', {
+            EnvId: envId,
+            Domain: domain,
+            CertId: certId
+        })
+
+        return res
+    }
+
+    async setWebsiteDocument(options: IBucketWebsiteOptiosn) {
+        const { indexDocument, errorDocument } = options
+        const hosting = await this.checkStatus()
+        const { Bucket, Regoin } = hosting
+
+        const storageService = await this.environment.getStorageService()
+        const res = await storageService.putBucketWebsite({
+            bucket: Bucket,
+            region: Regoin,
+            indexDocument,
+            errorDocument
+        })
+        return res
     }
 
     /**

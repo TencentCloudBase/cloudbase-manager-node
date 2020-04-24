@@ -52,7 +52,7 @@ test('下载文件 - 流 storage.downloadFile', async () => {
     res.pipe(write)
 
     return new Promise((resolve, reject) => {
-        write.on('close', (err) => {
+        write.on('close', err => {
             if (err) {
                 reject(err)
             }

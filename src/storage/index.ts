@@ -70,7 +70,22 @@ export interface IWalkCloudDirOptions {
     marker?: string
 }
 
-type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY'
+export interface IBucketWebsiteOptions {
+    indexDocument: string
+    errorDocument?: string
+    region: string // 地域
+    bucket: string // 桶名
+}
+
+export interface IGetBucketOpions {
+    bucket?: string
+    region?: string
+    prefix?: string
+    marker?: string
+    maxKeys?: number
+}
+
+export type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY'
 type OnProgress = (progressData: IProgressData) => void
 type OnFileFinish = (error: Error, res: any, fileData: any) => void
 
@@ -260,7 +275,7 @@ export class StorageService {
             return
         }
 
-        const fileStatsList = filePaths.map((filePath) => {
+        const fileStatsList = filePaths.map(filePath => {
             // 处理 windows 路径
             const fileKeyPath = filePath.replace(resolveLocalPath, '').replace(/\\/g, '/')
             // 解析 cloudPath
@@ -284,8 +299,8 @@ export class StorageService {
 
         // 创建文件夹对象
         const createDirs = fileStatsList
-            .filter((info) => info.isDir)
-            .map((info) => {
+            .filter(info => info.isDir)
+            .map(info => {
                 // 如果是文件夹，则创建空文件夹对象
                 return this.createCloudDirectroyCustom({
                     cloudPath: info.cloudFileKey,
@@ -298,8 +313,8 @@ export class StorageService {
 
         // 上传文件对象
         const tasks = fileStatsList
-            .filter((stats) => !stats.isDir)
-            .map((stats) => async () => {
+            .filter(stats => !stats.isDir)
+            .map(stats => async () => {
                 let cosFileId
                 if (fileId) {
                     const res = await this.getUploadMetadata(stats.cloudFileKey)
@@ -353,7 +368,7 @@ export class StorageService {
         }
 
         let fileList = files
-            .map((item) => {
+            .map(item => {
                 const { localPath, cloudPath } = item
 
                 return {
@@ -361,10 +376,10 @@ export class StorageService {
                     cloudFileKey: cloudPath
                 }
             })
-            .filter((item) => (ignore?.length ? !micromatch.isMatch(item.filePath, ignore) : true))
+            .filter(item => (ignore?.length ? !micromatch.isMatch(item.filePath, ignore) : true))
 
         // 生成上传文件属性
-        const tasks = fileList.map((stats) => async () => {
+        const tasks = fileList.map(stats => async () => {
             let cosFileId
             if (fileId) {
                 const res = await this.getUploadMetadata(stats.cloudFileKey)
@@ -468,7 +483,7 @@ export class StorageService {
         res.body.pipe(dest)
 
         // 写完成后返回
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             dest.on('close', () => {
                 // 返回文件地址
                 resolve(resolveLocalPath)
@@ -495,7 +510,7 @@ export class StorageService {
         const cloudDirectoryKey = this.getCloudKey(cloudPath)
         const files = await this.walkCloudDir(cloudDirectoryKey)
 
-        const promises = files.map(async (file) => {
+        const promises = files.map(async file => {
             const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
             // 空路径和文件夹跳过
             if (!fileRelativePath || /\/$/g.test(fileRelativePath)) {
@@ -538,7 +553,7 @@ export class StorageService {
             throw new CloudBaseError('fileList 必须是非空的数组')
         }
 
-        const files: ITempUrlInfo[] = fileList.map((item) => {
+        const files: ITempUrlInfo[] = fileList.map(item => {
             if (typeof item === 'string') {
                 return { cloudPath: item, maxAge: 3600 }
             } else {
@@ -547,7 +562,7 @@ export class StorageService {
         })
 
         const invalidData = files.find(
-            (item) => !item.cloudPath || !item.maxAge || typeof item.cloudPath !== 'string'
+            item => !item.cloudPath || !item.maxAge || typeof item.cloudPath !== 'string'
         )
 
         if (invalidData) {
@@ -556,7 +571,7 @@ export class StorageService {
 
         const notExistsFiles = []
 
-        const checkFileRequests = files.map((file) =>
+        const checkFileRequests = files.map(file =>
             (async () => {
                 try {
                     await this.getFileInfo(file.cloudPath)
@@ -575,7 +590,7 @@ export class StorageService {
             throw new CloudBaseError(`以下文件不存在：${notExistsFiles.join(', ')}`)
         }
 
-        const data = files.map((item) => ({
+        const data = files.map(item => ({
             fileid: this.cloudPathToFileId(item.cloudPath),
             max_age: item.maxAge
         }))
@@ -591,7 +606,7 @@ export class StorageService {
             method: 'POST'
         })
 
-        const downloadList = res.data.download_list.map((item) => ({
+        const downloadList = res.data.download_list.map(item => ({
             url: item.download_url,
             fileId: item.fileid || item.fileID
         }))
@@ -610,13 +625,13 @@ export class StorageService {
             throw new CloudBaseError('fileList必须是非空的数组')
         }
 
-        const hasInvalidFileId = cloudPathList.some((file) => !file || typeof file !== 'string')
+        const hasInvalidFileId = cloudPathList.some(file => !file || typeof file !== 'string')
         if (hasInvalidFileId) {
             throw new CloudBaseError('fileList的元素必须是非空的字符串')
         }
 
         const { bucket, env } = this.getStorageConfig()
-        const fileIdList = cloudPathList.map((filePath) => this.cloudPathToFileId(filePath))
+        const fileIdList = cloudPathList.map(filePath => this.cloudPathToFileId(filePath))
 
         const config = this.environment.getAuthConfig()
         const res = await cloudBaseRequest({
@@ -629,8 +644,8 @@ export class StorageService {
         })
 
         const failedList = res.data.delete_list
-            .filter((item) => item.code !== 'SUCCESS')
-            .map((item) => `${item.fileID} : ${item.code}`)
+            .filter(item => item.code !== 'SUCCESS')
+            .map(item => `${item.fileID} : ${item.code}`)
         if (failedList.length) {
             throw new CloudBaseError(`部分删除文件失败：${JSON.stringify(failedList)}`)
         }
@@ -653,7 +668,7 @@ export class StorageService {
             throw new CloudBaseError('fileList必须是非空的数组')
         }
 
-        const hasInvalidFileId = cloudPathList.some((file) => !file || typeof file !== 'string')
+        const hasInvalidFileId = cloudPathList.some(file => !file || typeof file !== 'string')
         if (hasInvalidFileId) {
             throw new CloudBaseError('fileList的元素必须是非空的字符串')
         }
@@ -661,7 +676,7 @@ export class StorageService {
         const cos = this.getCos()
         const deleteObject = Util.promisify(cos.deleteObject).bind(cos)
 
-        const promises = cloudPathList.map(async (file) =>
+        const promises = cloudPathList.map(async file =>
             deleteObject({
                 Bucket: bucket,
                 Region: region,
@@ -764,7 +779,7 @@ export class StorageService {
         const res = await deleteMultipleObject({
             Bucket: bucket,
             Region: region,
-            Objects: files.map((file) => ({ Key: file.Key }))
+            Objects: files.map(file => ({ Key: file.Key }))
         })
 
         return res
@@ -920,6 +935,58 @@ export class StorageService {
     }
 
     /**
+     * 配置文档
+     */
+    @preLazy()
+    async putBucketWebsite(options: IBucketWebsiteOptions) {
+        const { indexDocument, errorDocument, bucket, region } = options
+
+        const cos = this.getCos()
+        const putBucketWebsite = Util.promisify(cos.putBucketWebsite).bind(cos)
+
+        const res = await putBucketWebsite({
+            Bucket: bucket,
+            Region: region,
+            WebsiteConfiguration: {
+                IndexDocument: {
+                    Suffix: indexDocument
+                },
+                ErrorDocument: {
+                    Key: errorDocument
+                }
+            }
+        })
+
+        return res
+    }
+
+    /**
+     * 查询object列表
+     * @param {IGetBucketOpions} options
+     * @memberof StorageService
+     */
+    @preLazy()
+    async getBucket(options: IGetBucketOpions) {
+        // const { bucket } = this.getStorageConfig()
+        const { prefix, maxKeys, marker, bucket, region } = options
+
+        const cos = this.getCos()
+        const getBucket = Util.promisify(cos.getBucket).bind(cos)
+
+        const prefixKey = this.getCloudKey(prefix)
+
+        const res = await getBucket({
+            Bucket: bucket,
+            Region: region,
+            Prefix: prefixKey,
+            MaxKeys: maxKeys,
+            Marker: marker
+        })
+        // console.log(res)
+        return res
+    }
+
+    /**
      * 获取 COS 配置
      */
     private getCos() {
@@ -934,7 +1001,7 @@ export class StorageService {
         }
 
         return new COS({
-            getAuthorization: function (_, callback) {
+            getAuthorization: function(_, callback) {
                 callback({
                     TmpSecretId: secretId,
                     TmpSecretKey: secretKey,

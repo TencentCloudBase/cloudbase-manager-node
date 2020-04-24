@@ -35,7 +35,20 @@ export interface IWalkCloudDirOptions {
     region: string;
     marker?: string;
 }
-declare type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY';
+export interface IBucketWebsiteOptions {
+    indexDocument: string;
+    errorDocument?: string;
+    region: string;
+    bucket: string;
+}
+export interface IGetBucketOpions {
+    bucket?: string;
+    region?: string;
+    prefix?: string;
+    marker?: string;
+    maxKeys?: number;
+}
+export declare type AclType = 'READONLY' | 'PRIVATE' | 'ADMINWRITE' | 'ADMINONLY';
 declare type OnProgress = (progressData: IProgressData) => void;
 declare type OnFileFinish = (error: Error, res: any, fileData: any) => void;
 export declare class StorageService {
@@ -231,6 +244,16 @@ export declare class StorageService {
      * 获取文件上传链接属性
      */
     getUploadMetadata(path: string): Promise<IUploadMetadata>;
+    /**
+     * 配置文档
+     */
+    putBucketWebsite(options: IBucketWebsiteOptions): Promise<any>;
+    /**
+     * 查询object列表
+     * @param {IGetBucketOpions} options
+     * @memberof StorageService
+     */
+    getBucket(options: IGetBucketOpions): Promise<any>;
     /**
      * 获取 COS 配置
      */

@@ -68,14 +68,33 @@ test('上传多个文件 hosting.uploadFiles', async () => {
     })
 
     const files = await hosting.listFiles()
-    const ignoreFile = files.find((file) => file.Key.includes('ignore.txt'))
+    const ignoreFile = files.find(file => file.Key.includes('ignore.txt'))
     expect(fileCount).toEqual(5)
     expect(ignoreFile).toBeFalsy()
 }, 20000)
 
+test('文件搜索 find', async () => {
+    const res = await hosting.findFiles({ prefix: 'hosting/', marker: '/' })
+    expect(res.Contents.length > 0).toBeTruthy()
+})
+
+test('配置错误文档 索引文档', async () => {
+    await hosting.setWebsiteDocument({
+        errorDocument: 'error.html',
+        indexDocument: 'success.html'
+    })
+})
+
+test.skip('绑定自定义域名', async () => {
+    const res = await hosting.CreateHostingDomain({
+        domain: 'cms.devtoken.club',
+        certId: 'ZNciCmHp'
+    })
+    console.log(res)
+})
+
 test('列出文件夹下的所有文件 hosting.listFiles', async () => {
     const res = await hosting.listFiles()
-
     expect(res.length).toBeGreaterThanOrEqual(1)
     expect(res[0].Key).toBeTruthy()
 })

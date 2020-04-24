@@ -37,6 +37,10 @@ export interface IHostingCloudOptions {
     cloudPath: string;
     isDir: boolean;
 }
+export interface IBindDomainOptions {
+    domain: string;
+    certId: string;
+}
 export interface IHostingInfo {
     EnvId: string;
     CdnDomain: string;
@@ -46,6 +50,15 @@ export interface IHostingInfo {
     MaxDomain: number;
     Id: number;
     PolicyId: number;
+}
+export interface IBucketWebsiteOptiosn {
+    indexDocument?: string;
+    errorDocument?: string;
+}
+export interface IFindOptions {
+    prefix?: string;
+    marker?: string;
+    maxKeys?: number;
 }
 export declare class HostingService {
     private environment;
@@ -62,6 +75,7 @@ export declare class HostingService {
         code: number;
         requestId: any;
     }>;
+    findFiles(options: IFindOptions): Promise<any>;
     /**
      * 展示文件列表
      */
@@ -84,6 +98,14 @@ export declare class HostingService {
      */
     deleteFiles(options: IHostingCloudOptions): Promise<void>;
     walkLocalDir(envId: string, dir: string): Promise<string[]>;
+    /**
+     * 绑定自定义域名
+     * @param {IBindDomainOptions} options
+     * @returns
+     * @memberof HostingService
+     */
+    CreateHostingDomain(options: IBindDomainOptions): Promise<any>;
+    setWebsiteDocument(options: IBucketWebsiteOptiosn): Promise<any>;
     /**
      * 检查 hosting 服务状态
      */
