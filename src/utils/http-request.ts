@@ -1,7 +1,6 @@
 import { URL } from 'url'
 import _fetch from 'node-fetch'
 import HttpsProxyAgent from 'https-proxy-agent'
-import CloudBase from '..'
 import { CloudBaseError } from '../error'
 
 // 使用 fetch + 代理
@@ -23,7 +22,7 @@ export async function fetch(url: string, config: Record<string, any> = {}, proxy
         if (e.name === 'SyntaxError') {
             throw new CloudBaseError(text)
         }
-        throw new CloudBase(e)
+        throw new CloudBaseError(e)
     }
     return json
 }
