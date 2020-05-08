@@ -10,6 +10,7 @@ import { CloudBaseError } from './error'
 import { RUN_ENV, ENV_NAME, ERROR } from './constant'
 import { getRuntime, getEnvVar } from './utils'
 import { HostingService } from './hosting'
+import { ThirdService } from './third'
 
 export class Environment {
     public inited = false
@@ -22,6 +23,7 @@ export class Environment {
     private storageService: StorageService
     private envService: EnvService
     private hostingService: HostingService
+    private thirdService: ThirdService
 
     constructor(context: CloudBaseContext, envId: string) {
         this.envId = envId
@@ -33,12 +35,13 @@ export class Environment {
         this.storageService = new StorageService(this)
         this.envService = new EnvService(this)
         this.hostingService = new HostingService(this)
+        this.thirdService = new ThirdService(this)
     }
 
     async lazyInit(): Promise<any> {
         if (!this.inited) {
             const envConfig = this.envService
-            return envConfig.getEnvInfo().then(envInfo => {
+            return envConfig.getEnvInfo().then((envInfo) => {
                 this.lazyEnvironmentConfig = envInfo.EnvInfo
                 if (!this.lazyEnvironmentConfig.EnvId) {
                     throw new CloudBaseError(`Environment ${this.envId} not found`)
@@ -76,13 +79,17 @@ export class Environment {
         return this.hostingService
     }
 
+    public getThirdService(): ThirdService {
+        return this.thirdService
+    }
+
     public getCommonService(serviceType = 'tcb', serviceVersion): CommonService {
         return new CommonService(this, serviceType, serviceVersion)
     }
 
     public getServicesEnvInfo(): Promise<any> {
         const envConfig = this.envService
-        return envConfig.getEnvInfo().then(envInfo => {
+        return envConfig.getEnvInfo().then((envInfo) => {
             return envInfo.EnvInfo
         })
     }

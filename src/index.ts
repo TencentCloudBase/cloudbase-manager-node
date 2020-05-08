@@ -7,6 +7,7 @@ import { CommonService } from './common'
 import { HostingService } from './hosting'
 import { Environment } from './environment'
 import { EnvironmentManager } from './environmentManager'
+import { ThirdService } from './third'
 
 interface CloudBaseConfig {
     secretId?: string
@@ -89,6 +90,10 @@ class CloudBase {
 
     public get env(): EnvService {
         return this.currentEnvironment().getEnvService()
+    }
+
+    public get third(): ThirdService {
+        return this.currentEnvironment().getThirdService()
     }
 
     public getEnvironmentManager(): EnvironmentManager {

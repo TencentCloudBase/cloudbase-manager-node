@@ -5,6 +5,7 @@ import { EnvService } from './env';
 import { CommonService } from './common';
 import { CloudBaseContext } from './context';
 import { HostingService } from './hosting';
+import { ThirdService } from './third';
 export declare class Environment {
     inited: boolean;
     cloudBaseContext: CloudBaseContext;
@@ -15,6 +16,7 @@ export declare class Environment {
     private storageService;
     private envService;
     private hostingService;
+    private thirdService;
     constructor(context: CloudBaseContext, envId: string);
     lazyInit(): Promise<any>;
     getEnvId(): string;
@@ -23,6 +25,7 @@ export declare class Environment {
     getFunctionService(): FunctionService;
     getEnvService(): EnvService;
     getHostingService(): HostingService;
+    getThirdService(): ThirdService;
     getCommonService(serviceType: string, serviceVersion: any): CommonService;
     getServicesEnvInfo(): Promise<any>;
     getAuthConfig(): {
