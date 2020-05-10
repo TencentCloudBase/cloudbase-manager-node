@@ -1,7 +1,6 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "experimentalDecorators": true,
         "module": "commonjs",
         "target": "ES2017",
         "moduleResolution": "node",
@@ -10,8 +9,8 @@
         "types": ["node"],
         "esModuleInterop": true,
         "declaration": true,
-        "declarationDir": "./types"
-        // "experimentalDecorators": true
+        "declarationDir": "./types",
+        "experimentalDecorators": true
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "test"]

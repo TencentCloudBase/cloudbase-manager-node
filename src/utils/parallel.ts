@@ -70,7 +70,7 @@ export class AsyncTaskParallelController {
                             .catch((err) => {
                                 results[index] = err
                             })
-                            .finally(() => {
+                            .then(() => {
                                 runningTask--
                                 taskDone[index] = 1
                             })
