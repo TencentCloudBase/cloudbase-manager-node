@@ -294,8 +294,11 @@ export class FunctionService {
             }
             return res
         } catch (e) {
+            // 函数存在
+            const functionExist =
+                e.code === 'ResourceInUse.FunctionName' || e.code === 'ResourceInUse.Function'
             // 已存在同名函数，强制更新
-            if (e.code === 'ResourceInUse.FunctionName' && force) {
+            if (functionExist && force) {
                 // 创建函数触发器
                 const triggerRes = await this.retryCreateTrigger(funcName, func.triggers)
                 // 更新函数配置和代码
