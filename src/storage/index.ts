@@ -901,10 +901,18 @@ export class StorageService {
     public async walkLocalDir(dir: string, ignore?: string | string[]) {
         try {
             return walkdir.async(dir, {
-                filter: (dir: string, files: string[]) => {
+                filter: (currDir: string, files: string[]) => {
                     // NOTE: ignore 为空数组时会忽略全部文件
                     if (!ignore || !ignore.length) return files
-                    return micromatch.not(files, ignore)
+
+                    return files.filter(item => {
+                        // 当前文件全路径
+                        const fullPath = path.join(currDir, item)
+                        // 文件相对于传入目录的路径
+                        const fileRelativePath = fullPath.replace(path.join(dir, path.sep), '')
+                        // 匹配
+                        return !micromatch.isMatch(fileRelativePath, ignore)
+                    })
                 }
             })
         } catch (e) {
@@ -1001,7 +1009,7 @@ export class StorageService {
         }
 
         return new COS({
-            getAuthorization: function(_, callback) {
+            getAuthorization: function (_, callback) {
                 callback({
                     TmpSecretId: secretId,
                     TmpSecretKey: secretKey,

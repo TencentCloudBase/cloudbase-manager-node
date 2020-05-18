@@ -25,5 +25,7 @@ module.exports = {
     // 使用默认的折行标准
     proseWrap: 'preserve',
     // 换行符使用 lf
-    endOfLine: 'lf'
+    endOfLine: 'lf',
+    // 箭头括号
+    arrowParens: 'avoid'
 }
