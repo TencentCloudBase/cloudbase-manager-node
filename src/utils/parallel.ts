@@ -18,7 +18,7 @@ export class AsyncTaskParallelController {
 
     constructor(maxParallel: number, checkInterval = 20) {
         this.tasks = []
-        this.maxParallel = maxParallel
+        this.maxParallel = Number(maxParallel) || 20
         this.checkInterval = checkInterval
     }
 
@@ -43,11 +43,11 @@ export class AsyncTaskParallelController {
         // 当前正在运行的任务数量
         let runningTask = 0
 
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             // 使用定时器，不阻塞线程
             const timer = setInterval(() => {
                 // 全部任务运行完成
-                const taskDoneLength = taskDone.filter((item) => item).length
+                const taskDoneLength = taskDone.filter(item => item).length
                 if (runningTask === 0 && taskDoneLength === this.totalTasks) {
                     clearInterval(timer)
                     resolve(results)
@@ -64,10 +64,10 @@ export class AsyncTaskParallelController {
                         runningTask++
                         taskHasRun[index] = 1
                         task()
-                            .then((res) => {
+                            .then(res => {
                                 results[index] = res
                             })
-                            .catch((err) => {
+                            .catch(err => {
                                 results[index] = err
                             })
                             .then(() => {

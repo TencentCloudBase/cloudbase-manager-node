@@ -41,6 +41,8 @@ export interface IOptions {
     ignore?: string | string[]
     // 是否获取文件 fileId
     fileId?: boolean
+    // 并发数量
+    parallel?: number
 }
 
 export interface IFileOptions extends IOptions {
@@ -50,8 +52,6 @@ export interface IFileOptions extends IOptions {
 }
 
 export interface IFilesOptions extends IOptions {
-    // 并发数量
-    parallel?: number
     // 忽略文件
     ignore?: string | string[]
     // 文件列表
@@ -262,7 +262,8 @@ export class StorageService {
             onProgress,
             onFileFinish,
             ignore,
-            fileId = true
+            fileId = true,
+            parallel = 20
         } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
@@ -297,19 +298,20 @@ export class StorageService {
             }
         })
 
-        // 创建文件夹对象
-        const createDirs = fileStatsList
+        // 创建目录请求
+        const creatingDirController = new AsyncTaskParallelController(parallel, 50)
+        const creatingDirTasks = fileStatsList
             .filter(info => info.isDir)
-            .map(info => {
-                // 如果是文件夹，则创建空文件夹对象
-                return this.createCloudDirectroyCustom({
+            .map(info => () =>
+                this.createCloudDirectroyCustom({
                     cloudPath: info.cloudFileKey,
                     bucket,
                     region
                 })
-            })
+            )
 
-        await Promise.all(createDirs)
+        creatingDirController.loadTasks(creatingDirTasks)
+        await creatingDirController.run()
 
         // 上传文件对象
         const tasks = fileStatsList
@@ -331,11 +333,12 @@ export class StorageService {
             })
 
         // 控制请求并发
-        const asyncTaskController = new AsyncTaskParallelController(100, 50)
-        asyncTaskController.loadTasks(tasks)
-        const files = await asyncTaskController.run()
+        const getMetadataController = new AsyncTaskParallelController(parallel, 50)
+        getMetadataController.loadTasks(tasks)
+        const files = await getMetadataController.run()
 
-        const cos = this.getCos()
+        // 对文件上传进行处理
+        const cos = this.getCos(parallel)
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
 
         return uploadFiles({
@@ -360,7 +363,7 @@ export class StorageService {
             onProgress,
             onFileFinish,
             fileId = true,
-            parallel = 5
+            parallel = 20
         } = options
 
         if (!files || !files.length) {
@@ -396,19 +399,18 @@ export class StorageService {
         })
 
         // 控制请求并发
-        const asyncTaskController = new AsyncTaskParallelController(100, 50)
+        const asyncTaskController = new AsyncTaskParallelController(parallel, 50)
         asyncTaskController.loadTasks(tasks)
         fileList = await asyncTaskController.run()
 
-        const cos = this.getCos()
+        const cos = this.getCos(parallel)
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
 
         return uploadFiles({
             onProgress,
             onFileFinish,
             files: fileList,
-            SliceSize: BIG_FILE_SIZE,
-            FileParallelLimit: parallel
+            SliceSize: BIG_FILE_SIZE
         })
     }
 
@@ -775,14 +777,32 @@ export class StorageService {
             }
         }
 
-        // 删除多个文件
-        const res = await deleteMultipleObject({
-            Bucket: bucket,
-            Region: region,
-            Objects: files.map(file => ({ Key: file.Key }))
-        })
+        // COS 接口最大一次删除 1000 个 Key
+        // 将数组切分为 500 个文件一组
+        const sliceGroup = []
+        const total = Math.ceil(files.length / 500)
+        for (let i = 0; i < total; i++) {
+            sliceGroup.push(files.splice(0, 500))
+        }
 
-        return res
+        const tasks = sliceGroup.map(group =>
+            deleteMultipleObject({
+                Bucket: bucket,
+                Region: region,
+                Objects: group.map(file => ({ Key: file.Key }))
+            })
+        )
+
+        // 删除多个文件
+        const taskRes = await Promise.all(tasks)
+
+        // 合并响应结果
+        const Deleted = taskRes.map(_ => _.Deleted).reduce((prev, next) => [...prev, ...next], [])
+        const Error = taskRes.map(_ => _.Error).reduce((prev, next) => [...prev, ...next], [])
+        return {
+            Deleted,
+            Error
+        }
     }
 
     /**
@@ -990,18 +1010,20 @@ export class StorageService {
             MaxKeys: maxKeys,
             Marker: marker
         })
-        // console.log(res)
+
         return res
     }
 
     /**
      * 获取 COS 配置
      */
-    private getCos() {
+    private getCos(parallel = 20) {
         const { secretId, secretKey, token, proxy } = this.environment.getAuthConfig()
         const cosProxy = process.env.TCB_COS_PROXY
+
         if (!token) {
             return new COS({
+                FileParallelLimit: parallel,
                 SecretId: secretId,
                 SecretKey: secretKey,
                 Proxy: cosProxy || proxy
@@ -1009,6 +1031,7 @@ export class StorageService {
         }
 
         return new COS({
+            FileParallelLimit: parallel,
             getAuthorization: function (_, callback) {
                 callback({
                     TmpSecretId: secretId,

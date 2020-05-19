@@ -96,7 +96,15 @@ export declare class HostingService {
      * 删除文件或文件夹
      * @param options
      */
-    deleteFiles(options: IHostingCloudOptions): Promise<void>;
+    deleteFiles(options: IHostingCloudOptions): Promise<{
+        Deleted: {
+            Key: string;
+        }[];
+        Error: Object[];
+    } | {
+        Deleted: any[];
+        Error: any[];
+    }>;
     walkLocalDir(envId: string, dir: string): Promise<string[]>;
     /**
      * 绑定自定义域名

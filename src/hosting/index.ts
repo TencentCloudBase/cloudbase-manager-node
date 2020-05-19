@@ -229,7 +229,7 @@ export class HostingService {
             files = [],
             onProgress,
             onFileFinish,
-            parallel,
+            parallel = 20,
             ignore
         } = options
 
@@ -291,13 +291,24 @@ export class HostingService {
         const storageService = await this.environment.getStorageService()
 
         if (isDir) {
-            await storageService.deleteDirectoryCustom({
+            return storageService.deleteDirectoryCustom({
                 cloudPath,
                 bucket: Bucket,
                 region: Regoin
             })
         } else {
-            await storageService.deleteFileCustom([cloudPath], Bucket, Regoin)
+            try {
+                await storageService.deleteFileCustom([cloudPath], Bucket, Regoin)
+                return {
+                    Deleted: [{ Key: cloudPath }],
+                    Error: []
+                }
+            } catch (e) {
+                return {
+                    Deleted: [],
+                    Error: [e]
+                }
+            }
         }
     }
 

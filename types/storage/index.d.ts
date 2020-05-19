@@ -12,13 +12,13 @@ export interface IOptions {
     onFileFinish?: OnFileFinish;
     ignore?: string | string[];
     fileId?: boolean;
+    parallel?: number;
 }
 export interface IFileOptions extends IOptions {
     localPath: string;
     cloudPath?: string;
 }
 export interface IFilesOptions extends IOptions {
-    parallel?: number;
     ignore?: string | string[];
     files: {
         localPath: string;
