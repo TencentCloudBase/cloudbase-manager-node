@@ -106,6 +106,7 @@ export interface IRoutingRules {
     keyPrefixEquals?: string;
     httpErrorCodeReturnedEquals?: string;
     replaceKeyWith?: string;
+    replaceKeyPrefixWith?: string;
 }
 export interface IBucketWebsiteOptiosn {
     indexDocument: string;

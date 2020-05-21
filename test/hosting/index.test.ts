@@ -113,7 +113,7 @@ test('删除文件夹 hosting.deleteDirectory', async () => {
     })
 })
 
-test('删除静态托管域名:', async () => {
+test.skip('删除静态托管域名:', async () => {
     // const info = await hosting.getInfo()
     // console.log('info:', info)
     const domain = 'cms.devtoken.club'
@@ -123,28 +123,32 @@ test('删除静态托管域名:', async () => {
     expect(deleteRes.RequestId !== undefined).toBeTruthy()
 })
 
-test('获取静态网站配置', async () => {
-    const getConfig = await hosting.getWebsiteConfig()
-    console.log('getConfig :', getConfig)
-    expect(getConfig.WebsiteConfiguration !== undefined).toBeTruthy()
-})
-
 test('配置重定向规则 ', async () => {
     const res = await hosting.setWebsiteDocument({
         indexDocument: 'index.html',
         routingRules: [
             {
                 keyPrefixEquals: 'test.html',
-                replaceKeyWith: 'testtest.html'
+                replaceKeyWith: 'index.html'
+            },
+            {
+                keyPrefixEquals: 'test1.html',
+                replaceKeyPrefixWith: 'index1.html'
             },
             {
                 httpErrorCodeReturnedEquals: '400',
-                replaceKeyWith: 'error.html'
+                replaceKeyWith: 'index.html'
             }
         ]
     })
     console.log(res)
     expect(res.statusCode === 200).toBeTruthy()
+})
+
+test('获取静态网站配置', async () => {
+    const getConfig = await hosting.getWebsiteConfig()
+    console.log('getConfig :', JSON.stringify(getConfig))
+    expect(getConfig.WebsiteConfiguration !== undefined).toBeTruthy()
 })
 
 test('设置静态托管 缓存配置 防盗链配置 黑名单配置 IP访问限频配置', async () => {

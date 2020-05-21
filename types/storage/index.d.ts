@@ -39,6 +39,7 @@ export interface IRoutingRules {
     keyPrefixEquals?: string;
     httpErrorCodeReturnedEquals?: string;
     replaceKeyWith?: string;
+    replaceKeyPrefixWith?: string;
 }
 export interface IBucketWebsiteOptions {
     indexDocument: string;

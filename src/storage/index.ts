@@ -74,6 +74,7 @@ export interface IRoutingRules {
     keyPrefixEquals?: string // 前缀匹配
     httpErrorCodeReturnedEquals?: string // 错误码
     replaceKeyWith?: string // 替换内容
+    replaceKeyPrefixWith?: string // condition设置为KeyPrefixEquals 前缀匹配时可设置
 }
 
 export interface IBucketWebsiteOptions {
@@ -1009,30 +1010,37 @@ export class StorageService {
         }
 
         if (routingRules) {
-            params.RoutingRules = []
+            params.WebsiteConfiguration.RoutingRules = []
             for (let value of routingRules) {
-                const routeItem: any = { RoutingRule: {} }
+                const routeItem: any = {}
                 if (value.keyPrefixEquals) {
-                    routeItem.RoutingRule.Condition = {
+                    routeItem.Condition = {
                         KeyPrefixEquals: value.keyPrefixEquals
                     }
                 }
 
                 if (value.httpErrorCodeReturnedEquals) {
-                    routeItem.RoutingRule.Condition = {
+                    routeItem.Condition = {
                         HttpErrorCodeReturnedEquals: value.httpErrorCodeReturnedEquals
                     }
                 }
 
                 if (value.replaceKeyWith) {
-                    routeItem.RoutingRule.Redirect = {
+                    routeItem.Redirect = {
                         ReplaceKeyWith: value.replaceKeyWith
                     }
                 }
-                params.RoutingRules.push(routeItem)
+
+                if (value.replaceKeyPrefixWith) {
+                    routeItem.Redirect = {
+                        ReplaceKeyPrefixWith: value.replaceKeyPrefixWith
+                    }
+                }
+                params.WebsiteConfiguration.RoutingRules.push(routeItem)
             }
         }
 
+        console.log('params:', JSON.stringify(params))
         const res = await putBucketWebsite(params)
 
         return res

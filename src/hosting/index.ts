@@ -144,6 +144,7 @@ export interface IRoutingRules {
     keyPrefixEquals?: string // 前缀匹配
     httpErrorCodeReturnedEquals?: string // 错误码
     replaceKeyWith?: string // 替换内容
+    replaceKeyPrefixWith?: string // condition设置为KeyPrefixEquals 前缀匹配时可设置
 }
 
 export interface IBucketWebsiteOptiosn {
