@@ -70,9 +70,17 @@ export interface IWalkCloudDirOptions {
     marker?: string
 }
 
+export interface IRoutingRules {
+    keyPrefixEquals?: string // 前缀匹配
+    httpErrorCodeReturnedEquals?: string // 错误码
+    replaceKeyWith?: string // 替换内容
+    replaceKeyPrefixWith?: string // condition设置为KeyPrefixEquals 前缀匹配时可设置
+}
+
 export interface IBucketWebsiteOptions {
     indexDocument: string
     errorDocument?: string
+    routingRules?: Array<IRoutingRules>
     region: string // 地域
     bucket: string // 桶名
 }
@@ -963,16 +971,32 @@ export class StorageService {
     }
 
     /**
+     * 获取静态网站配置
+     */
+    async getWebsiteConfig(options: { bucket: string; region: string }) {
+        const { bucket, region } = options
+        const cos = this.getCos()
+        const getBucketWebsite = Util.promisify(cos.getBucketWebsite).bind(cos)
+
+        const res = await getBucketWebsite({
+            Bucket: bucket,
+            Region: region
+        })
+
+        return res
+    }
+
+    /**
      * 配置文档
      */
     @preLazy()
     async putBucketWebsite(options: IBucketWebsiteOptions) {
-        const { indexDocument, errorDocument, bucket, region } = options
+        const { indexDocument, errorDocument, bucket, region, routingRules } = options
 
         const cos = this.getCos()
         const putBucketWebsite = Util.promisify(cos.putBucketWebsite).bind(cos)
 
-        const res = await putBucketWebsite({
+        let params: any = {
             Bucket: bucket,
             Region: region,
             WebsiteConfiguration: {
@@ -983,7 +1007,41 @@ export class StorageService {
                     Key: errorDocument
                 }
             }
-        })
+        }
+
+        if (routingRules) {
+            params.WebsiteConfiguration.RoutingRules = []
+            for (let value of routingRules) {
+                const routeItem: any = {}
+                if (value.keyPrefixEquals) {
+                    routeItem.Condition = {
+                        KeyPrefixEquals: value.keyPrefixEquals
+                    }
+                }
+
+                if (value.httpErrorCodeReturnedEquals) {
+                    routeItem.Condition = {
+                        HttpErrorCodeReturnedEquals: value.httpErrorCodeReturnedEquals
+                    }
+                }
+
+                if (value.replaceKeyWith) {
+                    routeItem.Redirect = {
+                        ReplaceKeyWith: value.replaceKeyWith
+                    }
+                }
+
+                if (value.replaceKeyPrefixWith) {
+                    routeItem.Redirect = {
+                        ReplaceKeyPrefixWith: value.replaceKeyPrefixWith
+                    }
+                }
+                params.WebsiteConfiguration.RoutingRules.push(routeItem)
+            }
+        }
+
+        console.log('params:', JSON.stringify(params))
+        const res = await putBucketWebsite(params)
 
         return res
     }
@@ -1032,7 +1090,7 @@ export class StorageService {
 
         return new COS({
             FileParallelLimit: parallel,
-            getAuthorization: function (_, callback) {
+            getAuthorization: function(_, callback) {
                 callback({
                     TmpSecretId: secretId,
                     TmpSecretKey: secretKey,

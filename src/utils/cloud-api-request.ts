@@ -88,7 +88,8 @@ export class CloudService {
             scf: 'https://scf.tencentcloudapi.com',
             vpc: 'https://vpc.tencentcloudapi.com',
             flexdb: 'https://flexdb.ap-shanghai.tencentcloudapi.com',
-            cam: 'https://cam.tencentcloudapi.com'
+            cam: 'https://cam.tencentcloudapi.com',
+            cdn: 'https://cdn.tencentcloudapi.com'
         }
         if (urlMap[this.service]) {
             return urlMap[this.service]

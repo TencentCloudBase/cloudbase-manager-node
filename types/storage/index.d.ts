@@ -35,9 +35,16 @@ export interface IWalkCloudDirOptions {
     region: string;
     marker?: string;
 }
+export interface IRoutingRules {
+    keyPrefixEquals?: string;
+    httpErrorCodeReturnedEquals?: string;
+    replaceKeyWith?: string;
+    replaceKeyPrefixWith?: string;
+}
 export interface IBucketWebsiteOptions {
     indexDocument: string;
     errorDocument?: string;
+    routingRules?: Array<IRoutingRules>;
     region: string;
     bucket: string;
 }
@@ -244,6 +251,13 @@ export declare class StorageService {
      * 获取文件上传链接属性
      */
     getUploadMetadata(path: string): Promise<IUploadMetadata>;
+    /**
+     * 获取静态网站配置
+     */
+    getWebsiteConfig(options: {
+        bucket: string;
+        region: string;
+    }): Promise<any>;
     /**
      * 配置文档
      */
