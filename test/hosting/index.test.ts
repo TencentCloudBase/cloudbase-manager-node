@@ -160,7 +160,7 @@ test('设置静态托管 缓存配置 防盗链配置 黑名单配置 IP访问�
         domains: [domain]
     })
     console.log('res:', res)
-    const domainId = res[0].DomainId
+    const domainId = res?.Domains[0].DomainId
 
     const setRes = await hosting.tcbModifyAttribute({
         domain,
@@ -202,5 +202,7 @@ test('设置静态托管 缓存配置 防盗链配置 黑名单配置 IP访问�
     })
 
     console.log('checkResourceRes:', JSON.stringify(checkResourceRes))
-    expect(checkResourceRes[0]?.DomainConfig?.Refer?.RefererRules !== undefined).toBeTruthy()
+    expect(
+        checkResourceRes?.Domains[0]?.DomainConfig?.Refer?.RefererRules !== undefined
+    ).toBeTruthy()
 })

@@ -436,10 +436,9 @@ export class HostingService {
      * @param options
      */
     async tcbCheckResource(options: ICheckSourceOptions) {
-        const { Domains } = await this.cdnService.request('TcbCheckResource', {
+        return this.cdnService.request('TcbCheckResource', {
             Domains: options.domains
         })
-        return Domains
     }
 
     /**
