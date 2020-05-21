@@ -241,7 +241,8 @@ test('更新云函数代码：functions.updateFunctionCode 加代码保护 验�
     const res = await functions.updateFunctionCode({
         func: {
             // functions 文件夹下函数文件夹的名称，即函数名
-            name: 'app'
+            name: 'app',
+            isWaitInstall: true
         },
         functionRootPath: '',
         base64Code:
