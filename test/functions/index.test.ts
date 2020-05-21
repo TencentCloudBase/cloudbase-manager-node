@@ -68,7 +68,6 @@ test('创建云函数-本地文件上传：functions.createFunction', async () =
     expect(res).toBeTruthy()
 }, 30000)
 
-
 test('创建 Node 10 云函数 - 本地文件上传：functions.createFunction', async () => {
     const res = await functions.createFunction({
         func: {
@@ -338,13 +337,14 @@ test('创建云函数：functions.createFunction', async () => {
 }, 20000)
 
 test('批量创建云函数：create multi function', async () => {
-    const createFunction = async (name) =>
+    const createFunction = async name =>
         functions.createFunction({
             func: {
                 // functions 文件夹下函数文件夹的名称，即函数名
                 name,
                 // 超时时间
-                timeout: 5
+                timeout: 5,
+                isWaitInstall: true
             },
             functionRootPath: './test/functions',
             force: true
