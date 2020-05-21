@@ -41,6 +41,57 @@ export interface IBindDomainOptions {
     domain: string;
     certId: string;
 }
+export interface ICheckSourceOptions {
+    domains: string[];
+}
+export interface ITcbOrigin {
+    Master: string;
+    Slave: string;
+}
+export interface IIpFilter {
+    Switch: string;
+    FilterType?: string;
+    Filters?: string[];
+}
+export interface IIpFreqLimit {
+    Switch: string;
+    Qps?: number;
+}
+export interface ITcbAuthentication {
+    Switch: string;
+    SecretKey: string;
+    SignParam?: string;
+    TimeParam?: string;
+    ExpireTime?: string;
+}
+export interface ITcbCache {
+    RuleType: string;
+    RuleValue: string;
+    CacheTtl: number;
+}
+export interface ITcbRefererRule {
+    RefererType: string;
+    Referers: string[];
+    AllowEmpty: boolean;
+}
+export interface ITcbReferer {
+    Switch: string;
+    RefererRules?: ITcbRefererRule[];
+}
+export interface ITcbDomainConfig {
+    Cache?: ITcbCache[];
+    IpFilter?: IIpFilter;
+    IpFreqLimit?: IIpFreqLimit;
+    Refer?: ITcbReferer;
+}
+export interface IModifyOptions {
+    domain: string;
+    domainId: number;
+    domainConfig: ITcbDomainConfig;
+}
+export interface IDeleteDomainOptions {
+    domain: string;
+}
 export interface IHostingInfo {
     EnvId: string;
     CdnDomain: string;
@@ -51,9 +102,15 @@ export interface IHostingInfo {
     Id: number;
     PolicyId: number;
 }
+export interface IRoutingRules {
+    keyPrefixEquals?: string;
+    httpErrorCodeReturnedEquals?: string;
+    replaceKeyWith?: string;
+}
 export interface IBucketWebsiteOptiosn {
-    indexDocument?: string;
+    indexDocument: string;
     errorDocument?: string;
+    routingRules?: Array<IRoutingRules>;
 }
 export interface IFindOptions {
     prefix?: string;
@@ -63,6 +120,7 @@ export interface IFindOptions {
 export declare class HostingService {
     private environment;
     private tcbService;
+    private cdnService;
     constructor(environment: Environment);
     /**
      * 获取 hosting 信息
@@ -113,6 +171,33 @@ export declare class HostingService {
      * @memberof HostingService
      */
     CreateHostingDomain(options: IBindDomainOptions): Promise<any>;
+    /**
+     * 删除托管域名
+     *
+     * @param {IBindDomainOptions} options
+     * @returns
+     * @memberof HostingService
+     */
+    deleteHostingDomain(options: IDeleteDomainOptions): Promise<any>;
+    /**
+     * 查询域名状态信息
+     * @param options
+     */
+    tcbCheckResource(options: ICheckSourceOptions): Promise<any>;
+    /**
+     * 域名配置变更
+     * @param options
+     */
+    tcbModifyAttribute(options: IModifyOptions): Promise<any>;
+    /**
+     * 查询静态网站配置
+     * @memberof HostingService
+     */
+    getWebsiteConfig(): Promise<any>;
+    /**
+     * 配置静态网站文档
+     * @param options
+     */
     setWebsiteDocument(options: IBucketWebsiteOptiosn): Promise<any>;
     /**
      * 检查 hosting 服务状态

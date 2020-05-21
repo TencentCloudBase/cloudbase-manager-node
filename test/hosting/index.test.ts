@@ -112,3 +112,91 @@ test('删除文件夹 hosting.deleteDirectory', async () => {
         isDir: true
     })
 })
+
+test('删除静态托管域名:', async () => {
+    // const info = await hosting.getInfo()
+    // console.log('info:', info)
+    const domain = 'cms.devtoken.club'
+
+    const deleteRes = await hosting.deleteHostingDomain({ domain })
+    console.log('deleteRes res:', deleteRes.RequestId)
+    expect(deleteRes.RequestId !== undefined).toBeTruthy()
+})
+
+test('获取静态网站配置', async () => {
+    const getConfig = await hosting.getWebsiteConfig()
+    console.log('getConfig :', getConfig)
+    expect(getConfig.WebsiteConfiguration !== undefined).toBeTruthy()
+})
+
+test('配置重定向规则 ', async () => {
+    const res = await hosting.setWebsiteDocument({
+        indexDocument: 'index.html',
+        routingRules: [
+            {
+                keyPrefixEquals: 'test.html',
+                replaceKeyWith: 'testtest.html'
+            },
+            {
+                httpErrorCodeReturnedEquals: '400',
+                replaceKeyWith: 'error.html'
+            }
+        ]
+    })
+    console.log(res)
+    expect(res.statusCode === 200).toBeTruthy()
+})
+
+test('设置静态托管 缓存配置 防盗链配置 黑名单配置 IP访问限频配置', async () => {
+    const info = await hosting.getInfo()
+    console.log('info:', info)
+
+    const domain = info[0].CdnDomain
+    const res = await hosting.tcbCheckResource({
+        domains: [domain]
+    })
+    console.log('res:', res)
+    const domainId = res[0].DomainId
+
+    const setRes = await hosting.tcbModifyAttribute({
+        domain,
+        domainId,
+        domainConfig: {
+            Refer: {
+                Switch: 'on',
+                RefererRules: [
+                    {
+                        AllowEmpty: false,
+                        RefererType: 'blacklist',
+                        Referers: ['www.test11.com']
+                    }
+                ]
+            },
+            IpFilter: {
+                Switch: 'on',
+                FilterType: 'blacklist',
+                Filters: ['10.10.10.10']
+            },
+            IpFreqLimit: {
+                Switch: 'on',
+                Qps: 100
+            },
+            Cache: [
+                {
+                    RuleType: 'suffix',
+                    RuleValue: '.jpg',
+                    CacheTtl: 60
+                }
+            ]
+        }
+    })
+
+    console.log('setRes:', setRes)
+
+    const checkResourceRes = await hosting.tcbCheckResource({
+        domains: [domain]
+    })
+
+    console.log('checkResourceRes:', JSON.stringify(checkResourceRes))
+    expect(checkResourceRes[0]?.DomainConfig?.Refer?.RefererRules !== undefined).toBeTruthy()
+})
