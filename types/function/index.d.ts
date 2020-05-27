@@ -195,7 +195,6 @@ export declare class FunctionService {
     private getCodeParams;
     private getTempCosInfo;
     private retryCreateTrigger;
-    private retryUpdateFunctionCode;
     /**
      * 获取函数配置信息
      * @private

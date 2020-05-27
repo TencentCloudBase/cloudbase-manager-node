@@ -139,7 +139,7 @@ function configToParams(options: { func: ICloudFunction; codeSecret: string; bas
     }
 
     // 转换环境变量
-    const envVariables = Object.keys(func.envVariables || {}).map((key) => ({
+    const envVariables = Object.keys(func.envVariables || {}).map(key => ({
         Key: key,
         Value: func.envVariables[key]
     }))
@@ -285,6 +285,8 @@ export class FunctionService {
         try {
             // 创建云函数
             const res = await this.scfService.request('CreateFunction', params)
+            // 等待函数状态正常
+            await this.waitFunctionActive(funcName, codeSecret)
             // 创建函数触发器、失败自动重试
             await this.retryCreateTrigger(funcName, func.triggers)
 
@@ -299,18 +301,27 @@ export class FunctionService {
                 e.code === 'ResourceInUse.FunctionName' || e.code === 'ResourceInUse.Function'
             // 已存在同名函数，强制更新
             if (functionExist && force) {
-                // 创建函数触发器
-                const triggerRes = await this.retryCreateTrigger(funcName, func.triggers)
-                // 更新函数配置和代码
-                const configRes = await this.updateFunctionConfig(func)
-                // 更新函数代码
-                const codeRes = await this.retryUpdateFunctionCode({
+                // 1. 更新函数配置和代码，同名函数可能存在 codeSecret，先修改代码，清除 codeSecret
+                const codeRes = await this.updateFunctionCode({
                     func,
                     base64Code,
                     functionPath,
                     functionRootPath,
                     codeSecret: codeSecret
                 })
+                // 等待函数状态正常
+                await this.waitFunctionActive(funcName, codeSecret)
+                // 2. 更新函数配置
+                const configRes = await this.updateFunctionConfig(func)
+                // 等待函数状态正常
+                await this.waitFunctionActive(funcName, codeSecret)
+                // 3. 创建函数触发器
+                const triggerRes = await this.retryCreateTrigger(funcName, func.triggers)
+
+                if (params.InstallDependency && func.isWaitInstall === true) {
+                    await this.waitFunctionActive(funcName, codeSecret)
+                }
+
                 // 返回全部操作的响应值
                 return {
                     triggerRes,
@@ -349,7 +360,7 @@ export class FunctionService {
         })
         const { Functions = [] } = res
         const data: Record<string, string>[] = []
-        Functions.forEach((func) => {
+        Functions.forEach(func => {
             const { FunctionId, FunctionName, Runtime, AddTime, ModTime, Status } = func
             data.push({
                 FunctionId,
@@ -405,8 +416,8 @@ export class FunctionService {
             try {
                 const vpcs = await this.getVpcs()
                 const subnets = await this.getSubnets(VpcId)
-                const vpc = vpcs.find((item) => item.VpcId === VpcId)
-                const subnet = subnets.find((item) => item.SubnetId === SubnetId)
+                const vpc = vpcs.find(item => item.VpcId === VpcId)
+                const subnet = subnets.find(item => item.SubnetId === SubnetId)
                 data.VpcConfig = {
                     vpc,
                     subnet
@@ -475,7 +486,7 @@ export class FunctionService {
     async updateFunctionConfig(func: ICloudFunction): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
 
-        const envVariables = Object.keys(func.envVariables || {}).map((key) => ({
+        const envVariables = Object.keys(func.envVariables || {}).map(key => ({
             Key: key,
             Value: func.envVariables[key]
         }))
@@ -650,7 +661,7 @@ export class FunctionService {
         if (!triggers || !triggers.length) return null
         const { namespace } = this.getFunctionConfig()
 
-        const parsedTriggers = triggers.map((item) => {
+        const parsedTriggers = triggers.map(item => {
             if (item.type !== 'timer') {
                 throw new CloudBaseError(
                     `不支持的触发器类型 [${item.type}]，目前仅支持定时触发器（timer）！`
@@ -906,19 +917,6 @@ export class FunctionService {
         }
     }
 
-    private async retryUpdateFunctionCode(param, count = 0) {
-        try {
-            return await this.updateFunctionCode(param)
-        } catch (e) {
-            if (count < 3) {
-                await sleep(500)
-                return this.retryUpdateFunctionCode(param, count + 1)
-            } else {
-                throw e
-            }
-        }
-    }
-
     /**
      * 获取函数配置信息
      * @private
@@ -965,13 +963,20 @@ export class FunctionService {
         return SubnetSet
     }
 
+    // 检查函数状态，部分操作在函数更新中时不可进行
     private async waitFunctionActive(funcName: string, codeSecret?: string) {
-        // 检查函数状态
-        let status
-        do {
-            const { Status } = await this.getFunctionDetail(funcName, codeSecret)
-            await sleep(1000)
-            status = Status
-        } while (status === SCF_STATUS.CREATING || status === SCF_STATUS.UPDATING)
+        return new Promise((resolve, reject) => {
+            const timer = setInterval(async () => {
+                try {
+                    const { Status } = await this.getFunctionDetail(funcName, codeSecret)
+                    if (Status === SCF_STATUS.CREATING || Status === SCF_STATUS.UPDATING) return
+                    clearInterval(timer)
+                    resolve()
+                } catch (e) {
+                    clearInterval(timer)
+                    reject(e)
+                }
+            }, 1000)
+        })
     }
 }
