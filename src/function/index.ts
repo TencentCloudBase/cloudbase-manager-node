@@ -965,17 +965,33 @@ export class FunctionService {
 
     // 检查函数状态，部分操作在函数更新中时不可进行
     private async waitFunctionActive(funcName: string, codeSecret?: string) {
+        let ticker
+        let timer
+        let resolved
+
         return new Promise((resolve, reject) => {
-            const timer = setInterval(async () => {
+            // 超时时间 5 分钟
+            timer = setTimeout(() => {
+                clearInterval(ticker)
+                if (!resolved) {
+                    reject(new CloudBaseError('函数状态异常'))
+                }
+            }, 30000)
+
+            ticker = setInterval(async () => {
                 try {
                     const { Status } = await this.getFunctionDetail(funcName, codeSecret)
                     if (Status === SCF_STATUS.CREATING || Status === SCF_STATUS.UPDATING) return
-                    clearInterval(timer)
+                    // 函数状态正常
+                    clearInterval(ticker)
+                    clearTimeout(timer)
                     resolve()
                 } catch (e) {
-                    clearInterval(timer)
+                    clearInterval(ticker)
+                    clearTimeout(timer)
                     reject(e)
                 }
+                resolved = true
             }, 1000)
         })
     }
