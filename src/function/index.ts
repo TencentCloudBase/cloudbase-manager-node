@@ -976,7 +976,7 @@ export class FunctionService {
                 if (!resolved) {
                     reject(new CloudBaseError('函数状态异常'))
                 }
-            }, 30000)
+            }, 300000)
 
             ticker = setInterval(async () => {
                 try {
