@@ -65,6 +65,13 @@ export interface IEnvVariable {
     Key: string;
     Value: string;
 }
+export interface ITrigger {
+    Name: string;
+    Type: string;
+    Config: string;
+    TriggerName: string;
+    TriggerDesc: string;
+}
 export interface IFunctionInfo {
     FunctionName: string;
     FunctionId: string;
@@ -109,6 +116,7 @@ export interface IFunctionInfo {
             EipAddress: string[];
         };
     };
+    Triggers: ITrigger[];
 }
 export interface IFunctionCode {
     CosBucketName?: string;
