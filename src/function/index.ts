@@ -22,7 +22,7 @@ import {
     checkFullAccess
 } from '../utils'
 import { SCF_STATUS } from '../constant'
-import { IFunctionInfo } from './types'
+import { IFunctionInfo, IFunctionUpdateAttribute } from './types'
 
 export interface IFunctionCode {
     func: ICloudFunction // 云函数信息
@@ -32,7 +32,11 @@ export interface IFunctionCode {
 }
 
 export interface ICreateFunctionParam {
-    func: ICloudFunction // 云函数信息
+    // 云函数信息
+    func: ICloudFunction & {
+        // 云接入路径
+        path?: string
+    }
     functionRootPath?: string // 云函数根目录
     force?: boolean // 是否覆盖同名云函数
     base64Code?: string
@@ -262,7 +266,7 @@ export class FunctionService {
         } = funcParam
         const funcName = func.name
 
-        const params: any = configToParams({
+        const params: IFunctionUpdateAttribute = configToParams({
             func,
             codeSecret,
             baseParams: {
@@ -293,13 +297,15 @@ export class FunctionService {
             // 创建函数触发器、失败自动重试
             await this.retryCreateTrigger(funcName, func.triggers)
 
+            // 设置路径，创建云接入路径
+            if (func.path) {
+                await this.createAccessPath(funcName, func.path)
+            }
+
             // 如果选择自动安装依赖，且等待依赖安装
             if (params.InstallDependency && func.isWaitInstall === true) {
                 await this.waitFunctionActive(funcName, codeSecret)
             }
-
-            // 设置路径，创建云接入路径
-            // if (func.path) {}
 
             return res
         } catch (e) {
@@ -324,6 +330,11 @@ export class FunctionService {
                 await this.waitFunctionActive(funcName, codeSecret)
                 // 3. 创建函数触发器
                 const triggerRes = await this.retryCreateTrigger(funcName, func.triggers)
+
+                // 设置路径，创建云接入路径
+                if (func.path) {
+                    await this.createAccessPath(funcName, func.path)
+                }
 
                 if (params.InstallDependency && func.isWaitInstall === true) {
                     await this.waitFunctionActive(funcName, codeSecret)
@@ -845,6 +856,21 @@ export class FunctionService {
             LayerName: name,
             LayerVersion: version
         })
+    }
+
+    @preLazy()
+    private async createAccessPath(name: string, path: string) {
+        const access = this.environment.getAccessService()
+        try {
+            await access.createAccess({
+                name,
+                path
+            })
+        } catch (e) {
+            if (e.code !== 'InvalidParameter.APICreated') {
+                throw e
+            }
+        }
     }
 
     @preLazy()

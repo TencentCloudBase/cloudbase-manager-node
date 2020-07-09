@@ -110,3 +110,32 @@ export interface IFunctionInfo {
         };
     };
 }
+export interface IFunctionCode {
+    CosBucketName?: string;
+    CosObjectName?: string;
+    ZipFile: string;
+}
+export interface IFunctionUpdateAttribute {
+    Code: IFunctionCode;
+    Description: string;
+    FunctionName: string;
+    MemorySize: number;
+    Timeout: number;
+    UseGpu: 'FALSE' | 'TRUE';
+    Namespace: string;
+    Environment: {
+        Variables: IEnvVariable[];
+    };
+    VpcConfig: {
+        VpcId: string;
+        SubnetId: string;
+    };
+    InstallDependency?: 'FALSE' | 'TRUE';
+    PublicNetConfig: {
+        PublicNetStatus: string;
+        EipConfig: {
+            EipStatus: string;
+            EipAddress: string[];
+        };
+    };
+}

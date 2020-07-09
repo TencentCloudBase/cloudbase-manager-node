@@ -8,7 +8,9 @@ export interface IFunctionCode {
     functionPath?: string;
 }
 export interface ICreateFunctionParam {
-    func: ICloudFunction;
+    func: ICloudFunction & {
+        path?: string;
+    };
     functionRootPath?: string;
     force?: boolean;
     base64Code?: string;
@@ -193,6 +195,7 @@ export declare class FunctionService {
     listLayerVersions(options: IVersionListOptions): Promise<IListLayerVersionsRes>;
     listLayers(options: ILayerListOptions): Promise<IListLayerRes>;
     getLayerVersion(options: ILayerOptions): Promise<IGetLayerVersionRes>;
+    private createAccessPath;
     private getCodeParams;
     private getTempCosInfo;
     private retryCreateTrigger;

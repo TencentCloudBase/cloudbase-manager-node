@@ -119,3 +119,29 @@ export interface IFunctionInfo {
         }
     }
 }
+
+export interface IFunctionCode {
+    // 对象存储桶名称
+    CosBucketName?: string
+    // 对象存储对象路径
+    CosObjectName?: string
+    // 包含函数代码文件及其依赖项的 zip 格式文件，使用该接口时要求将 zip 文件的内容转成 base64 编码，最大支持20M
+    ZipFile: string
+}
+
+export interface IFunctionUpdateAttribute {
+    Code: IFunctionCode
+    Description: string
+    FunctionName: string
+    MemorySize: number
+    Timeout: number
+    UseGpu: 'FALSE' | 'TRUE'
+    Namespace: string
+    Environment: { Variables: IEnvVariable[] }
+    VpcConfig: { VpcId: string; SubnetId: string }
+    InstallDependency?: 'FALSE' | 'TRUE'
+    PublicNetConfig: {
+        PublicNetStatus: string
+        EipConfig: { EipStatus: string; EipAddress: string[] }
+    }
+}

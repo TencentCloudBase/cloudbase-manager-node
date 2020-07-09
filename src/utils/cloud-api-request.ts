@@ -140,8 +140,10 @@ export class CloudService {
 
             if (data.Response.Error) {
                 const tcError = new CloudBaseError(data.Response.Error.Message, {
+                    action,
                     requestId: data.Response.RequestId,
-                    code: data.Response.Error.Code
+                    code: data.Response.Error.Code,
+                    original: data.Response.Error
                 })
                 throw tcError
             } else {
@@ -149,10 +151,14 @@ export class CloudService {
             }
         } catch (e) {
             // throw e
-            throw new CloudBaseError(e.message, {
-                action,
-                code: e.code
-            })
+            if (e.name === 'CloudBaseError') {
+                throw e
+            } else {
+                throw new CloudBaseError(e.message, {
+                    action,
+                    code: e.code
+                })
+            }
         }
     }
 

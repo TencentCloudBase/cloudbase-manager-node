@@ -22,7 +22,6 @@ export interface LayerVersionSimple {
 }
 export interface ICloudFunction extends ICloudFunctionConfig {
     name: string;
-    path?: string;
     handler?: string;
     isWaitInstall?: boolean;
     ignore?: string | string[];
