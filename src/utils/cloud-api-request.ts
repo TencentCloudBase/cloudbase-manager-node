@@ -98,7 +98,11 @@ export class CloudService {
         }
     }
 
-    async request(action: string, data: Record<string, any> = {}, method: 'POST' | 'GET' = 'POST') {
+    async request<T extends {}>(
+        action: string,
+        data: Record<string, any> = {},
+        method: 'POST' | 'GET' = 'POST'
+    ): Promise<T> {
         this.action = action
         this.data = deepRemoveVoid({ ...data, ...this.baseParams })
         this.method = method

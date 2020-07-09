@@ -200,7 +200,10 @@ export class HostingService {
             }
         }
 
-        const res = await this.tcbService.request('CreateStaticStore', {
+        const res = await this.tcbService.request<{
+            RequestId: string
+            Result: string
+        }>('CreateStaticStore', {
             EnvId: envId
         })
 
@@ -281,7 +284,10 @@ export class HostingService {
             )
         }
 
-        const res = await this.tcbService.request('DestroyStaticStore', {
+        const res = await this.tcbService.request<{
+            RequestId: string
+            Result: string
+        }>('DestroyStaticStore', {
             EnvId: envId
         })
 

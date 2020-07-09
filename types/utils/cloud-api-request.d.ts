@@ -15,7 +15,7 @@ export declare class CloudService {
     cloudBaseContext: CloudBaseContext;
     constructor(context: CloudBaseContext, service: string, version: string, baseParams?: Record<string, any>);
     get baseUrl(): any;
-    request(action: string, data?: Record<string, any>, method?: 'POST' | 'GET'): Promise<any>;
+    request<T extends {}>(action: string, data?: Record<string, any>, method?: 'POST' | 'GET'): Promise<T>;
     requestWithSign(): Promise<any>;
     getRequestSign(timestamp: number): string;
 }

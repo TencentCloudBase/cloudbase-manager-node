@@ -22,6 +22,7 @@ import {
     checkFullAccess
 } from '../utils'
 import { SCF_STATUS } from '../constant'
+import { IFunctionInfo } from './types'
 
 export interface IFunctionCode {
     func: ICloudFunction // 云函数信息
@@ -238,8 +239,7 @@ export class FunctionService {
             params.AddFiles = base64
         }
 
-        const res = await this.scfService.request('UpdateFunctionIncrementalCode', params)
-        return res
+        return this.scfService.request<IResponseInfo>('UpdateFunctionIncrementalCode', params)
     }
 
     /**
@@ -284,7 +284,10 @@ export class FunctionService {
 
         try {
             // 创建云函数
-            const res = await this.scfService.request('CreateFunction', params)
+            const res = await this.scfService.request<IResponseInfo | ICreateFunctionRes>(
+                'CreateFunction',
+                params
+            )
             // 等待函数状态正常
             await this.waitFunctionActive(funcName, codeSecret)
             // 创建函数触发器、失败自动重试
@@ -294,6 +297,10 @@ export class FunctionService {
             if (params.InstallDependency && func.isWaitInstall === true) {
                 await this.waitFunctionActive(funcName, codeSecret)
             }
+
+            // 设置路径，创建云接入路径
+            // if (func.path) {}
+
             return res
         } catch (e) {
             // 函数存在
@@ -395,7 +402,7 @@ export class FunctionService {
      * @returns {Promise<Record<string, string>>}
      */
     @preLazy()
-    async getFunctionDetail(name: string, codeSecret?: string): Promise<Record<string, string>> {
+    async getFunctionDetail(name: string, codeSecret?: string): Promise<IFunctionInfo> {
         const { namespace } = this.getFunctionConfig()
 
         const params: any = {
@@ -408,7 +415,7 @@ export class FunctionService {
             params.CodeSecret = codeSecret
         }
 
-        const data = await this.scfService.request('GetFunction', params)
+        const data = await this.scfService.request<IFunctionInfo>('GetFunction', params)
 
         // 解析 VPC 配置
         const { VpcId = '', SubnetId = '' } = data.VpcConfig || {}
@@ -423,7 +430,7 @@ export class FunctionService {
                     subnet
                 }
             } catch (e) {
-                data.VPC = {
+                data.VpcConfig = {
                     vpc: '',
                     subnet: ''
                 }
@@ -572,8 +579,10 @@ export class FunctionService {
         }
 
         try {
+            // 等待函数状态正常
+            await this.waitFunctionActive(funcName, codeSecret)
             // 更新云函数代码
-            const res = await this.scfService.request('UpdateFunctionCode', params)
+            const res = await this.scfService.request<IResponseInfo>('UpdateFunctionCode', params)
             if (installDependency && func.isWaitInstall === true) {
                 await this.waitFunctionActive(funcName, codeSecret)
             }

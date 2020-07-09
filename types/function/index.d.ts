@@ -1,5 +1,6 @@
 import { Environment } from '../environment';
 import { IResponseInfo, ICloudFunction, IFunctionLogOptions, ICloudFunctionTrigger, IFunctionInvokeRes, IFunctionLogRes, IFunctionDownloadUrlRes } from '../interfaces';
+import { IFunctionInfo } from './types';
 export interface IFunctionCode {
     func: ICloudFunction;
     functionRootPath?: string;
@@ -120,7 +121,7 @@ export declare class FunctionService {
      * @param {string} name 云函数名称
      * @returns {Promise<Record<string, string>>}
      */
-    getFunctionDetail(name: string, codeSecret?: string): Promise<Record<string, string>>;
+    getFunctionDetail(name: string, codeSecret?: string): Promise<IFunctionInfo>;
     /**
      * 获取函数日志
      * @param {{

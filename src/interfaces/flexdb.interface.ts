@@ -64,6 +64,7 @@ export interface MgoIndexKeys {
 }
 export interface TableInfo {
     // 表名
+    TableName: string
     CollectionName: string
     // 表中文档数量
     Count: number
@@ -74,6 +75,7 @@ export interface TableInfo {
     // 索引占用空间，单位：字节
     IndexSize: number
 }
+
 export interface GoodsDetail {
     // 配额id
     QuataId: string

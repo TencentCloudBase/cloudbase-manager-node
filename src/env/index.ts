@@ -319,7 +319,7 @@ export class EnvService {
      */
     @preLazy()
     public async createEnvDomain(domains: string[]): Promise<IResponseInfo> {
-        const res = await this.cloudService.request('CreateAuthDomain', {
+        const res = await this.cloudService.request<IResponseInfo>('CreateAuthDomain', {
             EnvId: this.envId,
             Domains: domains
         })
@@ -341,7 +341,7 @@ export class EnvService {
         // 根据域名获取域名 Id
         const { Domains } = await this.getEnvAuthDomains()
         const domainIds = Domains.filter(item => domains.includes(item.Domain)).map(item => item.Id)
-        const res = await this.cloudService.request('DeleteAuthDomain', {
+        const res = await this.cloudService.request<IDeleteDomainRes>('DeleteAuthDomain', {
             EnvId: this.envId,
             DomainIds: domainIds
         })
@@ -359,8 +359,7 @@ export class EnvService {
      * @memberof CamService
      */
     public async checkTcbService(): Promise<ICheckTcbServiceRes> {
-        const res = await this.cloudService.request('CheckTcbService', {})
-        return res
+        return this.cloudService.request<ICheckTcbServiceRes>('CheckTcbService', {})
     }
 
     /**
@@ -374,8 +373,7 @@ export class EnvService {
             initParam = { ...param }
         }
 
-        const res = await this.cloudService.request('InitTcb', initParam)
-        return res
+        return this.cloudService.request<IResponseInfo>('InitTcb', initParam)
     }
 
     /**
@@ -387,11 +385,10 @@ export class EnvService {
      */
     public async CreatePostpayPackage(envId: string, source?: SOURCE): Promise<ICreatePostpayRes> {
         const realSource = source ? source : 'qcloud'
-        const res = this.cloudService.request('CreatePostpayPackage', {
+        return this.cloudService.request<ICreatePostpayRes>('CreatePostpayPackage', {
             EnvId: envId,
             Source: realSource
         })
-        return res
     }
 
     /**
@@ -401,10 +398,9 @@ export class EnvService {
      * @memberof EnvService
      */
     public async destroyEnv(envId: string): Promise<IResponseInfo> {
-        const res = await this.cloudService.request('DestroyEnv', {
+        return this.cloudService.request<IResponseInfo>('DestroyEnv', {
             EnvId: envId
         })
-        return res
     }
 
     /**
@@ -529,10 +525,13 @@ export class EnvService {
         KeyID: string // 私钥id
         RequestId: string // 请求ID
     }> {
-        const res = await this.cloudService.request('CreateCustomLoginKeys', {
+        return this.cloudService.request<{
+            PrivateKey: string // 自定义签名私钥
+            KeyID: string // 私钥id
+            RequestId: string // 请求ID
+        }>('CreateCustomLoginKeys', {
             EnvId: this.envId
         })
-        return res
     }
 
     // 获取 COS CORS 域名

@@ -1,13 +1,6 @@
 import { CloudService } from '../utils'
 import { CloudBaseContext } from '../context'
-import {
-    IServiceVersion,
-    IRoleListRes,
-    IResponseInfo,
-    IGoodItem,
-    IGenerateDealsRes,
-    IPayDealsRes
-} from '../interfaces'
+import { IServiceVersion, IGoodItem, IGenerateDealsRes, IPayDealsRes } from '../interfaces'
 
 export class BillingService {
     static billServiceVersion: IServiceVersion = {
@@ -31,10 +24,9 @@ export class BillingService {
      * @memberof BillingService
      */
     public async GenerateDeals(goods: Array<IGoodItem>): Promise<IGenerateDealsRes> {
-        const res = await this.billService.request('GenerateDeals', {
+        return this.billService.request<IGenerateDealsRes>('GenerateDeals', {
             Goods: goods
         })
-        return res
     }
 
     /**
@@ -44,9 +36,8 @@ export class BillingService {
      * @memberof BillingService
      */
     public async PayDeals(orderIds: Array<string>): Promise<IPayDealsRes> {
-        const res = await this.billService.request('PayDeals', {
+        return this.billService.request<IPayDealsRes>('PayDeals', {
             OrderIds: orderIds
         })
-        return res
     }
 }

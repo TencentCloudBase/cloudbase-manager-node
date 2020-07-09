@@ -22,11 +22,12 @@ export interface LayerVersionSimple {
 }
 export interface ICloudFunction extends ICloudFunctionConfig {
     name: string;
-    triggers?: ICloudFunctionTrigger[];
+    path?: string;
     handler?: string;
-    ignore?: string | string[];
     isWaitInstall?: boolean;
+    ignore?: string | string[];
     layers?: LayerVersionSimple[];
+    triggers?: ICloudFunctionTrigger[];
 }
 export interface IFunctionLogOptions {
     name: string;

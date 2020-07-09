@@ -43,6 +43,7 @@ export interface MgoIndexKeys {
     Direction: string;
 }
 export interface TableInfo {
+    TableName: string;
     CollectionName: string;
     Count: number;
     Size: number;

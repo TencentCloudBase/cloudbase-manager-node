@@ -31,11 +31,10 @@ export class CamService {
      * @memberof CamService
      */
     public async describeRoleList(page: number, rp: number): Promise<IRoleListRes> {
-        const res = await this.camService.request('DescribeRoleList', {
+        return this.camService.request<IRoleListRes>('DescribeRoleList', {
             Page: page,
             Rp: rp
         })
-        return res
     }
 
     /**
@@ -45,10 +44,9 @@ export class CamService {
      * @memberof CamService
      */
     public async getRole(roleName: string): Promise<IGetRoleRes> {
-        const res = await this.camService.request('GetRole', {
+        return this.camService.request<IGetRoleRes>('GetRole', {
             RoleName: roleName
         })
-        return res
     }
 
     /**
@@ -66,8 +64,7 @@ export class CamService {
         PolicyDocument: string
         Description: string
     }): Promise<ICreateRoleRes> {
-        const res = await this.camService.request('CreateRole', param)
-        return res
+        return this.camService.request<ICreateRoleRes>('CreateRole', param)
     }
 
     /**
@@ -83,8 +80,7 @@ export class CamService {
         PolicyId: number
         AttachRoleName: string
     }): Promise<IResponseInfo> {
-        const res = await this.camService.request('AttachRolePolicy', param)
-        return res
+        return this.camService.request<IResponseInfo>('AttachRolePolicy', param)
     }
 
     /**
@@ -94,9 +90,8 @@ export class CamService {
      * @memberof CamService
      */
     public async deleteRole(roleName: string): Promise<IResponseInfo> {
-        const res = await this.camService.request('DeleteRole', {
+        return this.camService.request<IResponseInfo>('DeleteRole', {
             RoleName: roleName
         })
-        return res
     }
 }

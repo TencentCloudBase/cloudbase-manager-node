@@ -1,134 +1,63 @@
 import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src/index'
 
-let manager = new CloudBase(cloudBaseConfig)
-const { env } = manager
+const app = new CloudBase(cloudBaseConfig)
 
-const { envId } = cloudBaseConfig
-
-test('数据库简易权限获取', async () => {
-    const res = await manager.commonService().call({
-        Action: 'DescribeDatabaseACL',
-        Param: {
-            CollectionName: 'coll-1',
-            EnvId: envId
-        }
+// 每个测试用例间隔 500ms
+beforeEach(() => {
+    return new Promise((resolve) => {
+        setTimeout(async () => {
+            resolve()
+        }, 1000)
     })
-    console.log(res)
+})
+
+test('删除云接入', async () => {
+    const res = await app.access.deleteAccess({
+        name: 'sum'
+    })
+
     expect(res.RequestId !== undefined).toBe(true)
 })
 
-test('数据库简易权限修改', async () => {
-    const res = await manager.commonService().call({
-        Action: 'ModifyDatabaseACL',
-        Param: {
-            CollectionName: 'coll-1',
-            AclTag: 'PRIVATE',
-            EnvId: envId
-        }
+test('创建云接入', async () => {
+    const res = await app.access.createAccess({
+        path: '/sum',
+        type: 1,
+        name: 'sum'
     })
-    console.log(res)
+
     expect(res.RequestId !== undefined).toBe(true)
 })
 
-test('数据库安全规则设置', async () => {
-    const res = await manager.commonService().call({
-        Action: 'ModifySafeRule',
-        Param: {
-            CollectionName: 'coll-1',
-            AclTag: 'PRIVATE',
-            EnvId: envId
-            // Rule: JSON.stringify({
-            //     read: true,
-            //     write: 'doc._openid == auth.openid'
-            // })
-        }
-    })
+test('获取云接入', async () => {
+    const res = await app.access.getAccessList()
+
     console.log(res)
+
     expect(res.RequestId !== undefined).toBe(true)
 })
 
-test('查询数据库安全规则', async () => {
-    const res = await manager.commonService().call({
-        Action: 'DescribeSafeRule',
-        Param: {
-            CollectionName: 'coll-1',
-            EnvId: envId
-        }
-    })
-    console.log(res)
+test('获取云接入域名列表', async () => {
+    const res = await app.access.getAccessDomainList()
+    console.log('删除云接入', res)
     expect(res.RequestId !== undefined).toBe(true)
 })
 
-test('设置存储安全规则', async () => {
-    // 获取环境信息 取bucket
-    const {
-        EnvInfo: { Storages }
-    } = await env.getEnvInfo()
-    console.log(Storages)
-    const { Bucket } = Storages[0]
-    const res = await manager.commonService().call({
-        Action: 'ModifyStorageSafeRule',
-        Param: {
-            Bucket,
-            AclTag: 'CUSTOM',
-            EnvId: envId,
-            Rule: JSON.stringify({
-                read: true,
-                write: 'resource.openid == auth.uid'
-            })
-        }
-    })
-    console.log(res)
-    expect(res.RequestId !== undefined).toBe(true)
-
-    let status = ''
-    do {
-        status = (
-            await manager.commonService().call({
-                Action: 'DescribeCDNChainTask',
-                Param: {
-                    Bucket,
-                    EnvId: envId
-                }
-            })
-        ).Status
-        console.log(status)
-    } while (status !== 'FINISHED' && status !== 'ERROR')
-}, 10000)
-
-test('查询存储安全规则', async () => {
-    // 获取环境信息 取bucket
-    const {
-        EnvInfo: { Storages }
-    } = await env.getEnvInfo()
-    console.log(Storages)
-    const { Bucket } = Storages[0]
-    const res = await manager.commonService().call({
-        Action: 'DescribeStorageSafeRule',
-        Param: {
-            Bucket,
-            EnvId: envId
-        }
-    })
-    console.log(res)
+test('切换鉴权', async () => {
+    const res = await app.access.switchAuth(false)
+    console.log('切换鉴权', res)
     expect(res.RequestId !== undefined).toBe(true)
 })
 
-test('获取CDN防盗链任务状态', async () => {
-    // 获取环境信息 取bucket
-    const {
-        EnvInfo: { Storages }
-    } = await env.getEnvInfo()
-    console.log(Storages)
-    const { Bucket } = Storages[0]
-    const res = await manager.commonService().call({
-        Action: 'DescribeCDNChainTask',
-        Param: {
-            Bucket,
-            EnvId: envId
-        }
+test('切换路径鉴权', async () => {
+    const { APISet } = await app.access.getAccessList()
+    const apiIds = APISet.map(item => item.APIId)
+
+    const res = await app.access.switchPathAuth({
+        apiIds: apiIds,
+        auth: false
     })
-    console.log(res)
+    console.log('switchAccessService', res)
     expect(res.RequestId !== undefined).toBe(true)
 })

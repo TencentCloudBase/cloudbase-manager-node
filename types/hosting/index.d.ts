@@ -132,7 +132,7 @@ export declare class HostingService {
      */
     enableService(): Promise<{
         code: number;
-        requestId: any;
+        requestId: string;
     }>;
     findFiles(options: IFindOptions): Promise<any>;
     /**
@@ -144,7 +144,7 @@ export declare class HostingService {
      */
     destroyService(): Promise<{
         code: number;
-        requestId: any;
+        requestId: string;
     }>;
     /**
      * 支持上传单个文件，文件夹，或多个文件
@@ -171,7 +171,7 @@ export declare class HostingService {
      * @returns
      * @memberof HostingService
      */
-    CreateHostingDomain(options: IBindDomainOptions): Promise<any>;
+    CreateHostingDomain(options: IBindDomainOptions): Promise<{}>;
     /**
      * 删除托管域名
      *
@@ -179,17 +179,17 @@ export declare class HostingService {
      * @returns
      * @memberof HostingService
      */
-    deleteHostingDomain(options: IDeleteDomainOptions): Promise<any>;
+    deleteHostingDomain(options: IDeleteDomainOptions): Promise<{}>;
     /**
      * 查询域名状态信息
      * @param options
      */
-    tcbCheckResource(options: ICheckSourceOptions): Promise<any>;
+    tcbCheckResource(options: ICheckSourceOptions): Promise<{}>;
     /**
      * 域名配置变更
      * @param options
      */
-    tcbModifyAttribute(options: IModifyOptions): Promise<any>;
+    tcbModifyAttribute(options: IModifyOptions): Promise<{}>;
     /**
      * 查询静态网站配置
      * @memberof HostingService

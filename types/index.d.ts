@@ -7,6 +7,7 @@ import { HostingService } from './hosting';
 import { Environment } from './environment';
 import { EnvironmentManager } from './environmentManager';
 import { ThirdService } from './third';
+import { AccessService } from './access';
 interface CloudBaseConfig {
     secretId?: string;
     secretKey?: string;
@@ -35,6 +36,7 @@ declare class CloudBase {
     get storage(): StorageService;
     get database(): DatabaseService;
     get hosting(): HostingService;
+    get access(): AccessService;
     commonService(service?: string, version?: string): CommonService;
     get env(): EnvService;
     get third(): ThirdService;

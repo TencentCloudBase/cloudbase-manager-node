@@ -62,9 +62,9 @@ interface IDatabaseImportAndExportInfo extends IResponseInfo {
 }
 
 function preLazy() {
-    return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         let oldFunc = descriptor.value
-        descriptor.value = async function() {
+        descriptor.value = async function () {
             // 检查当前环境对象上是否已加载好环境信息
             const currentEnvironment = this.environment
 
@@ -188,13 +188,13 @@ export class DatabaseService {
     public async describeCollection(collectionName: string): Promise<ITableInfo> {
         let { Tag } = this.getDatabaseConfig()
 
-        const res = await this.collOpService.request('DescribeTable', {
+        return this.collOpService.request<ITableInfo>('DescribeTable', {
             Tag,
             TableName: collectionName
         })
-        return res
     }
 
+    // 获取
     @preLazy()
     public async listCollections(
         options: IMgoQueryInfo = {
@@ -212,7 +212,12 @@ export class DatabaseService {
             options.MgoOffset = this.DEFAULT_MGO_OFFSET
         }
 
-        const res = await this.collOpService.request('ListTables', {
+        const res = await this.collOpService.request<{
+            RequestId: string
+            Pager: Pager
+            Tables?: TableInfo[]
+            Collections: TableInfo[]
+        }>('ListTables', {
             Tag,
             ...options
         })
@@ -221,7 +226,7 @@ export class DatabaseService {
             // 无集合
             res.Collections = []
         } else {
-            // 云api返回转换为与TCB一致
+            // 云 API 返回转换为与TCB一致
             res.Collections = res.Tables.map(item => {
                 item.CollectionName = item.TableName
                 delete item.TableName

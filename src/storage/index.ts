@@ -825,7 +825,9 @@ export class StorageService {
     public async getStorageAcl(): Promise<AclType> {
         const { bucket, env } = this.getStorageConfig()
 
-        const res = await this.tcbService.request('DescribeStorageACL', {
+        const res = await this.tcbService.request<{
+            AclTag: AclType
+        }>('DescribeStorageACL', {
             EnvId: env,
             Bucket: bucket
         })
@@ -851,13 +853,11 @@ export class StorageService {
 
         const { bucket, env } = this.getStorageConfig()
 
-        const res = await this.tcbService.request('ModifyStorageACL', {
+        return this.tcbService.request<IResponseInfo>('ModifyStorageACL', {
             EnvId: env,
             Bucket: bucket,
             AclTag: acl
         })
-
-        return res
     }
 
     /**
@@ -1090,7 +1090,7 @@ export class StorageService {
 
         return new COS({
             FileParallelLimit: parallel,
-            getAuthorization: function(_, callback) {
+            getAuthorization: function (_, callback) {
                 callback({
                     TmpSecretId: secretId,
                     TmpSecretKey: secretKey,
