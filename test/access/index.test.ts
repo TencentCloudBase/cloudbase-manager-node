@@ -39,7 +39,7 @@ test('获取云接入', async () => {
 })
 
 test('获取云接入域名列表', async () => {
-    const res = await app.access.getAccessDomainList()
+    const res = await app.access.getDomainList()
     console.log('删除云接入', res)
     expect(res.RequestId !== undefined).toBe(true)
 })

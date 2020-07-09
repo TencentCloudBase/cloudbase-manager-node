@@ -203,6 +203,6 @@ test('设置静态托管 缓存配置 防盗链配置 黑名单配置 IP访问�
 
     console.log('checkResourceRes:', JSON.stringify(checkResourceRes))
     expect(
-        checkResourceRes?.Domains[0]?.DomainConfig?.Refer?.RefererRules !== undefined
+        checkResourceRes?.Domains[0]?.DomainConfig?.Refer !== undefined
     ).toBeTruthy()
 })

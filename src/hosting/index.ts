@@ -119,6 +119,14 @@ export interface IDeleteDomainOptions {
     domain: string
 }
 
+export interface IDomainInfo {
+    Domain: string
+    DomainId: number
+    Status: 'process' | 'online' | 'offline'
+    DomainConfig: Record<string, string>
+    CName: String
+}
+
 const HostingStatusMap = {
     init: '初始化中',
     process: '处理中',
@@ -430,11 +438,10 @@ export class HostingService {
     async deleteHostingDomain(options: IDeleteDomainOptions) {
         const { envId } = this.getHostingConfig()
         const { domain } = options
-        const res = await this.tcbService.request('DeleteHostingDomain', {
+        return this.tcbService.request<{ RequestId: string }>('DeleteHostingDomain', {
             EnvId: envId,
             Domain: domain
         })
-        return res
     }
 
     /**
@@ -442,7 +449,11 @@ export class HostingService {
      * @param options
      */
     async tcbCheckResource(options: ICheckSourceOptions) {
-        return this.cdnService.request('TcbCheckResource', {
+        return this.cdnService.request<{
+            Domains: IDomainInfo[]
+            RecordCount: number
+            RequestId: string
+        }>('TcbCheckResource', {
             Domains: options.domains
         })
     }

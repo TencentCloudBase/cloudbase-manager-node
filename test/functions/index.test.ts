@@ -240,40 +240,40 @@ test('更新云函数代码：functions.updateFunctionCode 加代码保护 验�
     const res = await functions.updateFunctionCode({
         func: {
             // functions 文件夹下函数文件夹的名称，即函数名
-            name: 'app',
+            name: 'sumWithCodeSecret',
             isWaitInstall: true
         },
         functionRootPath: '',
         base64Code:
             'UEsDBAoAAAAAAOdCBU8AAAAAAAAAAAAAAAAFAAAAZGlzdC9QSwMEFAAIAAgAkhkBTwAAAAAAAAAAAAAAAAgAAABpbmRleC5qc2WNMQrDMBRDd59Cmx0IuUEy9wadXfdTQlT/Yv+UQMndmxZv0ST0kOTXKqhW5mTeOdleWqwOzzhnjAjylmw9kmaT7WcieYtp6TBO+DgcOlhVykB9BH8RUnHVwrvvTvi/do7begPtIeSV7NEqu/sCUEsHCLKdLCxuAAAAqAAAAFBLAwQUAAgACADnQgVPAAAAAAAAAAAAAAAADQAAAGRpc3QvZGlzdC56aXAL8GZm4WIAgedOrP5gBpRgBdIpmcUl+gFAJSIMHEA4SZIRRQkHUElmXkpqhV5WcWqvIddhAxHn8vlOs2U5djoafWebG/s92Cnkf9L/KQ4n784Wy7+o8mXCk+taK8KepdyzvBkXtYbvvEV6D8enaTm2k9Imv01XquzOfGng98NCxioi9JRDLUu9YFDh1UO73/v92F/Wd7uK+a3ik6lvLmrt/s0U4M3OsWmujk4e0AUrgBjhRnRv8MK8AfKLXlVmAQBQSwcITXynOsAAAADyAAAAUEsBAi0DCgAAAAAA50IFTwAAAAAAAAAAAAAAAAUAAAAAAAAAAAAQAO1BAAAAAGRpc3QvUEsBAi0DFAAIAAgAkhkBT7KdLCxuAAAAqAAAAAgAAAAAAAAAAAAgAKSBIwAAAGluZGV4LmpzUEsBAi0DFAAIAAgA50IFT018pzrAAAAA8gAAAA0AAAAAAAAAAAAgAKSBxwAAAGRpc3QvZGlzdC56aXBQSwUGAAAAAAMAAwCkAAAAwgEAAAAA',
-        codeSecret: 'llluke'
+        codeSecret: 'lukekke'
     })
 
     expect(res.RequestId).toBeTruthy()
 
     // 验证不加code 调用 getFunctionDetail
     try {
-        const res = await functions.getFunctionDetail('app')
+        const res = await functions.getFunctionDetail('sumWithCodeSecret')
     } catch (err) {
         expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
     }
 
     // 验证不加code 调用 getFunctionDownloadUrl
     try {
-        const res = await functions.getFunctionDownloadUrl('app')
+        const res = await functions.getFunctionDownloadUrl('sumWithCodeSecret')
     } catch (err) {
         expect(!!err).toBe(true) // 这里报错未返回错误码
         // expect(err.code).toBe('UnauthorizedOperation.CodeSecret')
     }
 
     // 验证加code调用 getFunctionDetail
-    const res1 = await functions.getFunctionDetail('app', 'llluke')
-    expect(res1.FunctionName).toEqual('app')
+    const res1 = await functions.getFunctionDetail('sumWithCodeSecret', 'lukekke')
+    expect(res1.FunctionName).toEqual('sumWithCodeSecret')
 
     // 验证加code调用 getFunctionDownloadUrl
-    const res2 = await functions.getFunctionDownloadUrl('app', 'llluke')
+    const res2 = await functions.getFunctionDownloadUrl('sumWithCodeSecret', 'lukekke')
     expect(res2.Url !== undefined).toBe(true)
-})
+}, 10000)
 
 test('创建云函数-本地文件上传：functions.createFunction', async () => {
     const res = await functions.createFunction({

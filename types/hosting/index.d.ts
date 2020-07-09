@@ -92,6 +92,13 @@ export interface IModifyOptions {
 export interface IDeleteDomainOptions {
     domain: string;
 }
+export interface IDomainInfo {
+    Domain: string;
+    DomainId: number;
+    Status: 'process' | 'online' | 'offline';
+    DomainConfig: Record<string, string>;
+    CName: String;
+}
 export interface IHostingInfo {
     EnvId: string;
     CdnDomain: string;
@@ -179,12 +186,18 @@ export declare class HostingService {
      * @returns
      * @memberof HostingService
      */
-    deleteHostingDomain(options: IDeleteDomainOptions): Promise<{}>;
+    deleteHostingDomain(options: IDeleteDomainOptions): Promise<{
+        RequestId: string;
+    }>;
     /**
      * 查询域名状态信息
      * @param options
      */
-    tcbCheckResource(options: ICheckSourceOptions): Promise<{}>;
+    tcbCheckResource(options: ICheckSourceOptions): Promise<{
+        Domains: IDomainInfo[];
+        RecordCount: number;
+        RequestId: string;
+    }>;
     /**
      * 域名配置变更
      * @param options
