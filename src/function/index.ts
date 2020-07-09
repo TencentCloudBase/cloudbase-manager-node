@@ -867,7 +867,15 @@ export class FunctionService {
                 path
             })
         } catch (e) {
-            if (e.code !== 'InvalidParameter.APICreated') {
+            // 当 Path 存在时，校验 Path 绑定的函数是不是当前函数
+            if (e.code === 'InvalidParameter.APICreated') {
+                const { APISet } = await access.getAccessList({
+                    name
+                })
+                if (APISet?.[0].Name !== name || APISet?.[0].Type !== 1) {
+                    throw e
+                }
+            } else {
                 throw e
             }
         }

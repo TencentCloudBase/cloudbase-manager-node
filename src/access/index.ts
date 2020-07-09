@@ -58,7 +58,7 @@ export class AccessService {
     // 获取云接入服务列表
     @preLazy()
     public async getAccessList(options: IGetOptions = {}) {
-        const { name, offset, limit } = options
+        const { path, name, offset, limit } = options
         const { envId } = this.getEnvInfo()
 
         return this.tcbService.request<{
@@ -70,6 +70,7 @@ export class AccessService {
             EnableService: boolean
         }>('DescribeCloudBaseGWAPI', {
             ServiceId: envId,
+            Path: path,
             Name: name,
             Offset: offset,
             limit: limit

@@ -31,6 +31,7 @@ export interface IDeleteOptions {
     path?: string;
 }
 export interface IGetOptions {
+    path?: string;
     name?: string;
     limit?: number;
     offset?: number;
