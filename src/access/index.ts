@@ -27,7 +27,7 @@ export class AccessService {
         const { envId } = this.getEnvInfo()
 
         return this.tcbService.request<{
-            APISet: IApi[]
+            APIId: string
             RequestId: string
         }>('CreateCloudBaseGWAPI', {
             ServiceId: envId,

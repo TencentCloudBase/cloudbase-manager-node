@@ -6,7 +6,7 @@ export declare class AccessService {
     private environment;
     constructor(environment: Environment);
     createAccess(options: ICreateAccessOptions): Promise<{
-        APISet: IApi[];
+        APIId: string;
         RequestId: string;
     }>;
     getDomainList(): Promise<{
