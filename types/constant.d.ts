@@ -33,4 +33,5 @@ export declare const SCF_STATUS: {
     ACTIVE: string;
     CREATING: string;
     UPDATING: string;
+    CREATE_FAILED: string;
 };

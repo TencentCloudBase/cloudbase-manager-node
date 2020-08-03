@@ -302,10 +302,8 @@ export class FunctionService {
                 await this.createAccessPath(funcName, func.path)
             }
 
-            // 如果选择自动安装依赖，且等待依赖安装
-            if (params.InstallDependency && func.isWaitInstall === true) {
-                await this.waitFunctionActive(funcName, codeSecret)
-            }
+            // 检查函数状态
+            await this.waitFunctionActive(funcName, codeSecret)
 
             return res
         } catch (e) {
@@ -336,10 +334,8 @@ export class FunctionService {
                     await this.createAccessPath(funcName, func.path)
                 }
 
-                if (params.InstallDependency && func.isWaitInstall === true) {
-                    await this.waitFunctionActive(funcName, codeSecret)
-                }
-
+                // 检查函数状态
+                await this.waitFunctionActive(funcName, codeSecret)
                 // 返回全部操作的响应值
                 return {
                     triggerRes,
@@ -1017,14 +1013,19 @@ export class FunctionService {
             timer = setTimeout(() => {
                 clearInterval(ticker)
                 if (!resolved) {
-                    reject(new CloudBaseError('函数状态异常'))
+                    reject(new CloudBaseError('函数状态异常，检查超时'))
                 }
             }, 300000)
 
             ticker = setInterval(async () => {
                 try {
                     const { Status } = await this.getFunctionDetail(funcName, codeSecret)
+                    // 更新中
                     if (Status === SCF_STATUS.CREATING || Status === SCF_STATUS.UPDATING) return
+                    // 创建失败
+                    if (Status === SCF_STATUS.CREATE_FAILED) {
+                        throw new CloudBaseError('云函数创建失败')
+                    }
                     // 函数状态正常
                     clearInterval(ticker)
                     clearTimeout(timer)

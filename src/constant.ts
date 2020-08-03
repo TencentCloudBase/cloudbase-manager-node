@@ -51,5 +51,6 @@ export const ROLE_NAME = {
 export const SCF_STATUS = {
     ACTIVE: 'Active',
     CREATING: 'Creating',
-    UPDATING: 'Updating'
+    UPDATING: 'Updating',
+    CREATE_FAILED: 'CreateFailed'
 }
