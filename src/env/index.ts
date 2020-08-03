@@ -604,7 +604,7 @@ export class EnvService {
 
     private getStorageConfig() {
         const envConfig = this.environment.lazyEnvironmentConfig
-        const storageConfig = envConfig.Storages && envConfig.Storages[0]
+        const storageConfig = envConfig?.Storages?.[0]
         const { Region, Bucket } = storageConfig
         return {
             env: envConfig.EnvId,

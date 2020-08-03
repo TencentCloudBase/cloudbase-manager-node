@@ -71,3 +71,6 @@ node_modules
 download_dir
 
 test/config.ts
+
+yarn.lock
+package-lock.json
