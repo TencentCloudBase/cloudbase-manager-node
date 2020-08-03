@@ -22,7 +22,7 @@ test('database createCollection', async () => {
             console.log('已创建该集合')
         }
     }
-})
+}, 10000)
 
 // 检查当前环境下某集合是否存在
 test('database checkCollectionExists', async () => {
