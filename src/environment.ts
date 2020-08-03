@@ -12,6 +12,7 @@ import { getRuntime, getEnvVar } from './utils'
 import { HostingService } from './hosting'
 import { ThirdService } from './third'
 import { AccessService } from './access'
+import { UserService } from './user'
 
 export class Environment {
     public inited = false
@@ -26,6 +27,7 @@ export class Environment {
     private hostingService: HostingService
     private thirdService: ThirdService
     private accessService: AccessService
+    private userService: UserService
 
     constructor(context: CloudBaseContext, envId: string) {
         this.envId = envId
@@ -39,6 +41,7 @@ export class Environment {
         this.hostingService = new HostingService(this)
         this.thirdService = new ThirdService(this)
         this.accessService = new AccessService(this)
+        this.userService = new UserService(this)
     }
 
     async lazyInit(): Promise<any> {
@@ -88,6 +91,10 @@ export class Environment {
 
     public getAccessService(): AccessService {
         return this.accessService
+    }
+
+    public getUserService(): UserService {
+        return this.userService
     }
 
     public getCommonService(serviceType = 'tcb', serviceVersion): CommonService {
