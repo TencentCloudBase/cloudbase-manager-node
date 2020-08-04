@@ -10,6 +10,15 @@ async function recreateCollection(collName: string) {
     await manager.database.createCollection(collName)
 }
 
+// 每个测试用例间隔 2000ms
+beforeEach(() => {
+    return new Promise((resolve, reject) => {
+        setTimeout(async () => {
+            resolve()
+        }, 2000)
+    })
+})
+
 // 当前环境下创建集合
 test('database createCollection', async () => {
     let res
