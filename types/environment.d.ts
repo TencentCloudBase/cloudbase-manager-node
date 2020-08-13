@@ -8,6 +8,7 @@ import { HostingService } from './hosting';
 import { ThirdService } from './third';
 import { AccessService } from './access';
 import { UserService } from './user';
+import { CloudBaseRunService } from './cloudBaseRun';
 export declare class Environment {
     inited: boolean;
     cloudBaseContext: CloudBaseContext;
@@ -21,6 +22,7 @@ export declare class Environment {
     private thirdService;
     private accessService;
     private userService;
+    private cloudBaseRunService;
     constructor(context: CloudBaseContext, envId: string);
     lazyInit(): Promise<any>;
     getEnvId(): string;
@@ -32,6 +34,7 @@ export declare class Environment {
     getThirdService(): ThirdService;
     getAccessService(): AccessService;
     getUserService(): UserService;
+    getCloudBaseRunService(): CloudBaseRunService;
     getCommonService(serviceType: string, serviceVersion: any): CommonService;
     getServicesEnvInfo(): Promise<any>;
     getAuthConfig(): {

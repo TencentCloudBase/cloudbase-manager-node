@@ -16,3 +16,5 @@ export declare function getRuntime(): string;
 export declare function getEnvVar(envName: string): string;
 export declare function rsaEncrypt(data: string): string;
 export declare function sleep(time: number): Promise<void>;
+export declare function upperCaseStringFisrt(str: string): string;
+export declare function upperCaseObjKey(object: any): any;

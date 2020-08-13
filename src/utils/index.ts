@@ -25,14 +25,14 @@ export async function compressToZip(option: IZipOption) {
         const output = fs.createWriteStream(outputPath)
         const archive = archiver('zip')
 
-        output.on('close', function() {
+        output.on('close', function () {
             resolve({
                 zipPath: outputPath,
                 size: Math.ceil(archive.pointer() / 1024)
             })
         })
 
-        archive.on('error', function(err) {
+        archive.on('error', function (err) {
             reject(err)
         })
 
@@ -74,4 +74,30 @@ export function sleep(time: number): Promise<void> {
             resolve()
         }, time)
     })
+}
+
+export function upperCaseStringFisrt(str: string) {
+    return str.slice(0, 1).toUpperCase().concat(str.slice(1))
+}
+
+export function upperCaseObjKey(object: any) {
+    const type = Object.prototype.toString.call(object).slice(8, -1)
+    if (type === 'Object') {
+        let newObj = {}
+        // eslint-disable-next-line guard-for-in
+        for (let key in object) {
+            newObj[upperCaseStringFisrt(key)] = upperCaseObjKey(object[key])
+        }
+        return newObj
+    }
+
+    if (type === 'Array') {
+        let newArr = []
+        for (let item of object) {
+            newArr.push(upperCaseObjKey(item))
+        }
+        return newArr
+    }
+
+    return object
 }
