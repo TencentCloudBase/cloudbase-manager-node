@@ -91,7 +91,7 @@ class CloudBase {
         return this.currentEnvironment().getAccessService()
     }
 
-    public get cloudBaseRun(): CloudBaseRunService {
+    public get cloudApp(): CloudBaseRunService {
         return this.currentEnvironment().getCloudBaseRunService()
     }
 

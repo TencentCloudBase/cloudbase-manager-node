@@ -39,7 +39,7 @@ declare class CloudBase {
     get database(): DatabaseService;
     get hosting(): HostingService;
     get access(): AccessService;
-    get cloudBaseRun(): CloudBaseRunService;
+    get cloudApp(): CloudBaseRunService;
     commonService(service?: string, version?: string): CommonService;
     get env(): EnvService;
     get third(): ThirdService;

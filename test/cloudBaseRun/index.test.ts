@@ -12,16 +12,16 @@ beforeEach(() => {
     })
 })
 
-test.skip('修改容器内版本流量配置', async () => {
-    const res = await app.cloudBaseRun.modifyServerFlow({
-        serverName: 'test',
+test('修改容器内版本流量配置', async () => {
+    const res = await app.cloudApp.modifyServerFlow({
+        serverName: 'cloud-app-test',
         versionFlowItems: [
             {
-                versionName: 'test-001',
+                versionName: 'cloud-app-test-001',
                 flowRatio: 30
             },
             {
-                versionName: 'test-002',
+                versionName: 'cloud-app-test-002',
                 flowRatio: 70
             }
         ]
