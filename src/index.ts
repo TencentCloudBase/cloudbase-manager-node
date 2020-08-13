@@ -10,6 +10,7 @@ import { EnvironmentManager } from './environmentManager'
 import { ThirdService } from './third'
 import { AccessService } from './access'
 import { UserService } from './user'
+import { CloudBaseRunService } from './cloudBaseRun'
 
 interface CloudBaseConfig {
     secretId?: string
@@ -88,6 +89,10 @@ class CloudBase {
 
     public get access(): AccessService {
         return this.currentEnvironment().getAccessService()
+    }
+
+    public get cloudApp(): CloudBaseRunService {
+        return this.currentEnvironment().getCloudBaseRunService()
     }
 
     public commonService(service?: string, version?: string): CommonService {

@@ -150,7 +150,6 @@ export class CloudService {
                 return data.Response
             }
         } catch (e) {
-            // throw e
             if (e.name === 'CloudBaseError') {
                 throw e
             } else {

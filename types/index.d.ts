@@ -9,6 +9,7 @@ import { EnvironmentManager } from './environmentManager';
 import { ThirdService } from './third';
 import { AccessService } from './access';
 import { UserService } from './user';
+import { CloudBaseRunService } from './cloudBaseRun';
 interface CloudBaseConfig {
     secretId?: string;
     secretKey?: string;
@@ -38,6 +39,7 @@ declare class CloudBase {
     get database(): DatabaseService;
     get hosting(): HostingService;
     get access(): AccessService;
+    get cloudApp(): CloudBaseRunService;
     commonService(service?: string, version?: string): CommonService;
     get env(): EnvService;
     get third(): ThirdService;
