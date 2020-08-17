@@ -22,4 +22,19 @@ export declare class UserService {
     }): Promise<{
         RequestId: string;
     }>;
+    createEndUser(options: {
+        username: string;
+        password: string;
+    }): Promise<{
+        RequestId: string;
+        User: EndUserInfo;
+    }>;
+    modifyEndUser(options: {
+        uuid: string;
+        password?: string;
+        username?: string;
+    }): Promise<{
+        RequestId: string;
+    }>;
+    private isValidStr;
 }
