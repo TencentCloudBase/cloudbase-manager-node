@@ -54,3 +54,81 @@ test('test deleteEndUsers', async () => {
     const foundDeletedUser = deletedUsers.some((deleteUser) => deleteUser.UUId === toDeleteUser.UUId)
     expect(foundDeletedUser).toBeFalsy()
 })
+
+test('创建用户，删除用户', async () => {
+    const username = 'ts8324ndf9324j'
+    const { User: newUser } = await app.user.createEndUser({
+        username,
+        password: '123hello'
+    })
+
+    const { Users: unDeleteUsers } = await app.user.getEndUserList({
+        limit: 100,
+        offset: 0
+    })
+
+    const user = unDeleteUsers.find(user => newUser.UUId === user.UUId)
+    expect(user).toBeDefined()
+    await app.user.deleteEndUsers({
+        userList: [newUser.UUId]
+    })
+
+    const { Users: deletedUsers } = await app.user.getEndUserList({
+        limit: 100,
+        offset: 0
+    })
+    const isExist = deletedUsers.some(user => newUser.UUId === user.UUId)
+    expect(isExist).toBeFalsy()
+})
+
+test('重复创建用户', async () => {
+    const username = 'op59sdf08'
+    const { User } = await app.user.createEndUser({
+        username,
+        password: '123hello'
+    })
+
+    const createAgain = app.user.createEndUser({
+        username,
+        password: '123hello'
+    })
+    await expect(createAgain).rejects.toThrow()
+
+    await app.user.deleteEndUsers({
+        userList: [User.UUId]
+    })
+})
+
+test('创建用户，密码强度不符合要求', async () => {
+    const username = 'a34kfsd9324ndf89rnmvfqp'
+    const promise = app.user.createEndUser({
+        username,
+        password: '123'
+    })
+    await expect(promise).rejects.toThrow()
+})
+
+test('更新用户信息', async () => {
+    const username = 'yxd59sdf00'
+    const newUsername = 'yxd59sdf01'
+    const { User } = await app.user.createEndUser({
+        username,
+        password: '123hello'
+    })
+
+    await app.user.modifyEndUser({
+        uuid: User.UUId,
+        username: newUsername
+    })
+
+    const { Users } = await app.user.getEndUserList({
+        limit: 100,
+        offset: 0
+    })
+    const found = Users.some(user => user.UserName === newUsername)
+    expect(found).toBeTruthy()
+
+    await app.user.deleteEndUsers({
+        userList: [User.UUId]
+    })
+})
