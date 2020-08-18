@@ -20,6 +20,13 @@ test('列出所有函数: functions.listFunctions', async () => {
     expect(data.length).toBeGreaterThanOrEqual(1)
 })
 
+test('列出所有函数(新): functions.getFunctionList', async () => {
+    const res = await functions.getFunctionList()
+    console.log('data:', res)
+
+    expect(res.Functions.length).toBeGreaterThanOrEqual(1)
+})
+
 test('列出所有函数: functions.listFunctions(10, 1)', async () => {
     const data = await functions.listFunctions(10, 1)
 
@@ -401,6 +408,35 @@ test('更新函数配置: functions.updateFunctionConfig', async () => {
 
     expect(detail.Timeout).toEqual(6)
     expect(detail.MemorySize).toEqual(512)
+})
+
+test.skip('连续更新动作 updateFunctionConfig + createFunctionTriggers', async () => {
+    const updateFunctionConfigRes = await functions.updateFunctionConfig({
+        name: 'app',
+        timeout: 10,
+        memorySize: 256
+    })
+    expect(updateFunctionConfigRes.RequestId).toBeTruthy()
+    const detail = await functions.getFunctionDetail('app')
+
+    expect(detail.Timeout).toEqual(10)
+    expect(detail.MemorySize).toEqual(256)
+
+    const createTriggerRes = await functions.createFunctionTriggers('app', [
+        {
+            // name: 触发器的名字
+            name: 'newTrigger',
+            // type: 触发器类型，目前仅支持 timer （即定时触发器）
+            type: 'timer',
+            // config: 触发器配置，在定时触发器下，config 格式为 cron 表达式
+            config: '0 0 3 1 * * *'
+        }
+    ])
+    expect(createTriggerRes.RequestId).toBeTruthy()
+
+    const detail1 = await functions.getFunctionDetail('app')
+
+    expect(detail1.Triggers.length).toBeGreaterThan(0)
 })
 
 test('创建触发器: functions.createFunctionTriggers', async () => {
