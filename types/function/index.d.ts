@@ -106,6 +106,21 @@ export declare class FunctionService {
      */
     createFunction(funcParam: ICreateFunctionParam): Promise<IResponseInfo | ICreateFunctionRes>;
     /**
+     * @param {number} [limit=20]
+     * @param {number} [offset=0]
+     * @returns {Promise<{
+     *         Functions: Record<string, string>[]
+     *         RequestId: string
+     *         TotalCount: number
+     *     }>}
+     * @memberof FunctionService
+     */
+    getFunctionList(limit?: number, offset?: number): Promise<{
+        Functions: Record<string, string>[];
+        RequestId: string;
+        TotalCount: number;
+    }>;
+    /**
      * 列出函数
      * @param {number} [limit=20]
      * @param {number} [offset=0]

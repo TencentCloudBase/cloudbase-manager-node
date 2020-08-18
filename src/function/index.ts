@@ -357,6 +357,54 @@ export class FunctionService {
     }
 
     /**
+     * @param {number} [limit=20]
+     * @param {number} [offset=0]
+     * @returns {Promise<{
+     *         Functions: Record<string, string>[]
+     *         RequestId: string
+     *         TotalCount: number
+     *     }>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    async getFunctionList(
+        limit = 20,
+        offset = 0
+    ): Promise<{
+        Functions: Record<string, string>[]
+        RequestId: string
+        TotalCount: number
+    }> {
+        // 获取Function 环境配置
+        const { namespace } = this.getFunctionConfig()
+
+        const res: any = await this.scfService.request('ListFunctions', {
+            Namespace: namespace,
+            Limit: limit,
+            Offset: offset
+        })
+        const { Functions = [], RequestId, TotalCount } = res
+        const data: Record<string, string>[] = []
+        Functions.forEach(func => {
+            const { FunctionId, FunctionName, Runtime, AddTime, ModTime, Status } = func
+            data.push({
+                FunctionId,
+                FunctionName,
+                Runtime,
+                AddTime,
+                ModTime,
+                Status
+            })
+        })
+
+        return {
+            RequestId,
+            TotalCount,
+            Functions: data
+        }
+    }
+
+    /**
      * 列出函数
      * @param {number} [limit=20]
      * @param {number} [offset=0]
