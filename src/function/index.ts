@@ -383,25 +383,7 @@ export class FunctionService {
             Limit: limit,
             Offset: offset
         })
-        const { Functions = [], RequestId, TotalCount } = res
-        const data: Record<string, string>[] = []
-        Functions.forEach(func => {
-            const { FunctionId, FunctionName, Runtime, AddTime, ModTime, Status } = func
-            data.push({
-                FunctionId,
-                FunctionName,
-                Runtime,
-                AddTime,
-                ModTime,
-                Status
-            })
-        })
-
-        return {
-            RequestId,
-            TotalCount,
-            Functions: data
-        }
+        return res
     }
 
     /**
