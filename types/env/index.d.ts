@@ -120,7 +120,7 @@ export declare class EnvService {
      * @param {string} appSecret 微信 appSecret
      * @returns {Promise<IResponseInfo>}
      */
-    createLoginConfig(platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC' | 'QQ' | 'ANONYMOUS', appId: string, appSecret?: string): Promise<IResponseInfo>;
+    createLoginConfig(platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC' | 'QQ' | 'ANONYMOUS' | 'USERNAME', appId: string, appSecret?: string): Promise<IResponseInfo>;
     /**
      * 更新登录方式配置
      * @param {string} configId 配置 Id，从配置列表中获取

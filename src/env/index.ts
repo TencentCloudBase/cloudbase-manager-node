@@ -454,17 +454,11 @@ export class EnvService {
      * @returns {Promise<IResponseInfo>}
      */
     async createLoginConfig(
-        platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC' | 'QQ' | 'ANONYMOUS',
+        platform: 'WECHAT-OPEN' | 'WECHAT-PUBLIC' | 'QQ' | 'ANONYMOUS' | 'USERNAME',
         appId: string,
         appSecret?: string
     ): Promise<IResponseInfo> {
-        const validPlatform = ['WECHAT-OPEN', 'WECHAT-PUBLIC', 'QQ', 'ANONYMOUS']
         let finalAppSecret = appSecret
-        if (!validPlatform.includes(platform)) {
-            throw new CloudBaseError(
-                `Invalid platform value: ${platform}. Now only support 'WECHAT-OPEN', 'WECHAT-PUBLIC', 'QQ', 'ANONYMOUS'`
-            )
-        }
 
         if (platform === 'ANONYMOUS') {
             finalAppSecret = 'anonymous'
@@ -475,7 +469,7 @@ export class EnvService {
             // 平台， “QQ" "WECHAT-OPEN" "WECHAT-PUBLIC"
             Platform: platform,
             PlatformId: appId,
-            PlatformSecret: rsaEncrypt(finalAppSecret),
+            PlatformSecret: finalAppSecret ? rsaEncrypt(finalAppSecret) : undefined,
             Status: 'ENABLE'
         })
     }
@@ -591,7 +585,7 @@ export class EnvService {
         }
 
         return new COS({
-            getAuthorization: function(_, callback) {
+            getAuthorization: function (_, callback) {
                 callback({
                     TmpSecretId: secretId,
                     TmpSecretKey: secretKey,
