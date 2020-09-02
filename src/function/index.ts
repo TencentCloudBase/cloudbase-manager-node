@@ -159,6 +159,8 @@ function configToParams(options: { func: ICloudFunction; codeSecret: string; bas
         L5Enable: l5Enable
     }
 
+    // 函数绑定的角色
+    params.Role = func.role || params.Role
     // 修复参数存在 undefined 字段时，会出现鉴权失败的情况
     // Environment 为覆盖式修改，不保留已有字段
     envVariables.length && (params.Environment = { Variables: envVariables })

@@ -15,6 +15,7 @@ export interface ICloudFunctionConfig {
     installDependency?: boolean;
     l5?: boolean;
     memorySize?: number;
+    role?: string;
 }
 export interface LayerVersionSimple {
     LayerName: string;

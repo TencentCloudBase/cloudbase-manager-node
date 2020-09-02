@@ -18,6 +18,8 @@ export interface ICloudFunctionConfig {
     installDependency?: boolean
     l5?: boolean
     memorySize?: number
+    // 函数绑定的角色
+    role?: string
 }
 
 export interface LayerVersionSimple {

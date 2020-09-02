@@ -16,6 +16,7 @@ interface CloudBaseConfig {
     token?: string;
     envId?: string;
     proxy?: string;
+    region?: string;
 }
 declare class CloudBase {
     private static cloudBase;
