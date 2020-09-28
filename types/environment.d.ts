@@ -43,5 +43,6 @@ export declare class Environment {
         secretKey: string;
         token: string;
         proxy: string;
+        region: string;
     };
 }

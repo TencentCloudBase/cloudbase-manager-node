@@ -22,7 +22,7 @@ export const ENDPOINT = {
     TCB: 'tcb.tencentcloudapi.com',
     SCF: 'scf.tencentcloudapi.com',
     COS: 'cos.tencentcloudapi.com',
-    FLEXDB: 'flexdb.ap-shanghai.tencentcloudapi.com'
+    FLEXDB: 'flexdb.tencentcloudapi.com'
 }
 
 export const SERVICE_TYPE = {

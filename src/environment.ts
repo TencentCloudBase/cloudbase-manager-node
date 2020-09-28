@@ -116,7 +116,7 @@ export class Environment {
     }
 
     public getAuthConfig() {
-        let { secretId, secretKey, token, proxy } = this.cloudBaseContext
+        let { secretId, secretKey, token, proxy, region } = this.cloudBaseContext
         const envId = this.getEnvId()
 
         if (!secretId || !secretKey) {
@@ -142,7 +142,8 @@ export class Environment {
             secretId,
             secretKey,
             token,
-            proxy
+            proxy,
+            region
         }
     }
 }
