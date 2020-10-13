@@ -39,6 +39,14 @@ export class CommonService {
                 serviceVersion || '2018-04-16'
             )
         }
+
+        if (serviceType === 'sts') {
+            this.commonService = new CloudService(
+                environment.cloudBaseContext,
+                'sts',
+                serviceVersion || '2018-04-16'
+            )
+        }
     }
 
     /**

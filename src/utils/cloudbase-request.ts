@@ -19,6 +19,7 @@ export async function cloudBaseRequest(options: {
     const { config, params = {}, method = 'POST', headers = {} } = options
     const { region, envId } = config
     const isInScf = process.env.TENCENTCLOUD_RUNENV === 'SCF' // 是否scf环境内
+    const protocol = isInScf ? 'http' : 'https'
     const isInContainer = !!process.env.KUBERNETES_SERVICE_HOST // 是否容器环境
     // region 优先级 本地mock 注入 > init region > 云函数环境变量region
     const finalRegion = process.env.TCB_REGION || region || process.env.TENCENTCLOUD_REGION || ''
@@ -36,7 +37,7 @@ export async function cloudBaseRequest(options: {
     // const envpoint = envId ? `${envId}.${endpoint}` : endpoint
     const envpoint = endpoint
 
-    const url = `https://${envpoint}/admin`
+    const url = `${protocol}://${envpoint}/admin`
 
     const requestData: any = {
         ...params,
