@@ -32,8 +32,14 @@ export async function cloudBaseRequest(options: {
         ? `internal.${region}.tcb-api.tencentcloudapi.com`
         : `internal.tcb-api.tencentcloudapi.com`
 
-    const endpoint = isInScf || isInContainer ? internalRegionEndpoint : internetRegionEndpoint
+    // 同地域走内网，跨地域走公网
+    const isSameRegionVisit = region ? region === process.env.TENCENTCLOUD_REGION : true
 
+    // const endpoint = isInScf || isInContainer ? internalRegionEndpoint : internetRegionEndpoint
+    const endpoint =
+        isSameRegionVisit && (isInScf || isInContainer)
+            ? internalRegionEndpoint
+            : internetRegionEndpoint
     // const envpoint = envId ? `${envId}.${endpoint}` : endpoint
     const envpoint = endpoint
 
