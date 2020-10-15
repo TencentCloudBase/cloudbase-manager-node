@@ -47,6 +47,12 @@ export declare class CamService {
         PolicyId: number;
         AttachRoleName: string;
     }): Promise<IResponseInfo>;
+    attachRolePolicies(param: {
+        RoleId?: number;
+        RoleName?: string;
+        PolicyId?: number[];
+        PolicyName?: string[];
+    }): Promise<IResponseInfo>;
     /**
      * 删除角色
      * @param {string} roleName
