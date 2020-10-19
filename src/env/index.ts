@@ -125,15 +125,23 @@ export class EnvService {
                     Description:
                         '云开发(TCB)操作权限含在访问管理(CAM)创建角色，新增角色载体，给角色绑定策略；含读写对象存储(COS)数据；含读写无服务器云函数(SCF)数据；含读取云监控(Monitor)数据。',
                     PolicyDocument:
-                        '{"version":"2.0","statement":[{"action":"sts:AssumeRole","effect":"allow","principal":{"service":["scf.qcloud.com","tcb.cloud.tencent.com"]}}]}'
+                        '{"version":"2.0","statement":[{"action":"sts:AssumeRole","effect":"allow","principal":{"service":["scf.qcloud.com","tcb.cloud.tencent.com", "cvm.qcloud.com"]}}]}'
                 })
 
                 const { RoleId } = createRoleResult
 
                 // 绑定角色策略
-                await this.camService.attachRolePolicy({
-                    PolicyId: 8825032,
-                    AttachRoleName: ROLE_NAME.TCB
+                // await this.camService.attachRolePolicy({
+                //     PolicyId: 8825032,
+                //     AttachRoleName: ROLE_NAME.TCB
+                // })
+
+                await this.camService.attachRolePolicies({
+                    RoleName: ROLE_NAME.TCB,
+                    PolicyName: [
+                        'QcloudAccessForTCBRole',
+                        'QcloudAccessForTCBRoleInAccessCloudBaseRun'
+                    ]
                 })
             }
 

@@ -5,6 +5,17 @@ let manager = new CloudBase(cloudBaseConfig)
 
 const { envId } = cloudBaseConfig
 
+// test('测试删角色', async () => {
+//     const deleteRoleRes = await manager.commonService('cam', '2019-01-16').call({
+//         Action: 'DeleteRole',
+//         Param: {
+//             RoleName: 'TCB_QcsRole'
+//         }
+//     })
+
+//     console.log('deleteRoleRes:', deleteRoleRes)
+// })
+
 test('获取所有环境 env.listEnvs', async () => {
     const res = await manager.env.listEnvs()
     expect(res.EnvList.length).toBeGreaterThanOrEqual(1)

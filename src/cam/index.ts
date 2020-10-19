@@ -83,6 +83,15 @@ export class CamService {
         return this.camService.request<IResponseInfo>('AttachRolePolicy', param)
     }
 
+    public async attachRolePolicies(param: {
+        RoleId?: number
+        RoleName?: string
+        PolicyId?: number[]
+        PolicyName?: string[]
+    }): Promise<IResponseInfo> {
+        return this.camService.request<IResponseInfo>('AttachRolePolicies', param)
+    }
+
     /**
      * 删除角色
      * @param {string} roleName
