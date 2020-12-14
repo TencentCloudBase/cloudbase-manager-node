@@ -30,6 +30,7 @@ export interface LayerVersionSimple {
 export interface ICloudFunction extends ICloudFunctionConfig {
     name: string
     handler?: string
+    codeSecret?: string
     isWaitInstall?: boolean
     ignore?: string | string[]
     layers?: LayerVersionSimple[]

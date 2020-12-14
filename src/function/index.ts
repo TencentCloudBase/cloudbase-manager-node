@@ -181,8 +181,8 @@ function configToParams(options: { func: ICloudFunction; codeSecret: string; bas
     params.InstallDependency = installDependency
 
     // 代码保护
-    if (codeSecret) {
-        params.CodeSecret = codeSecret
+    if (codeSecret || func.codeSecret) {
+        params.CodeSecret = codeSecret || func.codeSecret
     }
 
     // 函数层
@@ -1040,7 +1040,7 @@ export class FunctionService {
         let timer
         let resolved
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             // 超时时间 5 分钟
             timer = setTimeout(() => {
                 clearInterval(ticker)
