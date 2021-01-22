@@ -1079,26 +1079,12 @@ export class StorageService {
         const { secretId, secretKey, token, proxy } = this.environment.getAuthConfig()
         const cosProxy = process.env.TCB_COS_PROXY
 
-        if (!token) {
-            return new COS({
-                FileParallelLimit: parallel,
-                SecretId: secretId,
-                SecretKey: secretKey,
-                Proxy: cosProxy || proxy
-            })
-        }
-
         return new COS({
             FileParallelLimit: parallel,
-            getAuthorization: function (_, callback) {
-                callback({
-                    TmpSecretId: secretId,
-                    TmpSecretKey: secretKey,
-                    XCosSecurityToken: token,
-                    ExpiredTime: 3600 * 1000,
-                    Proxy: cosProxy || proxy
-                })
-            }
+            SecretId: secretId,
+            SecretKey: secretKey,
+            Proxy: cosProxy || proxy,
+            SecurityToken: token
         })
     }
 

@@ -585,22 +585,11 @@ export class EnvService {
 
     private getCos() {
         const { secretId, secretKey, token } = this.environment.getAuthConfig()
-        if (!token) {
-            return new COS({
-                SecretId: secretId,
-                SecretKey: secretKey
-            })
-        }
 
         return new COS({
-            getAuthorization: function (_, callback) {
-                callback({
-                    TmpSecretId: secretId,
-                    TmpSecretKey: secretKey,
-                    XCosSecurityToken: token,
-                    ExpiredTime: 3600 * 1000
-                })
-            }
+            SecretId: secretId,
+            SecretKey: secretKey,
+            SecurityToken: token
         })
     }
 
