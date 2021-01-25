@@ -9,10 +9,11 @@ import { ThirdService } from './third';
 import { AccessService } from './access';
 import { UserService } from './user';
 import { CloudBaseRunService } from './cloudBaseRun';
+import { EnvInfo } from './interfaces';
 export declare class Environment {
     inited: boolean;
     cloudBaseContext: CloudBaseContext;
-    lazyEnvironmentConfig: any;
+    lazyEnvironmentConfig: EnvInfo;
     private envId;
     private functionService;
     private databaseService;

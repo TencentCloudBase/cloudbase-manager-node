@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Environment } from '../environment';
 import { IListFileInfo } from '../interfaces';
 export interface IProgressData {
@@ -171,6 +172,26 @@ export declare class HostingService {
         Deleted: any[];
         Error: any[];
     }>;
+    /**
+     * 下载文件
+     * @param {string} cloudPath 云端文件路径
+     * @param {string} localPath 文件本地存储路径，文件需指定文件名称
+     * @returns {Promise<NodeJS.ReadableStream>}
+     */
+    downloadFile(options: {
+        cloudPath: string;
+        localPath?: string;
+    }): Promise<NodeJS.ReadableStream | string>;
+    /**
+     * 下载文件夹
+     * @param {string} cloudPath 云端文件路径
+     * @param {string} localPath 本地文件夹存储路径
+     * @returns {Promise<(NodeJS.ReadableStream | string)[]>}
+     */
+    downloadDirectory(options: {
+        cloudPath: string;
+        localPath?: string;
+    }): Promise<void>;
     walkLocalDir(envId: string, dir: string): Promise<string[]>;
     /**
      * 绑定自定义域名
@@ -221,4 +242,8 @@ export declare class HostingService {
      * 获取配置
      */
     private getHostingConfig;
+    /**
+     * 将 cloudPath 转换成 cloudPath/ 形式
+     */
+    private getCloudKey;
 }

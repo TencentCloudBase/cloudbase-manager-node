@@ -14,11 +14,12 @@ import { ThirdService } from './third'
 import { AccessService } from './access'
 import { UserService } from './user'
 import { CloudBaseRunService } from './cloudBaseRun'
+import { EnvInfo } from './interfaces'
 
 export class Environment {
     public inited = false
     public cloudBaseContext: CloudBaseContext
-    public lazyEnvironmentConfig: any
+    public lazyEnvironmentConfig: EnvInfo
     private envId: string
 
     private functionService: FunctionService

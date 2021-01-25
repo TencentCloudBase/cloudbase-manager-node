@@ -1,8 +1,20 @@
+import fs from 'fs'
 import path from 'path'
+import makeDir from 'make-dir'
 import { CloudBaseError } from '../error'
 import { Environment } from '../environment'
-import { CloudService, preLazy, checkReadable, isDirectory } from '../utils'
+import {
+    CloudService,
+    preLazy,
+    checkReadable,
+    isDirectory,
+    checkFullAccess,
+    fetchStream
+} from '../utils'
 import { IListFileInfo } from '../interfaces'
+import { AsyncTaskParallelController } from '../utils/parallel'
+
+const envDomainCache = new Map()
 
 export interface IProgressData {
     loaded: number // 已经上传的部分 字节
@@ -401,6 +413,110 @@ export class HostingService {
         }
     }
 
+    /**
+     * 下载文件
+     * @param {string} cloudPath 云端文件路径
+     * @param {string} localPath 文件本地存储路径，文件需指定文件名称
+     * @returns {Promise<NodeJS.ReadableStream>}
+     */
+    @preLazy()
+    public async downloadFile(options: {
+        cloudPath: string
+        localPath?: string
+    }): Promise<NodeJS.ReadableStream | string> {
+        const { cloudPath, localPath } = options
+        const resolveLocalPath = path.resolve(localPath)
+        const fileDir = path.dirname(localPath)
+
+        checkFullAccess(fileDir, true)
+
+        const envConfig = this.environment.lazyEnvironmentConfig
+        const cacheHosting: IHostingInfo & { cacheTime: number } = envDomainCache.get(
+            envConfig.EnvId
+        )
+
+        let CdnDomain
+        // 2 分钟有效
+        if (cacheHosting?.cacheTime && Number(cacheHosting?.cacheTime) + 120000 < Date.now()) {
+            console.log('cache')
+            CdnDomain = cacheHosting.CdnDomain
+        } else {
+            const hosting = await this.checkStatus()
+            CdnDomain = hosting.CdnDomain
+            envDomainCache.set(envConfig.EnvId, {
+                ...hosting,
+                cacheTime: Date.now()
+            })
+        }
+
+        const url = new URL(cloudPath, `https://${CdnDomain}`).toString()
+
+        const { proxy } = await this.environment.getAuthConfig()
+        const res = await fetchStream(url, {}, proxy)
+
+        // localPath 不存在时，返回 ReadableStream
+        if (!localPath) {
+            return res.body
+        }
+        const dest = fs.createWriteStream(resolveLocalPath)
+        res.body.pipe(dest)
+
+        // 写完成后返回
+        return new Promise(resolve => {
+            dest.on('close', () => {
+                // 返回文件地址
+                resolve(resolveLocalPath)
+            })
+        })
+    }
+
+    /**
+     * 下载文件夹
+     * @param {string} cloudPath 云端文件路径
+     * @param {string} localPath 本地文件夹存储路径
+     * @returns {Promise<(NodeJS.ReadableStream | string)[]>}
+     */
+    @preLazy()
+    public async downloadDirectory(options: {
+        cloudPath: string
+        localPath?: string
+    }): Promise<void> {
+        const { cloudPath, localPath } = options
+        const resolveLocalPath = path.resolve(localPath)
+
+        const hosting = await this.checkStatus()
+        const { Bucket, Regoin } = hosting
+
+        const cloudDirectoryKey = this.getCloudKey(cloudPath)
+        const storageService = await this.environment.getStorageService()
+        const files = await storageService.walkCloudDirCustom({
+            prefix: cloudDirectoryKey,
+            bucket: Bucket,
+            region: Regoin
+        })
+
+        const tasks = files.map(file => async () => {
+            const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
+            // 空路径和文件夹跳过
+            if (!fileRelativePath || /\/$/g.test(fileRelativePath)) {
+                return
+            }
+            const localFilePath = path.join(resolveLocalPath, fileRelativePath)
+            // 创建文件的父文件夹
+            const fileDir = path.dirname(localFilePath)
+            await makeDir(fileDir)
+            return this.downloadFile({
+                cloudPath: file.Key,
+                localPath: localFilePath
+            })
+        })
+
+        // 下载请求
+        const creatingDirController = new AsyncTaskParallelController(20, 50)
+        creatingDirController.loadTasks(tasks)
+        await creatingDirController.run()
+    }
+
     // 遍历文件
     @preLazy()
     async walkLocalDir(envId: string, dir: string) {
@@ -548,5 +664,21 @@ export class HostingService {
             proxy,
             envId: envConfig.EnvId
         }
+    }
+
+    /**
+     * 将 cloudPath 转换成 cloudPath/ 形式
+     */
+    private getCloudKey(cloudPath: string): string {
+        if (!cloudPath) {
+            return ''
+        }
+
+        // 单个 / 转换成根目录
+        if (cloudPath === '/') {
+            return ''
+        }
+
+        return cloudPath[cloudPath.length - 1] === '/' ? cloudPath : `${cloudPath}/`
     }
 }

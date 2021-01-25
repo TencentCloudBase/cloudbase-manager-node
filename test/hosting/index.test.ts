@@ -7,10 +7,11 @@ const filePath = 'test/storage/test_data/data.txt'
 const dirPath = 'test/storage/test_data/test_dir'
 const cloudFilePath = 'hosting/data.txt'
 const cloudDirPath = 'hosting'
+const downloadDir = 'test/hosting/download'
 
 // 每个测试用例间隔 500ms
 beforeEach(() => {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         setTimeout(async () => {
             resolve()
         }, 500)
@@ -98,6 +99,22 @@ test('列出文件夹下的所有文件 hosting.listFiles', async () => {
     expect(res.length).toBeGreaterThanOrEqual(1)
     expect(res[0].Key).toBeTruthy()
 })
+
+test('下载文件 hosting.downloadFile', async () => {
+    await hosting.downloadFile({
+        cloudPath: cloudFilePath,
+        localPath: `${downloadDir}/data.txt`
+    })
+})
+
+test('下载文件夹 hosting.downloadDirectory', async () => {
+    const res = await hosting.downloadDirectory({
+        cloudPath: '/',
+        localPath: `${downloadDir}/dir`
+    })
+
+    console.log(res)
+}, 300000)
 
 test('删除文件 hosting.deleteFile', async () => {
     await hosting.deleteFiles({
@@ -202,7 +219,5 @@ test('设置静态托管 缓存配置 防盗链配置 黑名单配置 IP访问�
     })
 
     console.log('checkResourceRes:', JSON.stringify(checkResourceRes))
-    expect(
-        checkResourceRes?.Domains[0]?.DomainConfig?.Refer !== undefined
-    ).toBeTruthy()
+    expect(checkResourceRes?.Domains[0]?.DomainConfig?.Refer !== undefined).toBeTruthy()
 })
