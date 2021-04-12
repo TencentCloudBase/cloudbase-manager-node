@@ -785,6 +785,7 @@ export class FunctionService {
     // 创建文件层版本
     @preLazy()
     public async createLayer(options: IFunctionLayerOptions): Promise<ICreateLayerResponse> {
+        const { env } = this.getFunctionConfig()
         const {
             contentPath = '',
             name,
@@ -831,7 +832,8 @@ export class FunctionService {
                 ZipFile: base64
             },
             Description: description,
-            LicenseInfo: licenseInfo
+            LicenseInfo: licenseInfo,
+            Src: `TCB_${env}`
         })
     }
 
@@ -862,11 +864,13 @@ export class FunctionService {
     // 获取文件层列表
     @preLazy()
     public async listLayers(options: ILayerListOptions): Promise<IListLayerRes> {
+        const { env } = this.getFunctionConfig()
         const { limit = 20, offset = 0, runtime, searchKey } = options
         let param: any = {
             Limit: limit,
             Offset: offset,
-            SearchKey: searchKey
+            SearchKey: searchKey,
+            SearchSrc: `TCB_${env}`
         }
         if (runtime) {
             param.CompatibleRuntime = runtime
