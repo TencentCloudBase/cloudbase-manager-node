@@ -42,10 +42,6 @@ export interface ICreateFunctionParam {
     base64Code?: string
     functionPath?: string
     codeSecret?: string // 代码保护密钥
-    layers?: {
-        name: string
-        version: number
-    }[] // 层
 }
 
 export interface IUpdateFunctionCodeParam {
@@ -141,10 +137,6 @@ function configToParams(options: {
     func: ICloudFunction;
     codeSecret: string;
     baseParams: any;
-    layers: {
-        name: string
-        version: number
-    }[]
 }) {
     const { func, codeSecret, baseParams } = options
     let installDependency
@@ -283,7 +275,6 @@ export class FunctionService {
             base64Code,
             codeSecret,
             functionPath,
-            layers
         } = funcParam
         const funcName = func.name
 
@@ -294,8 +285,7 @@ export class FunctionService {
                 Namespace: namespace,
                 Role: 'TCB_QcsRole',
                 Stamp: 'MINI_QCBASE'
-            },
-            layers
+            }
         })
 
         params.Code = await this.getCodeParams(

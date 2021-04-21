@@ -16,10 +16,6 @@ export interface ICreateFunctionParam {
     base64Code?: string;
     functionPath?: string;
     codeSecret?: string;
-    layers?: {
-        name: string;
-        version: number;
-    }[];
 }
 export interface IUpdateFunctionCodeParam {
     func: ICloudFunction;
