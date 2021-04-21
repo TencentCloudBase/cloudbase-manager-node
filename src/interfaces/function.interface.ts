@@ -33,7 +33,10 @@ export interface ICloudFunction extends ICloudFunctionConfig {
     codeSecret?: string
     isWaitInstall?: boolean
     ignore?: string | string[]
-    layers?: LayerVersionSimple[]
+    layers?: {
+        name: string
+        version: number
+    }[]
     triggers?: ICloudFunctionTrigger[]
 }
 

@@ -42,6 +42,10 @@ export interface ICreateFunctionParam {
     base64Code?: string
     functionPath?: string
     codeSecret?: string // 代码保护密钥
+    layers?: {
+        name: string
+        version: number
+    }[] // 层
 }
 
 export interface IUpdateFunctionCodeParam {
@@ -133,7 +137,15 @@ function isNodeFunction(runtime: string) {
 }
 
 // 解析函数配置，换成请求参数
-function configToParams(options: { func: ICloudFunction; codeSecret: string; baseParams: any }) {
+function configToParams(options: {
+    func: ICloudFunction;
+    codeSecret: string;
+    baseParams: any;
+    layers: {
+        name: string
+        version: number
+    }[]
+}) {
     const { func, codeSecret, baseParams } = options
     let installDependency
     // Node 函数默认安装依赖
@@ -186,7 +198,13 @@ function configToParams(options: { func: ICloudFunction; codeSecret: string; bas
     }
 
     // 函数层
-    func?.layers?.length && (params.Layers = func.layers)
+    if (func?.layers?.length) {
+        const transformLayers = func.layers.map(item => ({
+            LayerName: item.name,
+            LayerVersion: item.version
+        }))
+        params.Layers = transformLayers
+    }
 
     return params
 }
@@ -264,7 +282,8 @@ export class FunctionService {
             force = false,
             base64Code,
             codeSecret,
-            functionPath
+            functionPath,
+            layers
         } = funcParam
         const funcName = func.name
 
@@ -275,7 +294,8 @@ export class FunctionService {
                 Namespace: namespace,
                 Role: 'TCB_QcsRole',
                 Stamp: 'MINI_QCBASE'
-            }
+            },
+            layers
         })
 
         params.Code = await this.getCodeParams(
@@ -569,7 +589,13 @@ export class FunctionService {
         }
 
         // 函数层
-        func?.layers?.length && (params.Layers = func.layers)
+        if (func?.layers?.length) {
+            const transformLayers = func.layers.map(item => ({
+                LayerName: item.name,
+                LayerVersion: item.version
+            }))
+            params.Layers = transformLayers
+        }
 
         return this.scfService.request('UpdateFunctionConfiguration', params)
     }

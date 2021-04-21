@@ -78,7 +78,7 @@ export interface ITrigger {
     Config: string
     TriggerName: string
     TriggerDesc: string
-  }
+}
 
 export interface IFunctionInfo {
     FunctionName: string
@@ -139,6 +139,12 @@ export interface IFunctionCode {
     ZipFile: string
 }
 
+
+export interface ILayerVersionItem {
+    LayerName: string
+    LayerVersion: number
+}
+
 export interface IFunctionUpdateAttribute {
     Code: IFunctionCode
     Description: string
@@ -154,4 +160,5 @@ export interface IFunctionUpdateAttribute {
         PublicNetStatus: string
         EipConfig: { EipStatus: string; EipAddress: string[] }
     }
+    Layers?: ILayerVersionItem[]
 }

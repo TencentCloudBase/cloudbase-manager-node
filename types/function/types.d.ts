@@ -123,6 +123,10 @@ export interface IFunctionCode {
     CosObjectName?: string;
     ZipFile: string;
 }
+export interface ILayerVersionItem {
+    LayerName: string;
+    LayerVersion: number;
+}
 export interface IFunctionUpdateAttribute {
     Code: IFunctionCode;
     Description: string;
@@ -146,4 +150,5 @@ export interface IFunctionUpdateAttribute {
             EipAddress: string[];
         };
     };
+    Layers?: ILayerVersionItem[];
 }
