@@ -1,5 +1,5 @@
 import { Environment } from '../environment';
-import { EndUserInfo } from './types';
+import { EndUserInfo, EndUserStatus } from './types';
 export declare class UserService {
     private environment;
     private tcbService;
@@ -12,8 +12,9 @@ export declare class UserService {
         Users: EndUserInfo[];
         RequestId: string;
     }>;
-    disableEndUser(options: {
+    setEndUserStatus(options: {
         uuid: string;
+        status: EndUserStatus;
     }): Promise<{
         RequestId: string;
     }>;
@@ -33,6 +34,17 @@ export declare class UserService {
         uuid: string;
         password?: string;
         username?: string;
+    }): Promise<{
+        RequestId: string;
+    }>;
+    UpdateEndUser(options: {
+        uuid?: string;
+        nickName?: string;
+        gender?: string;
+        avatarUrl?: string;
+        country?: string;
+        province?: string;
+        city?: string;
     }): Promise<{
         RequestId: string;
     }>;
