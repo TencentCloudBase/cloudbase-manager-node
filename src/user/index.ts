@@ -1,6 +1,6 @@
 import { Environment } from '../environment'
 import { CloudService, preLazy } from '../utils'
-import { EndUserInfo } from './types'
+import { EndUserInfo , EndUserStatus } from './types'
 
 export class UserService {
     private environment: Environment
@@ -31,12 +31,30 @@ export class UserService {
         })
     }
 
-    // 停用云开发用户
+    // // 停用云开发用户
+    // @preLazy()
+    // public async disableEndUser(options: {
+    //     uuid: string
+    // }) {
+    //     const { uuid } = options
+    //     const { EnvId } = this.environment.lazyEnvironmentConfig
+
+    //     return this.tcbService.request<{
+    //         RequestId: string
+    //     }>('ModifyEndUser', {
+    //         EnvId,
+    //         UUId: uuid,
+    //         Status: 'DISABLE'
+    //     })
+    // }
+
+    // 设置云开发用户状态（停用或启用）
     @preLazy()
-    public async disableEndUser(options: {
-        uuid: string
+    public async setEndUserStatus(options: {
+        uuid: string,
+        status: EndUserStatus
     }) {
-        const { uuid } = options
+        const { uuid, status } = options
         const { EnvId } = this.environment.lazyEnvironmentConfig
 
         return this.tcbService.request<{
@@ -44,7 +62,7 @@ export class UserService {
         }>('ModifyEndUser', {
             EnvId,
             UUId: uuid,
-            Status: 'DISABLE'
+            Status: status
         })
     }
 
@@ -83,7 +101,7 @@ export class UserService {
         })
     }
 
-    // 更改用户信息
+    // 更改用户账户
     @preLazy()
     public async modifyEndUser(options: {
         uuid: string,
@@ -108,6 +126,46 @@ export class UserService {
         return this.tcbService.request<{
             RequestId: string
         }>('ModifyEndUserAccount', reqData)
+    }
+
+    // 更改用户信息
+    @preLazy()
+    public async UpdateEndUser(options: {
+        uuid?: string,
+        nickName?: string,
+        gender?: string,
+        avatarUrl?: string,
+        country?: string,
+        province?: string,
+        city?: string
+    }) {
+        const { uuid, nickName, gender, avatarUrl, country, province, city } = options
+        const { EnvId } = this.environment.lazyEnvironmentConfig
+
+        return this.tcbService.request<{
+            RequestId: string
+        }>('ModifyEndUserInfo', {
+            UUId: uuid,
+            EnvId,
+            Data: [{
+                Key: 'Name',
+                Value: nickName
+            },{
+                Key: 'Gender',
+                Value: gender
+            },{
+                Key: 'AvatarUrl',
+                Value: avatarUrl
+            },{
+                Key: 'Country',
+                Value: country
+            },{
+                Key: 'Province',
+                Value: province
+            },{
+                Key: 'City',
+                Value: city
+            }]})
     }
 
     private isValidStr(obj: any) {
