@@ -37,14 +37,14 @@ export declare class UserService {
     }): Promise<{
         RequestId: string;
     }>;
-    UpdateEndUser(options: {
-        uuid?: string;
-        nickName?: string;
-        gender?: string;
-        avatarUrl?: string;
-        country?: string;
-        province?: string;
-        city?: string;
+    updateEndUser(options: {
+        uuid: string;
+        nickName: string;
+        gender: string;
+        avatarUrl: string;
+        country: string;
+        province: string;
+        city: string;
     }): Promise<{
         RequestId: string;
     }>;
