@@ -176,7 +176,7 @@ test('更新用户信息', async () => {
         password: '123hello'
     })
 
-    await app.user.UpdateEndUser({
+    await app.user.updateEndUser({
         uuid: User.UUId,
         nickName: newnickName,
         gender: newGender,

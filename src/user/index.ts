@@ -130,14 +130,14 @@ export class UserService {
 
     // 更改用户信息
     @preLazy()
-    public async UpdateEndUser(options: {
-        uuid?: string,
-        nickName?: string,
-        gender?: string,
-        avatarUrl?: string,
-        country?: string,
-        province?: string,
-        city?: string
+    public async updateEndUser(options: {
+        uuid: string,
+        nickName: string,
+        gender: string,
+        avatarUrl: string,
+        country: string,
+        province: string,
+        city: string
     }) {
         const { uuid, nickName, gender, avatarUrl, country, province, city } = options
         const { EnvId } = this.environment.lazyEnvironmentConfig
