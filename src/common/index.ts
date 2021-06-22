@@ -12,49 +12,27 @@ interface ICommonApiServiceOption {
  * @export
  * @class CommonService
  */
+
+const ActionVersionMap = {
+    tcb: '2018-06-08',
+    flexdb: '2018-11-27',
+    scf: '2018-04-16',
+    sts: '2018-04-16',
+    cam: '2018-04-16',
+    lowcode: '2021-01-08'
+}
+
 export class CommonService {
     private commonService: CloudService
     private environment: Environment
 
     constructor(environment: Environment, serviceType: string, serviceVersion: string) {
         this.environment = environment
-        if (serviceType === 'tcb') {
-            this.commonService = new CloudService(
-                environment.cloudBaseContext,
-                'tcb',
-                serviceVersion || '2018-06-08'
-            )
-        }
-        if (serviceType === 'flexdb') {
-            this.commonService = new CloudService(
-                environment.cloudBaseContext,
-                'flexdb',
-                serviceVersion || '2018-11-27'
-            )
-        }
-        if (serviceType === 'scf') {
-            this.commonService = new CloudService(
-                environment.cloudBaseContext,
-                'scf',
-                serviceVersion || '2018-04-16'
-            )
-        }
-
-        if (serviceType === 'sts') {
-            this.commonService = new CloudService(
-                environment.cloudBaseContext,
-                'sts',
-                serviceVersion || '2018-04-16'
-            )
-        }
-
-        if (serviceType === 'cam') {
-            this.commonService = new CloudService(
-                environment.cloudBaseContext,
-                'cam',
-                serviceVersion || '2018-04-16'
-            )
-        }
+        this.commonService = new CloudService(
+            environment.cloudBaseContext,
+            serviceType,
+            serviceVersion || ActionVersionMap[serviceType]
+        )
     }
 
     /**
