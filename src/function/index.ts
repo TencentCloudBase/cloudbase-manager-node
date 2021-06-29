@@ -174,10 +174,13 @@ function configToParams(options: {
     params.Timeout = Number(func.timeout) || 10
     // 默认运行环境 Nodejs8.9
     params.Runtime = func.runtime || 'Nodejs8.9'
-    // VPC 网络
-    params.VpcConfig = {
-        SubnetId: func?.vpc?.subnetId || '',
-        VpcId: func?.vpc?.vpcId || ''
+
+    if (func?.vpc?.subnetId !== undefined && func?.vpc?.vpcId !== undefined) {
+        // VPC 网络
+        params.VpcConfig = {
+            SubnetId: func?.vpc?.subnetId,
+            VpcId: func?.vpc?.vpcId
+        }
     }
     // 运行内存
     params.MemorySize = func.memorySize || 256
@@ -563,11 +566,15 @@ export class FunctionService {
         func.timeout && (params.Timeout = func.timeout)
         // 运行时
         func.runtime && (params.Runtime = func.runtime)
-        // VPC 网络
-        params.VpcConfig = {
-            SubnetId: func?.vpc?.subnetId || '',
-            VpcId: func?.vpc?.vpcId || ''
+
+        if (func?.vpc?.subnetId !== undefined && func?.vpc?.vpcId !== undefined) {
+            // VPC 网络
+            params.VpcConfig = {
+                SubnetId: func?.vpc?.subnetId,
+                VpcId: func?.vpc?.vpcId
+            }
         }
+
         // 内存
         func.memorySize && (params.MemorySize = func.memorySize)
 
