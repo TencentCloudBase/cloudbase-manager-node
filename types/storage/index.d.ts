@@ -17,6 +17,8 @@ export interface IOptions {
 export interface IFileOptions extends IOptions {
     localPath: string;
     cloudPath?: string;
+    parallel?: number;
+    retry?: boolean;
 }
 export interface IFilesOptions extends IOptions {
     ignore?: string | string[];
@@ -87,6 +89,8 @@ export declare class StorageService {
      * 上传文件夹
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
+     * @param {number} parallel 并发量
+     * @param {boolean} retry 失败后自动尝试
      * @param {(string | string[])} ignore
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
@@ -96,6 +100,8 @@ export declare class StorageService {
      * 上传文件夹，支持自定义 Region 和 Bucket
      * @param {string} localPath
      * @param {string} cloudPath
+     * @param {number} parallel
+     * @param {boolean} retry
      * @param {string} bucket
      * @param {string} region
      * @param {IOptions} options
