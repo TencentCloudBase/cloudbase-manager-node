@@ -49,6 +49,10 @@ export interface IFileOptions extends IOptions {
     localPath: string
     // cloudPath 可以为空
     cloudPath?: string
+    // 并发数量
+    parallel?: number
+    // 失败后尝试
+    retry?: boolean
 }
 
 export interface IFilesOptions extends IOptions {
@@ -230,19 +234,31 @@ export class StorageService {
      * 上传文件夹
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
+     * @param {number} parallel 并发量
+     * @param {boolean} retry 失败后自动尝试
      * @param {(string | string[])} ignore
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
     @preLazy()
     public async uploadDirectory(options: IFileOptions): Promise<void> {
-        const { localPath, cloudPath = '', ignore, onProgress, onFileFinish } = options
+        const {
+            localPath,
+            cloudPath = '',
+            ignore,
+            onProgress,
+            onFileFinish,
+            parallel,
+            retry
+        } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
         const { bucket, region } = this.getStorageConfig()
         return this.uploadDirectoryCustom({
             localPath,
             cloudPath,
+            parallel,
+            retry,
             bucket,
             region,
             ignore,
@@ -255,6 +271,8 @@ export class StorageService {
      * 上传文件夹，支持自定义 Region 和 Bucket
      * @param {string} localPath
      * @param {string} cloudPath
+     * @param {number} parallel
+     * @param {boolean} retry
      * @param {string} bucket
      * @param {string} region
      * @param {IOptions} options
@@ -271,7 +289,8 @@ export class StorageService {
             onFileFinish,
             ignore,
             fileId = true,
-            parallel = 20
+            parallel = 20,
+            retry = false
         } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
@@ -310,12 +329,13 @@ export class StorageService {
         const creatingDirController = new AsyncTaskParallelController(parallel, 50)
         const creatingDirTasks = fileStatsList
             .filter(info => info.isDir)
-            .map(info => () =>
-                this.createCloudDirectroyCustom({
-                    cloudPath: info.cloudFileKey,
-                    bucket,
-                    region
-                })
+            .map(
+                info => () =>
+                    this.createCloudDirectroyCustom({
+                        cloudPath: info.cloudFileKey,
+                        bucket,
+                        region
+                    })
             )
 
         creatingDirController.loadTasks(creatingDirTasks)
@@ -348,13 +368,37 @@ export class StorageService {
         // 对文件上传进行处理
         const cos = this.getCos(parallel)
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
-
-        return uploadFiles({
+        let uploadError = null
+        let originFileFinish = onFileFinish
+        const params = {
             files,
             SliceSize: BIG_FILE_SIZE,
-            onProgress,
-            onFileFinish
+            onProgress
+        }
+        const failedFiles = []
+        await uploadFiles({
+            ...params,
+            onFileFinish: (...args) => {
+                const error = args[0]
+                if (error && retry) {
+                    uploadError = error
+                    const fileInfo = (args as any)[2]
+                    failedFiles.push(fileInfo.Key)
+                    return
+                }
+                originFileFinish.apply(null, args)
+            }
         })
+        // 失败后再次尝试
+        if (retry && uploadError) {
+            return uploadFiles({
+                ...params,
+                files: files.filter(file => failedFiles.includes(file.Key)),
+                onFileFinish: (...args) => {
+                    originFileFinish.apply(null, args)
+                }
+            })
+        }
     }
 
     /**
@@ -735,9 +779,7 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async deleteDirectory(
-        cloudPath: string
-    ): Promise<{
+    public async deleteDirectory(cloudPath: string): Promise<{
         Deleted: { Key: string }[]
         Error: Object[]
     }> {
@@ -758,9 +800,7 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async deleteDirectoryCustom(
-        options: { cloudPath: string } & ICustomOptions
-    ): Promise<{
+    public async deleteDirectoryCustom(options: { cloudPath: string } & ICustomOptions): Promise<{
         Deleted: { Key: string }[]
         Error: Object[]
     }> {
