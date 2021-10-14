@@ -17,6 +17,7 @@ interface CloudBaseConfig {
     envId?: string;
     proxy?: string;
     region?: string;
+    envType?: string;
 }
 declare class CloudBase {
     private static cloudBase;

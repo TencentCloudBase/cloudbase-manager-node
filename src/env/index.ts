@@ -64,10 +64,12 @@ export class EnvService {
     private cloudService: CloudService
     private camService: CamService
     private billService: BillingService
+    private envType?: string
 
     constructor(environment: Environment) {
         this.environment = environment
         this.envId = environment.getEnvId()
+        this.envType = environment.getEnvType()
         this.cloudService = new CloudService(environment.cloudBaseContext, 'tcb', '2018-06-08')
         this.camService = new CamService(environment.cloudBaseContext)
         this.billService = new BillingService(environment.cloudBaseContext)
@@ -420,9 +422,15 @@ export class EnvService {
         RequestId: string
     }> {
         // NOTE: DescribeEnv 接口废弃，需要使用 DescribeEnvs 接口
-        const { EnvList, RequestId } = await this.cloudService.request('DescribeEnvs', {
+        const params: any = {
             EnvId: this.envId
-        })
+        }
+
+        if (this.envType === 'run') {
+            params.EnvType = 'run'
+        }
+
+        const { EnvList, RequestId } = await this.cloudService.request('DescribeEnvs', params)
 
         return {
             EnvInfo: EnvList?.length ? EnvList[0] : {},

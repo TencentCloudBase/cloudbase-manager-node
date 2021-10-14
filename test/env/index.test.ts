@@ -120,3 +120,12 @@ test('创建自定义登录密钥', async () => {
 
     expect(res.RequestId !== undefined).toBe(true)
 })
+
+test.skip('使用 run 环境', async () => {
+    const runEnvManager = new CloudBase({
+        ...cloudBaseConfig,
+        envType: 'run'
+    })
+    const res = await runEnvManager.env.getEnvInfo()
+    console.log('res', res)
+})

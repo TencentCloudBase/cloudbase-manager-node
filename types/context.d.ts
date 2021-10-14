@@ -5,11 +5,13 @@ export declare class CloudBaseContext {
     readonly proxy: string;
     readonly envId: string;
     readonly region: string;
-    constructor({ secretId, secretKey, token, proxy, region }: {
+    readonly envType: string;
+    constructor({ secretId, secretKey, token, proxy, region, envType }: {
         secretId?: string;
         secretKey?: string;
         token?: string;
         proxy?: string;
         region?: string;
+        envType?: string;
     });
 }
