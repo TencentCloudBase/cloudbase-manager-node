@@ -19,6 +19,7 @@ interface CloudBaseConfig {
     envId?: string
     proxy?: string
     region?: string
+    envType?: string
 }
 
 class CloudBase {
@@ -45,7 +46,7 @@ class CloudBase {
     private environmentManager: EnvironmentManager
 
     public constructor(config: CloudBaseConfig = {}) {
-        let { secretId, secretKey, token, envId, proxy, region } = config
+        let { secretId, secretKey, token, envId, proxy, region, envType } = config
         // config 中传入的 secretId secretkey 必须同时存在
         if ((secretId && !secretKey) || (!secretId && secretKey)) {
             throw new Error('secretId and secretKey must be a pair')
@@ -56,6 +57,7 @@ class CloudBase {
             secretKey,
             token,
             envId,
+            envType,
             proxy,
             region
         }
