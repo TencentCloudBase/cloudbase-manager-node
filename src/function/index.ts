@@ -126,6 +126,107 @@ export interface IGetLayerVersionRes extends IResponseInfo {
     Status: string // 	层的具体版本当前状态
 }
 
+export interface ISetProvisionedConcurrencyConfig {
+    functionName: string
+    qualifier: string
+    versionProvisionedConcurrencyNum: number
+}
+
+export interface IGetProvisionedConcurrencyConfig {
+    functionName: string
+    qualifier?: string
+}
+
+export interface IVersionProvisionedConcurrencyInfo {
+    AllocatedProvisionedConcurrencyNum: number // 设置的预置并发数。
+    AvailableProvisionedConcurrencyNum: number // 当前已完成预置的并发数。
+    Status: string // 预置任务状态，Done表示已完成，InProgress表示进行中，Failed表示部分或全部失败。
+    StatusReason: string // 对预置任务状态Status的说明。
+    Qualifier: string // 版本号
+}
+export interface IGetProvisionedConcurrencyRes extends IResponseInfo {
+    UnallocatedConcurrencyNum: number
+    Allocated: IVersionProvisionedConcurrencyInfo[]
+}
+
+export interface IPublishVersionParams {
+    functionName: string
+    description?: string
+}
+
+export interface IPublishVersionRes extends IResponseInfo {
+    FunctionVersion: string
+    CodeSize: number
+    MemorySize: number
+    Description: string
+    Handler: string
+    Timeout: number
+    Runtime: string
+    Namespace: string
+}
+
+
+export interface IListFunctionVersionParams {
+    functionName: string
+    offset?: number
+    limit?: number
+    order?: string
+    orderBy?: string
+}
+
+export interface IFunctionVersion {
+    Version: string
+    Description: string
+    AddTime: string
+    ModTime: string
+    Status: string //
+}
+
+export interface IFunctionVersionsRes extends IResponseInfo {
+    FunctionVersion: string[]
+    Versions: IFunctionVersion[]
+    TotalCount: number
+}
+
+export interface IVersionMatch {
+    Version: string // 函数版本名称
+    Key: string // 匹配规则的key，调用时通过传key来匹配规则路由到指定版本 header方式：key填写"invoke.headers.User"，并在 invoke 调用函数时传参 RoutingKey：{"User":"value"}规则匹配调用
+    Method: string // 匹配方式。取值范围：range：范围匹配 exact：字符串精确匹配
+    Expression: string //
+}
+
+export interface IVersionWeight {
+    Version: string
+    Weight: number
+}
+
+export interface IRoutingConfig {
+    AdditionalVersionWeights?: IVersionWeight[]
+    AddtionVersionMatchs?: IVersionMatch[]
+}
+
+export interface IUpdateFunctionVersionConfig {
+    functionName: string // 函数名
+    name: string // 函数别名 如$DEFAULT
+    functionVersion: string // 函数版本
+    description?: string // 别名描述
+    routingConfig?: IRoutingConfig
+}
+
+export interface IGetFunctionAlias {
+    functionName: string // 函数名称
+    name: string // 别名
+}
+
+export interface IGetFunctionAliasRes extends IResponseInfo {
+    FunctionVersion: string
+    Name: string
+    RoutingConfig: IRoutingConfig
+    Description: string
+    AddTime: string
+    ModTime: string
+}
+
 // 是否为 Node 函数
 function isNodeFunction(runtime: string) {
     // 不严格限制
@@ -910,6 +1011,142 @@ export class FunctionService {
         return this.scfService.request('GetLayerVersion', {
             LayerName: name,
             LayerVersion: version
+        })
+    }
+
+    /**
+     * 设置预置并发
+     * @private
+     * @param {IProvisionedConcurrencyConfig} concurrencyConfig
+     * @returns
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async setProvisionedConcurrencyConfig(concurrencyConfig: ISetProvisionedConcurrencyConfig): Promise<IResponseInfo> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionName: FunctionName, qualifier: Qualifier, versionProvisionedConcurrencyNum: VersionProvisionedConcurrencyNum } = concurrencyConfig
+
+        return this.scfService.request('PutProvisionedConcurrencyConfig', {
+            FunctionName,
+            Qualifier,
+            VersionProvisionedConcurrencyNum,
+            Namespace: namespace
+        })
+    }
+
+    /**
+     * 获取函数预置并发详情
+     * @private
+     * @param {IGetProvisionedConcurrencyConfig} concurrencyConfig
+     * @returns {Promise<IGetProvisionedConcurrencyRes>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async getProvisionedConcurrencyConfig(concurrencyConfig: IGetProvisionedConcurrencyConfig): Promise<IGetProvisionedConcurrencyRes> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionName: FunctionName, qualifier: Qualifier } = concurrencyConfig
+
+        return this.scfService.request('GetProvisionedConcurrencyConfig', {
+            FunctionName,
+            Qualifier,
+            Namespace: namespace
+        })
+    }
+
+    /**
+     * 删除预置并发
+     * @private
+     * @param {IGetProvisionedConcurrencyConfig} concurrencyConfig
+     * @returns {Promise<IResponseInfo>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async deleteProvisionedConcurrencyConfig(concurrencyConfig: IGetProvisionedConcurrencyConfig): Promise<IResponseInfo> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionName: FunctionName, qualifier: Qualifier } = concurrencyConfig
+
+        return this.scfService.request('DeleteProvisionedConcurrencyConfig', {
+            FunctionName,
+            Qualifier,
+            Namespace: namespace
+        })
+    }
+
+    /**
+     * 发布新版本
+     * @param {IPublishVersionParams} publishParams
+     * @returns {Promise<IPublishVersionRes>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async publishVersion(publishParams: IPublishVersionParams): Promise<IPublishVersionRes> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionName: FunctionName, description: Description } = publishParams
+
+        return this.scfService.request('PublishVersion', {
+            FunctionName,
+            Description,
+            Namespace: namespace
+        })
+    }
+
+    /**
+     * 查询函数版本详情
+     * @param {IListFunctionVersionParams} listVersionParams
+     * @returns {Promise<IFunctionVersionsRes>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async listVersionByFunction(listVersionParams: IListFunctionVersionParams): Promise<IFunctionVersionsRes> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionName: FunctionName, offset: Offset, limit: Limit, order: Order, orderBy: OrderBy } = listVersionParams
+
+        return this.scfService.request('ListVersionByFunction', {
+            FunctionName,
+            Namespace: namespace,
+            Offset,
+            Limit,
+            Order,
+            OrderBy
+        })
+    }
+
+    /**
+     *
+     * @param {IUpdateFunctionVersionConfig} updateVersionConfigParams
+     * @returns {Promise<IResponseInfo>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async updateFunctionVersionConfig(updateVersionConfigParams: IUpdateFunctionVersionConfig): Promise<IResponseInfo> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionName: FunctionName, name: Name, functionVersion: FunctionVersion, routingConfig: RoutingConfig, description: Description } = updateVersionConfigParams
+
+        return this.scfService.request('UpdateAlias', {
+            FunctionName,
+            Name,
+            Namespace: namespace,
+            FunctionVersion,
+            RoutingConfig,
+            Description
+        })
+    }
+
+    /**
+     * 查询函数别名详情
+     * @param {IGetFunctionAlias} params
+     * @returns {Promise<IGetFunctionAliasRes>}
+     * @memberof FunctionService
+     */
+    @preLazy()
+    public async getFunctionAlias(params: IGetFunctionAlias): Promise<IGetFunctionAliasRes> {
+        const { namespace } = this.getFunctionConfig()
+        const { functionName: FunctionName, name: Name } = params
+
+        return this.scfService.request('GetAlias', {
+            FunctionName,
+            Name,
+            Namespace: namespace
         })
     }
 

@@ -87,6 +87,92 @@ export interface IGetLayerVersionRes extends IResponseInfo {
     LayerName: string;
     Status: string;
 }
+export interface ISetProvisionedConcurrencyConfig {
+    functionName: string;
+    qualifier: string;
+    versionProvisionedConcurrencyNum: number;
+}
+export interface IGetProvisionedConcurrencyConfig {
+    functionName: string;
+    qualifier?: string;
+}
+export interface IVersionProvisionedConcurrencyInfo {
+    AllocatedProvisionedConcurrencyNum: number;
+    AvailableProvisionedConcurrencyNum: number;
+    Status: string;
+    StatusReason: string;
+    Qualifier: string;
+}
+export interface IGetProvisionedConcurrencyRes extends IResponseInfo {
+    UnallocatedConcurrencyNum: number;
+    Allocated: IVersionProvisionedConcurrencyInfo[];
+}
+export interface IPublishVersionParams {
+    functionName: string;
+    description?: string;
+}
+export interface IPublishVersionRes extends IResponseInfo {
+    FunctionVersion: string;
+    CodeSize: number;
+    MemorySize: number;
+    Description: string;
+    Handler: string;
+    Timeout: number;
+    Runtime: string;
+    Namespace: string;
+}
+export interface IListFunctionVersionParams {
+    functionName: string;
+    offset?: number;
+    limit?: number;
+    order?: string;
+    orderBy?: string;
+}
+export interface IFunctionVersion {
+    Version: string;
+    Description: string;
+    AddTime: string;
+    ModTime: string;
+    Status: string;
+}
+export interface IFunctionVersionsRes extends IResponseInfo {
+    FunctionVersion: string[];
+    Versions: IFunctionVersion[];
+    TotalCount: number;
+}
+export interface IVersionMatch {
+    Version: string;
+    Key: string;
+    Method: string;
+    Expression: string;
+}
+export interface IVersionWeight {
+    Version: string;
+    Weight: number;
+}
+export interface IRoutingConfig {
+    AdditionalVersionWeights?: IVersionWeight[];
+    AddtionVersionMatchs?: IVersionMatch[];
+}
+export interface IUpdateFunctionVersionConfig {
+    functionName: string;
+    name: string;
+    functionVersion: string;
+    description?: string;
+    routingConfig?: IRoutingConfig;
+}
+export interface IGetFunctionAlias {
+    functionName: string;
+    name: string;
+}
+export interface IGetFunctionAliasRes extends IResponseInfo {
+    FunctionVersion: string;
+    Name: string;
+    RoutingConfig: IRoutingConfig;
+    Description: string;
+    AddTime: string;
+    ModTime: string;
+}
 export declare class FunctionService {
     private environment;
     private vpcService;
@@ -210,6 +296,58 @@ export declare class FunctionService {
     listLayerVersions(options: IVersionListOptions): Promise<IListLayerVersionsRes>;
     listLayers(options: ILayerListOptions): Promise<IListLayerRes>;
     getLayerVersion(options: ILayerOptions): Promise<IGetLayerVersionRes>;
+    /**
+     * 设置预置并发
+     * @private
+     * @param {IProvisionedConcurrencyConfig} concurrencyConfig
+     * @returns
+     * @memberof FunctionService
+     */
+    setProvisionedConcurrencyConfig(concurrencyConfig: ISetProvisionedConcurrencyConfig): Promise<IResponseInfo>;
+    /**
+     * 获取函数预置并发详情
+     * @private
+     * @param {IGetProvisionedConcurrencyConfig} concurrencyConfig
+     * @returns {Promise<IGetProvisionedConcurrencyRes>}
+     * @memberof FunctionService
+     */
+    getProvisionedConcurrencyConfig(concurrencyConfig: IGetProvisionedConcurrencyConfig): Promise<IGetProvisionedConcurrencyRes>;
+    /**
+     * 删除预置并发
+     * @private
+     * @param {IGetProvisionedConcurrencyConfig} concurrencyConfig
+     * @returns {Promise<IResponseInfo>}
+     * @memberof FunctionService
+     */
+    deleteProvisionedConcurrencyConfig(concurrencyConfig: IGetProvisionedConcurrencyConfig): Promise<IResponseInfo>;
+    /**
+     * 发布新版本
+     * @param {IPublishVersionParams} publishParams
+     * @returns {Promise<IPublishVersionRes>}
+     * @memberof FunctionService
+     */
+    publishVersion(publishParams: IPublishVersionParams): Promise<IPublishVersionRes>;
+    /**
+     * 查询函数版本详情
+     * @param {IListFunctionVersionParams} listVersionParams
+     * @returns {Promise<IFunctionVersionsRes>}
+     * @memberof FunctionService
+     */
+    listVersionByFunction(listVersionParams: IListFunctionVersionParams): Promise<IFunctionVersionsRes>;
+    /**
+     *
+     * @param {IUpdateFunctionVersionConfig} updateVersionConfigParams
+     * @returns {Promise<IResponseInfo>}
+     * @memberof FunctionService
+     */
+    updateFunctionVersionConfig(updateVersionConfigParams: IUpdateFunctionVersionConfig): Promise<IResponseInfo>;
+    /**
+     * 查询函数别名详情
+     * @param {IGetFunctionAlias} params
+     * @returns {Promise<IGetFunctionAliasRes>}
+     * @memberof FunctionService
+     */
+    getFunctionAlias(params: IGetFunctionAlias): Promise<IGetFunctionAliasRes>;
     private createAccessPath;
     private getCodeParams;
     private getTempCosInfo;
