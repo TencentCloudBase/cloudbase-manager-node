@@ -528,7 +528,7 @@ test('设置函数预置并发，查询，删除', async () => {
     assert(getProvisionedConcurrencyConfigRes.Allocated.length === 1)
 
     // 分配流量
-    const updateVersionConfigRes = await functions.updateFunctionVersionConfig({
+    const updateVersionConfigRes = await functions.updateFunctionAliasConfig({
         functionName: 'sum',
         name: '$DEFAULT',
         functionVersion: '$LATEST',

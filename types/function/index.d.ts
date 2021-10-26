@@ -154,7 +154,7 @@ export interface IRoutingConfig {
     AdditionalVersionWeights?: IVersionWeight[];
     AddtionVersionMatchs?: IVersionMatch[];
 }
-export interface IUpdateFunctionVersionConfig {
+export interface IUpdateFunctionAliasConfig {
     functionName: string;
     name: string;
     functionVersion: string;
@@ -336,11 +336,11 @@ export declare class FunctionService {
     listVersionByFunction(listVersionParams: IListFunctionVersionParams): Promise<IFunctionVersionsRes>;
     /**
      *
-     * @param {IUpdateFunctionVersionConfig} updateVersionConfigParams
+     * @param {IUpdateFunctionAliasConfig} updateVersionConfigParams
      * @returns {Promise<IResponseInfo>}
      * @memberof FunctionService
      */
-    updateFunctionVersionConfig(updateVersionConfigParams: IUpdateFunctionVersionConfig): Promise<IResponseInfo>;
+    updateFunctionAliasConfig(updateVersionConfigParams: IUpdateFunctionAliasConfig): Promise<IResponseInfo>;
     /**
      * 查询函数别名详情
      * @param {IGetFunctionAlias} params

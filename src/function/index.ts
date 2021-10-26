@@ -205,7 +205,7 @@ export interface IRoutingConfig {
     AddtionVersionMatchs?: IVersionMatch[]
 }
 
-export interface IUpdateFunctionVersionConfig {
+export interface IUpdateFunctionAliasConfig {
     functionName: string // 函数名
     name: string // 函数别名 如$DEFAULT
     functionVersion: string // 函数版本
@@ -1113,12 +1113,12 @@ export class FunctionService {
 
     /**
      *
-     * @param {IUpdateFunctionVersionConfig} updateVersionConfigParams
+     * @param {IUpdateFunctionAliasConfig} updateVersionConfigParams
      * @returns {Promise<IResponseInfo>}
      * @memberof FunctionService
      */
     @preLazy()
-    public async updateFunctionVersionConfig(updateVersionConfigParams: IUpdateFunctionVersionConfig): Promise<IResponseInfo> {
+    public async updateFunctionAliasConfig(updateVersionConfigParams: IUpdateFunctionAliasConfig): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
         const { functionName: FunctionName, name: Name, functionVersion: FunctionVersion, routingConfig: RoutingConfig, description: Description } = updateVersionConfigParams
 
