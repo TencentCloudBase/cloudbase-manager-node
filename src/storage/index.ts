@@ -51,8 +51,10 @@ export interface IFileOptions extends IOptions {
     cloudPath?: string
     // 并发数量
     parallel?: number
-    // 失败后尝试
-    retry?: boolean
+    // 重试次数
+    retryCount?: number
+    // 重试时间间隔(毫秒)
+    retryInterval?: number
 }
 
 export interface IFilesOptions extends IOptions {
@@ -235,7 +237,8 @@ export class StorageService {
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
      * @param {number} parallel 并发量
-     * @param {boolean} retry 失败后自动尝试
+     * @param {number} retryCount 重试次数
+     * @param {number} retryInterval 重试时间间隔(毫秒)
      * @param {(string | string[])} ignore
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
@@ -249,7 +252,8 @@ export class StorageService {
             onProgress,
             onFileFinish,
             parallel,
-            retry
+            retryCount,
+            retryInterval
         } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
@@ -258,7 +262,8 @@ export class StorageService {
             localPath,
             cloudPath,
             parallel,
-            retry,
+            retryCount,
+            retryInterval,
             bucket,
             region,
             ignore,
@@ -272,7 +277,8 @@ export class StorageService {
      * @param {string} localPath
      * @param {string} cloudPath
      * @param {number} parallel
-     * @param {boolean} retry
+     * @param {number} retryCount
+     * @param {number} retryInterval
      * @param {string} bucket
      * @param {string} region
      * @param {IOptions} options
@@ -290,7 +296,8 @@ export class StorageService {
             ignore,
             fileId = true,
             parallel = 20,
-            retry = false
+            retryCount = 0,
+            retryInterval = 500
         } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
@@ -368,39 +375,20 @@ export class StorageService {
         // 对文件上传进行处理
         const cos = this.getCos(parallel)
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
-        let uploadError = null
-        let originFileFinish = onFileFinish
         const params = {
             files,
             SliceSize: BIG_FILE_SIZE,
-            onProgress
+            onProgress,
+            onFileFinish
         }
-        const failedFiles = []
-        await uploadFiles({
-            ...params,
-            onFileFinish: (...args) => {
-                const error = args[0]
-                if (error && retry) {
-                    uploadError = error
-                    const fileInfo = (args as any)[2]
-                    failedFiles.push(fileInfo.Key)
-                    return
-                }
-                originFileFinish.apply(null, args)
-            }
+        return this.uploadFilesWithRetry({
+            uploadFiles,
+            options: params,
+            times: retryCount,
+            interval: retryInterval,
+            failedFiles: []
         })
-        // 失败后再次尝试
-        if (retry && uploadError) {
-            return uploadFiles({
-                ...params,
-                files: files.filter(file => failedFiles.includes(file.Key)),
-                onFileFinish: (...args) => {
-                    originFileFinish.apply(null, args)
-                }
-            })
-        }
     }
-
     /**
      * 批量上传文件
      * @param options
@@ -1165,6 +1153,47 @@ export class StorageService {
             region,
             bucket: Bucket,
             env: envConfig.EnvId
+        }
+    }
+    /**
+     * 带重试功能的上传多文件函数
+     * @param uploadFiles sdk上传函数
+     * @param options sdk上传函数参数
+     * @param times 重试次数
+     * @param interval 重试时间间隔(毫秒)
+     * @param failedFiles 失败文件列表
+     * @returns
+     */
+    private async uploadFilesWithRetry({ uploadFiles, options, times, interval, failedFiles }) {
+        const { files, onFileFinish } = options
+        const tempFailedFiles = []
+        const res = await uploadFiles({
+            ...options,
+            files: failedFiles.length
+                ? files.filter(file => failedFiles.includes(file.Key))
+                : files,
+            onFileFinish: (...args) => {
+                const error = args[0]
+                const fileInfo = (args as any)[2]
+                if (error) {
+                    tempFailedFiles.push(fileInfo.Key)
+                }
+                onFileFinish?.apply(null, args)
+            }
+        })
+        if (!tempFailedFiles?.length || times - 1 <= 0) return res
+        if (times - 1 > 0) {
+            setTimeout(
+                () =>
+                    this.uploadFilesWithRetry({
+                        uploadFiles,
+                        options,
+                        times: times - 1,
+                        interval,
+                        failedFiles: tempFailedFiles
+                    }),
+                interval
+            )
         }
     }
 }
