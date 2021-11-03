@@ -64,7 +64,10 @@ test('下载文件 - 流 storage.downloadFile', async () => {
 test('上传文件夹 storage.uploadDirectory', async () => {
     await storage.uploadDirectory({
         localPath: dirPath,
-        cloudPath: cloudDirPath
+        cloudPath: cloudDirPath,
+        parallel: 50,
+        retryCount: 1,
+        retryInterval: 1000
     })
 }, 10000)
 

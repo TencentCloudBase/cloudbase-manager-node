@@ -17,6 +17,9 @@ export interface IOptions {
 export interface IFileOptions extends IOptions {
     localPath: string;
     cloudPath?: string;
+    parallel?: number;
+    retryCount?: number;
+    retryInterval?: number;
 }
 export interface IFilesOptions extends IOptions {
     ignore?: string | string[];
@@ -87,6 +90,9 @@ export declare class StorageService {
      * 上传文件夹
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
+     * @param {number} parallel 并发量
+     * @param {number} retryCount 重试次数
+     * @param {number} retryInterval 重试时间间隔(毫秒)
      * @param {(string | string[])} ignore
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
@@ -96,6 +102,9 @@ export declare class StorageService {
      * 上传文件夹，支持自定义 Region 和 Bucket
      * @param {string} localPath
      * @param {string} cloudPath
+     * @param {number} parallel
+     * @param {number} retryCount
+     * @param {number} retryInterval
      * @param {string} bucket
      * @param {string} region
      * @param {IOptions} options
@@ -284,5 +293,15 @@ export declare class StorageService {
      * 获取存储桶配置
      */
     private getStorageConfig;
+    /**
+     * 带重试功能的上传多文件函数
+     * @param uploadFiles sdk上传函数
+     * @param options sdk上传函数参数
+     * @param times 重试次数
+     * @param interval 重试时间间隔(毫秒)
+     * @param failedFiles 失败文件列表
+     * @returns
+     */
+    private uploadFilesWithRetry;
 }
 export {};

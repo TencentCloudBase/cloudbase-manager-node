@@ -49,6 +49,12 @@ export interface IFileOptions extends IOptions {
     localPath: string
     // cloudPath 可以为空
     cloudPath?: string
+    // 并发数量
+    parallel?: number
+    // 重试次数
+    retryCount?: number
+    // 重试时间间隔(毫秒)
+    retryInterval?: number
 }
 
 export interface IFilesOptions extends IOptions {
@@ -230,19 +236,34 @@ export class StorageService {
      * 上传文件夹
      * @param {string} localPath 本地文件夹路径
      * @param {string} cloudPath 云端文件夹
+     * @param {number} parallel 并发量
+     * @param {number} retryCount 重试次数
+     * @param {number} retryInterval 重试时间间隔(毫秒)
      * @param {(string | string[])} ignore
      * @param {(string | string[])} ignore
      * @returns {Promise<void>}
      */
     @preLazy()
     public async uploadDirectory(options: IFileOptions): Promise<void> {
-        const { localPath, cloudPath = '', ignore, onProgress, onFileFinish } = options
+        const {
+            localPath,
+            cloudPath = '',
+            ignore,
+            onProgress,
+            onFileFinish,
+            parallel,
+            retryCount,
+            retryInterval
+        } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
         const { bucket, region } = this.getStorageConfig()
         return this.uploadDirectoryCustom({
             localPath,
             cloudPath,
+            parallel,
+            retryCount,
+            retryInterval,
             bucket,
             region,
             ignore,
@@ -255,6 +276,9 @@ export class StorageService {
      * 上传文件夹，支持自定义 Region 和 Bucket
      * @param {string} localPath
      * @param {string} cloudPath
+     * @param {number} parallel
+     * @param {number} retryCount
+     * @param {number} retryInterval
      * @param {string} bucket
      * @param {string} region
      * @param {IOptions} options
@@ -271,7 +295,9 @@ export class StorageService {
             onFileFinish,
             ignore,
             fileId = true,
-            parallel = 20
+            parallel = 20,
+            retryCount = 0,
+            retryInterval = 500
         } = options
         // 此处不检查路径是否存在
         // 绝对路径 /var/blog/xxxx
@@ -310,12 +336,13 @@ export class StorageService {
         const creatingDirController = new AsyncTaskParallelController(parallel, 50)
         const creatingDirTasks = fileStatsList
             .filter(info => info.isDir)
-            .map(info => () =>
-                this.createCloudDirectroyCustom({
-                    cloudPath: info.cloudFileKey,
-                    bucket,
-                    region
-                })
+            .map(
+                info => () =>
+                    this.createCloudDirectroyCustom({
+                        cloudPath: info.cloudFileKey,
+                        bucket,
+                        region
+                    })
             )
 
         creatingDirController.loadTasks(creatingDirTasks)
@@ -348,15 +375,20 @@ export class StorageService {
         // 对文件上传进行处理
         const cos = this.getCos(parallel)
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
-
-        return uploadFiles({
+        const params = {
             files,
             SliceSize: BIG_FILE_SIZE,
             onProgress,
             onFileFinish
+        }
+        return this.uploadFilesWithRetry({
+            uploadFiles,
+            options: params,
+            times: retryCount,
+            interval: retryInterval,
+            failedFiles: []
         })
     }
-
     /**
      * 批量上传文件
      * @param options
@@ -735,9 +767,7 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async deleteDirectory(
-        cloudPath: string
-    ): Promise<{
+    public async deleteDirectory(cloudPath: string): Promise<{
         Deleted: { Key: string }[]
         Error: Object[]
     }> {
@@ -758,9 +788,7 @@ export class StorageService {
      * @returns {Promise<void>}
      */
     @preLazy()
-    public async deleteDirectoryCustom(
-        options: { cloudPath: string } & ICustomOptions
-    ): Promise<{
+    public async deleteDirectoryCustom(options: { cloudPath: string } & ICustomOptions): Promise<{
         Deleted: { Key: string }[]
         Error: Object[]
     }> {
@@ -1125,6 +1153,49 @@ export class StorageService {
             region,
             bucket: Bucket,
             env: envConfig.EnvId
+        }
+    }
+    /**
+     * 带重试功能的上传多文件函数
+     * @param uploadFiles sdk上传函数
+     * @param options sdk上传函数参数
+     * @param times 重试次数
+     * @param interval 重试时间间隔(毫秒)
+     * @param failedFiles 失败文件列表
+     * @returns
+     */
+    private async uploadFilesWithRetry({ uploadFiles, options, times, interval, failedFiles }) {
+        console.log('times', times)
+        const { files, onFileFinish } = options
+        const tempFailedFiles = []
+        const res = await uploadFiles({
+            ...options,
+            files: failedFiles.length
+                ? files.filter(file => failedFiles.includes(file.Key))
+                : files,
+            onFileFinish: (...args) => {
+                console.log('args', args)
+                const error = args[0]
+                const fileInfo = (args as any)[2]
+                if (error) {
+                    tempFailedFiles.push(fileInfo.Key)
+                }
+                onFileFinish?.apply(null, args)
+            }
+        })
+        if (!tempFailedFiles?.length || times <= 0) return res
+        if (times > 0) {
+            setTimeout(
+                () =>
+                    this.uploadFilesWithRetry({
+                        uploadFiles,
+                        options,
+                        times: times - 1,
+                        interval,
+                        failedFiles: tempFailedFiles
+                    }),
+                interval
+            )
         }
     }
 }
