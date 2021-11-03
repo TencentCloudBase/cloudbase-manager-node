@@ -27,6 +27,8 @@ export interface IFilesOptions extends IOptions {
         localPath: string;
         cloudPath?: string;
     }[];
+    retryCount?: number;
+    retryInterval?: number;
 }
 export interface ICustomOptions {
     bucket: string;

@@ -20,6 +20,8 @@ export interface IHostingFileOptions {
     onProgress?: OnProgress;
     onFileFinish?: OnFileFinish;
     ignore?: string | string[];
+    retryCount?: number;
+    retryInterval?: number;
 }
 export interface IHostingFilesOptions {
     localPath?: string;
@@ -32,6 +34,8 @@ export interface IHostingFilesOptions {
     onProgress?: OnProgress;
     onFileFinish?: OnFileFinish;
     ignore?: string | string[];
+    retryCount?: number;
+    retryInterval?: number;
 }
 export declare type IHostingOptions = IHostingFileOptions | IHostingFilesOptions;
 export interface IHostingCloudOptions {

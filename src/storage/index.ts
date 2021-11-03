@@ -62,6 +62,11 @@ export interface IFilesOptions extends IOptions {
     ignore?: string | string[]
     // 文件列表
     files: { localPath: string; cloudPath?: string }[]
+
+    // 重试次数
+    retryCount?: number
+    // 重试时间间隔(毫秒)
+    retryInterval?: number
 }
 
 export interface ICustomOptions {
@@ -141,7 +146,8 @@ export class StorageService {
      */
     @preLazy()
     public async uploadFiles(options: IFilesOptions): Promise<void> {
-        const { files, onProgress, parallel, onFileFinish, ignore } = options
+        const { files, onProgress, parallel, onFileFinish, ignore, retryCount,
+            retryInterval } = options
         const { bucket, region } = this.getStorageConfig()
 
         return this.uploadFilesCustom({
@@ -151,7 +157,9 @@ export class StorageService {
             ignore,
             parallel,
             onProgress,
-            onFileFinish
+            onFileFinish,
+            retryCount,
+            retryInterval
         })
     }
 
@@ -403,7 +411,9 @@ export class StorageService {
             onProgress,
             onFileFinish,
             fileId = true,
-            parallel = 20
+            parallel = 20,
+            retryCount = 0,
+            retryInterval = 500
         } = options
 
         if (!files || !files.length) {
@@ -446,11 +456,25 @@ export class StorageService {
         const cos = this.getCos(parallel)
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
 
-        return uploadFiles({
-            onProgress,
-            onFileFinish,
+        const params = {
             files: fileList,
-            SliceSize: BIG_FILE_SIZE
+            SliceSize: BIG_FILE_SIZE,
+            onProgress,
+            onFileFinish
+        }
+
+        // return uploadFiles({
+        //     onProgress,
+        //     onFileFinish,
+        //     files: fileList,
+        //     SliceSize: BIG_FILE_SIZE
+        // })
+        return this.uploadFilesWithRetry({
+            uploadFiles,
+            options: params,
+            times: retryCount,
+            interval: retryInterval,
+            failedFiles: []
         })
     }
 
@@ -1068,7 +1092,6 @@ export class StorageService {
             }
         }
 
-        console.log('params:', JSON.stringify(params))
         const res = await putBucketWebsite(params)
 
         return res
@@ -1165,7 +1188,6 @@ export class StorageService {
      * @returns
      */
     private async uploadFilesWithRetry({ uploadFiles, options, times, interval, failedFiles }) {
-        console.log('times', times)
         const { files, onFileFinish } = options
         const tempFailedFiles = []
         const res = await uploadFiles({
@@ -1174,7 +1196,6 @@ export class StorageService {
                 ? files.filter(file => failedFiles.includes(file.Key))
                 : files,
             onFileFinish: (...args) => {
-                console.log('args', args)
                 const error = args[0]
                 const fileInfo = (args as any)[2]
                 if (error) {
