@@ -66,7 +66,7 @@ test('上传文件夹 storage.uploadDirectory', async () => {
         localPath: dirPath,
         cloudPath: cloudDirPath,
         parallel: 50,
-        retryCount: 10,
+        retryCount: 1,
         retryInterval: 1000
     })
 }, 10000)

@@ -1165,6 +1165,7 @@ export class StorageService {
      * @returns
      */
     private async uploadFilesWithRetry({ uploadFiles, options, times, interval, failedFiles }) {
+        console.log('times', times)
         const { files, onFileFinish } = options
         const tempFailedFiles = []
         const res = await uploadFiles({
@@ -1173,6 +1174,7 @@ export class StorageService {
                 ? files.filter(file => failedFiles.includes(file.Key))
                 : files,
             onFileFinish: (...args) => {
+                console.log('args', args)
                 const error = args[0]
                 const fileInfo = (args as any)[2]
                 if (error) {
@@ -1181,8 +1183,8 @@ export class StorageService {
                 onFileFinish?.apply(null, args)
             }
         })
-        if (!tempFailedFiles?.length || times - 1 <= 0) return res
-        if (times - 1 > 0) {
+        if (!tempFailedFiles?.length || times <= 0) return res
+        if (times > 0) {
             setTimeout(
                 () =>
                     this.uploadFilesWithRetry({
