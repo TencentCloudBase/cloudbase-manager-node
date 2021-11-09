@@ -49,8 +49,6 @@ export interface IFileOptions extends IOptions {
     localPath: string
     // cloudPath 可以为空
     cloudPath?: string
-    // 并发数量
-    parallel?: number
     // 重试次数
     retryCount?: number
     // 重试时间间隔(毫秒)
@@ -62,6 +60,10 @@ export interface IFilesOptions extends IOptions {
     ignore?: string | string[]
     // 文件列表
     files: { localPath: string; cloudPath?: string }[]
+    // 重试次数
+    retryCount?: number
+    // 重试时间间隔(毫秒)
+    retryInterval?: number
 }
 
 export interface ICustomOptions {
@@ -141,7 +143,8 @@ export class StorageService {
      */
     @preLazy()
     public async uploadFiles(options: IFilesOptions): Promise<void> {
-        const { files, onProgress, parallel, onFileFinish, ignore } = options
+        const { files, onProgress, parallel, onFileFinish, ignore, retryCount, retryInterval } =
+            options
         const { bucket, region } = this.getStorageConfig()
 
         return this.uploadFilesCustom({
@@ -151,7 +154,9 @@ export class StorageService {
             ignore,
             parallel,
             onProgress,
-            onFileFinish
+            onFileFinish,
+            retryCount,
+            retryInterval
         })
     }
 
@@ -403,7 +408,9 @@ export class StorageService {
             onProgress,
             onFileFinish,
             fileId = true,
-            parallel = 20
+            parallel = 20,
+            retryCount = 0,
+            retryInterval = 500
         } = options
 
         if (!files || !files.length) {
@@ -445,12 +452,18 @@ export class StorageService {
 
         const cos = this.getCos(parallel)
         const uploadFiles = Util.promisify(cos.uploadFiles).bind(cos)
-
-        return uploadFiles({
-            onProgress,
-            onFileFinish,
+        const params = {
             files: fileList,
-            SliceSize: BIG_FILE_SIZE
+            SliceSize: BIG_FILE_SIZE,
+            onProgress,
+            onFileFinish
+        }
+        return this.uploadFilesWithRetry({
+            uploadFiles,
+            options: params,
+            times: retryCount,
+            interval: retryInterval,
+            failedFiles: []
         })
     }
 
@@ -543,32 +556,42 @@ export class StorageService {
     public async downloadDirectory(options: {
         cloudPath: string
         localPath?: string
+        parallel?: number
     }): Promise<(NodeJS.ReadableStream | string)[]> {
-        const { cloudPath, localPath } = options
+        const { cloudPath, localPath, parallel = 5 } = options
         const resolveLocalPath = path.resolve(localPath)
 
         checkFullAccess(resolveLocalPath, true)
 
         const cloudDirectoryKey = this.getCloudKey(cloudPath)
         const files = await this.walkCloudDir(cloudDirectoryKey)
-
-        const promises = files.map(async file => {
-            const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
-            // 空路径和文件夹跳过
-            if (!fileRelativePath || /\/$/g.test(fileRelativePath)) {
-                return
-            }
-            const localFilePath = path.join(resolveLocalPath, fileRelativePath)
-            // 创建文件的父文件夹
-            const fileDir = path.dirname(localFilePath)
-            await makeDir(fileDir)
-            return this.downloadFile({
-                cloudPath: file.Key,
-                localPath: localFilePath
-            })
+        const promises = files.map(file => async () => {
+            return this.downloadWithFilePath({ file, cloudDirectoryKey, resolveLocalPath })
         })
+        const asyncTaskController = new AsyncTaskParallelController(parallel, 50)
+        asyncTaskController.loadTasks(promises)
+        let res = await asyncTaskController.run()
+        const errorIndexArr = []
 
-        return Promise.all(promises)
+        res.map(
+            (item, index) =>
+                /Error/gi.test(Object.prototype.toString.call(item)) && errorIndexArr.push(index)
+        )
+        // 重试逻辑
+        if (errorIndexArr.length) {
+            const errorFiles = errorIndexArr.map(errorIndex => files[errorIndex])
+            asyncTaskController.loadTasks(
+                errorFiles.map(file => async () => {
+                    return this.downloadWithFilePath({ file, cloudDirectoryKey, resolveLocalPath })
+                })
+            )
+            res = await asyncTaskController.run()
+        }
+        const errorResultArr = this.determineDownLoadResultIsError(res)
+        if (errorResultArr.length) {
+            throw errorResultArr[0]
+        }
+        return res
     }
 
     /**
@@ -1195,5 +1218,42 @@ export class StorageService {
                 interval
             )
         }
+    }
+
+    /**
+     * 拼接路径下载单文件
+     * @param file
+     * @param cloudDirectoryKey
+     * @param resolveLocalPath
+     * @returns
+     */
+    private async downloadWithFilePath({ file, cloudDirectoryKey, resolveLocalPath }) {
+        const fileRelativePath = file.Key.replace(cloudDirectoryKey, '')
+        // 空路径和文件夹跳过
+        if (!fileRelativePath || /\/$/g.test(fileRelativePath)) {
+            return
+        }
+        const localFilePath = path.join(resolveLocalPath, fileRelativePath)
+        // 创建文件的父文件夹
+        const fileDir = path.dirname(localFilePath)
+        await makeDir(fileDir)
+        return this.downloadFile({
+            cloudPath: file.Key,
+            localPath: localFilePath
+        })
+    }
+
+    /**
+     * 根据下载结果返回错误列表
+     * @param res
+     * @returns
+     */
+    private determineDownLoadResultIsError(res) {
+        const resultErrorArr = []
+        res.map(
+            item =>
+                /Error/gi.test(Object.prototype.toString.call(item)) && resultErrorArr.push(item)
+        )
+        return resultErrorArr
     }
 }

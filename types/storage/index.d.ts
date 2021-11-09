@@ -17,7 +17,6 @@ export interface IOptions {
 export interface IFileOptions extends IOptions {
     localPath: string;
     cloudPath?: string;
-    parallel?: number;
     retryCount?: number;
     retryInterval?: number;
 }
@@ -27,6 +26,8 @@ export interface IFilesOptions extends IOptions {
         localPath: string;
         cloudPath?: string;
     }[];
+    retryCount?: number;
+    retryInterval?: number;
 }
 export interface ICustomOptions {
     bucket: string;
@@ -149,6 +150,7 @@ export declare class StorageService {
     downloadDirectory(options: {
         cloudPath: string;
         localPath?: string;
+        parallel?: number;
     }): Promise<(NodeJS.ReadableStream | string)[]>;
     /**
      * 列出文件夹下的文件
@@ -303,5 +305,19 @@ export declare class StorageService {
      * @returns
      */
     private uploadFilesWithRetry;
+    /**
+     * 拼接路径下载单文件
+     * @param file
+     * @param cloudDirectoryKey
+     * @param resolveLocalPath
+     * @returns
+     */
+    private downloadWithFilePath;
+    /**
+     * 根据下载结果返回错误列表
+     * @param res
+     * @returns
+     */
+    private determineDownLoadResultIsError;
 }
 export {};
