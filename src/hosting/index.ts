@@ -38,6 +38,10 @@ export interface IHostingFileOptions {
     onProgress?: OnProgress
     onFileFinish?: OnFileFinish
     ignore?: string | string[]
+    // 重试次数
+    retryCount?: number
+    // 重试时间间隔(毫秒)
+    retryInterval?: number
 }
 
 export interface IHostingFilesOptions {
@@ -52,6 +56,10 @@ export interface IHostingFilesOptions {
     onProgress?: OnProgress
     onFileFinish?: OnFileFinish
     ignore?: string | string[]
+    // 重试次数
+    retryCount?: number
+    // 重试时间间隔(毫秒)
+    retryInterval?: number
 }
 
 export type IHostingOptions = IHostingFileOptions | IHostingFilesOptions
@@ -331,7 +339,9 @@ export class HostingService {
             onProgress,
             onFileFinish,
             parallel = 20,
-            ignore
+            ignore,
+            retryCount,
+            retryInterval
         } = options
 
         const hosting = await this.checkStatus()
@@ -355,7 +365,9 @@ export class HostingService {
                     onProgress,
                     onFileFinish,
                     fileId: false,
-                    ignore
+                    ignore,
+                    retryCount,
+                    retryInterval,
                 })
             } else {
                 // 文件上传统一通过批量上传接口
@@ -376,7 +388,9 @@ export class HostingService {
             bucket: Bucket,
             region: Regoin,
             files: uploadFiles,
-            fileId: false
+            fileId: false,
+            retryCount,
+            retryInterval,
         })
     }
 

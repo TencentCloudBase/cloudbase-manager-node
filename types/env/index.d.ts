@@ -34,6 +34,7 @@ export declare class EnvService {
     private cloudService;
     private camService;
     private billService;
+    private envType?;
     constructor(environment: Environment);
     /**
      * 列出所有环境

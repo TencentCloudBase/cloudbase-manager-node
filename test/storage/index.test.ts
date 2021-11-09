@@ -66,7 +66,7 @@ test('上传文件夹 storage.uploadDirectory', async () => {
         localPath: dirPath,
         cloudPath: cloudDirPath,
         parallel: 50,
-        retryCount: 10,
+        retryCount: 1,
         retryInterval: 1000
     })
 }, 10000)
@@ -74,7 +74,8 @@ test('上传文件夹 storage.uploadDirectory', async () => {
 test('下载文件夹 storage.downloadDirectory', async () => {
     await storage.downloadDirectory({
         cloudPath: cloudDirPath,
-        localPath: downloadLocalPath
+        localPath: downloadLocalPath,
+        parallel: 50
     })
 }, 10000)
 

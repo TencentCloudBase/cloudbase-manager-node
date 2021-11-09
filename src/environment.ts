@@ -21,6 +21,7 @@ export class Environment {
     public cloudBaseContext: CloudBaseContext
     public lazyEnvironmentConfig: EnvInfo
     private envId: string
+    private envType?: string
 
     private functionService: FunctionService
     private databaseService: DatabaseService
@@ -35,6 +36,7 @@ export class Environment {
     constructor(context: CloudBaseContext, envId: string) {
         this.envId = envId
         this.cloudBaseContext = context
+        this.envType = context.envType
 
         // 拉取当前环境 的环境信息 todo
         this.functionService = new FunctionService(this)
@@ -67,6 +69,10 @@ export class Environment {
 
     public getEnvId(): string {
         return this.envId
+    }
+
+    public getEnvType(): string {
+        return this.envType
     }
 
     public getStorageService(): StorageService {

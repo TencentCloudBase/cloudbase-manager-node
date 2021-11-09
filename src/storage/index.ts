@@ -49,6 +49,8 @@ export interface IFileOptions extends IOptions {
     localPath: string
     // cloudPath 可以为空
     cloudPath?: string
+    // 并发数量
+    parallel?: number
     // 重试次数
     retryCount?: number
     // 重试时间间隔(毫秒)
@@ -458,6 +460,13 @@ export class StorageService {
             onProgress,
             onFileFinish
         }
+
+        // return uploadFiles({
+        //     onProgress,
+        //     onFileFinish,
+        //     files: fileList,
+        //     SliceSize: BIG_FILE_SIZE
+        // })
         return this.uploadFilesWithRetry({
             uploadFiles,
             options: params,
@@ -1091,7 +1100,6 @@ export class StorageService {
             }
         }
 
-        console.log('params:', JSON.stringify(params))
         const res = await putBucketWebsite(params)
 
         return res
@@ -1204,8 +1212,8 @@ export class StorageService {
                 onFileFinish?.apply(null, args)
             }
         })
-        if (!tempFailedFiles?.length || times - 1 <= 0) return res
-        if (times - 1 > 0) {
+        if (!tempFailedFiles?.length || times <= 0) return res
+        if (times > 0) {
             setTimeout(
                 () =>
                     this.uploadFilesWithRetry({

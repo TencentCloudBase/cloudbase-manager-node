@@ -15,6 +15,7 @@ export declare class Environment {
     cloudBaseContext: CloudBaseContext;
     lazyEnvironmentConfig: EnvInfo;
     private envId;
+    private envType?;
     private functionService;
     private databaseService;
     private storageService;
@@ -27,6 +28,7 @@ export declare class Environment {
     constructor(context: CloudBaseContext, envId: string);
     lazyInit(): Promise<any>;
     getEnvId(): string;
+    getEnvType(): string;
     getStorageService(): StorageService;
     getDatabaseService(): DatabaseService;
     getFunctionService(): FunctionService;

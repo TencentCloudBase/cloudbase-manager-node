@@ -17,6 +17,7 @@ export interface IOptions {
 export interface IFileOptions extends IOptions {
     localPath: string;
     cloudPath?: string;
+    parallel?: number;
     retryCount?: number;
     retryInterval?: number;
 }

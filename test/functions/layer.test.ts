@@ -8,7 +8,7 @@ const layerName = 'luke' + Date.now()
 test('创建文件层: functions.createLayer', async () => {
     const res = await functions.createLayer({
         name: layerName,
-        contentPath: './test/functions/gongshu/',
+        contentPath: './test/functions/layertest/',
         runtimes: ['Nodejs8.9']
     })
     expect(res.LayerVersion).toBeTruthy()
@@ -17,7 +17,7 @@ test('创建文件层: functions.createLayer', async () => {
 test('查询文件层版本列表: functions.listLayerVersions', async () => {
     const res = await functions.createLayer({
         name: layerName,
-        contentPath: './test/functions/gongshu/',
+        contentPath: './test/functions/layertest/',
         runtimes: ['Nodejs8.9']
     })
     expect(res.LayerVersion).toBeTruthy()
