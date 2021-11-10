@@ -567,7 +567,7 @@ export class StorageService {
         localPath?: string
         parallel?: number
     }): Promise<(NodeJS.ReadableStream | string)[]> {
-        const { cloudPath, localPath, parallel = 5 } = options
+        const { cloudPath, localPath, parallel = 20 } = options
         const resolveLocalPath = path.resolve(localPath)
 
         checkFullAccess(resolveLocalPath, true)
