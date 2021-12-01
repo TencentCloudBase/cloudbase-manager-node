@@ -2,6 +2,8 @@ import { cloudBaseConfig } from '../config'
 import CloudBase from '../../src'
 import { sleep } from '../../src/utils/index'
 import { SCF_STATUS } from '../../src/constant'
+import { assert } from 'console'
+import { version } from 'cos-nodejs-sdk-v5'
 
 const { functions } = new CloudBase(cloudBaseConfig)
 
@@ -484,6 +486,74 @@ test('复制云函数：functions.copyFunction', async () => {
     expect(res.RequestId).toBeTruthy()
 })
 
+test('设置函数预置并发，查询，删除', async () => {
+    // 针对 app 函数创建新版本
+    const createNewVersionRes = await functions.publishVersion({
+        functionName: 'sum',
+        description: 'test'
+    })
+
+    console.log('createNewVersionRes', createNewVersionRes)
+
+    const latestVersion = createNewVersionRes.FunctionVersion
+
+    // 查询版本详情，等待版本状态为Active
+    let versionStatus
+    while (versionStatus !== 'Active') {
+        const functionVersions = await functions.listVersionByFunction({
+            functionName: 'sum'
+        })
+        console.log('functionVersions', functionVersions)
+        const curVersion = functionVersions.Versions[functionVersions.TotalCount - 1]
+        versionStatus = curVersion.Status
+    }
+
+    // 设置新版本预置并发
+    const setProvisionedConcurrencyConfigRes = await functions.setProvisionedConcurrencyConfig({
+        functionName: 'sum',
+        qualifier: latestVersion,
+        // qualifier: '1',
+        versionProvisionedConcurrencyNum: 10 // 设置10并发
+    })
+
+    console.log('setProvisionedConcurrencyConfigRes', setProvisionedConcurrencyConfigRes)
+
+    const getProvisionedConcurrencyConfigRes = await functions.getProvisionedConcurrencyConfig({
+        functionName: 'sum',
+        qualifier: latestVersion
+        // qualifier: '1'
+    })
+
+    console.log('getProvisionedConcurrencyConfigRes', getProvisionedConcurrencyConfigRes)
+    assert(getProvisionedConcurrencyConfigRes.Allocated.length === 1)
+
+    // 分配流量
+    const updateVersionConfigRes = await functions.updateFunctionAliasConfig({
+        functionName: 'sum',
+        name: '$DEFAULT',
+        functionVersion: '$LATEST',
+        routingConfig: {
+            AddtionVersionMatchs: [{
+                Expression: "[0,3)",
+                Key: "invoke.headers.X-Tcb-Route-Key",
+                Method: "range",
+                Version: latestVersion
+                // Version: '1'
+            }]
+        }
+    })
+    console.log('updateVersionConfigRes', updateVersionConfigRes)
+
+    // 查询流量配置比例
+    const getVersionConfigRes = await functions.getFunctionAlias({
+        name: '$DEFAULT',
+        functionName: 'sum'
+    })
+
+    console.log('getVersionConfigRes', JSON.stringify(getVersionConfigRes))
+    assert(getVersionConfigRes.RoutingConfig.AddtionVersionMatchs[0].Version === latestVersion)
+})
+
 test('删除函数: functions.deleteFunction', async () => {
     await functions.deleteFunction('app')
     const res = await functions.deleteFunction('app-copy')
@@ -497,3 +567,6 @@ test('删除函数: functions.deleteFunction', async () => {
         })()
     ).rejects.toThrowError()
 })
+
+
+
