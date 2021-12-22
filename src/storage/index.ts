@@ -1198,6 +1198,7 @@ export class StorageService {
     private async uploadFilesWithRetry({ uploadFiles, options, times, interval, failedFiles }) {
         const { files, onFileFinish } = options
         const tempFailedFiles = []
+        let curError: any = null
         const res = await uploadFiles({
             ...options,
             files: failedFiles.length
@@ -1207,24 +1208,37 @@ export class StorageService {
                 const error = args[0]
                 const fileInfo = (args as any)[2]
                 if (error) {
+                    curError = error
                     tempFailedFiles.push(fileInfo.Key)
                 }
                 onFileFinish?.apply(null, args)
             }
         })
-        if (!tempFailedFiles?.length || times <= 0) return res
-        if (times > 0) {
-            setTimeout(
-                () =>
-                    this.uploadFilesWithRetry({
-                        uploadFiles,
-                        options,
-                        times: times - 1,
-                        interval,
-                        failedFiles: tempFailedFiles
-                    }),
-                interval
-            )
+        // if (!tempFailedFiles?.length || times <= 0) return res
+
+        if (!tempFailedFiles?.length) {
+            return res
+        } else {
+            if (times > 0) {
+                return await new Promise((resolve, reject) => {
+                    setTimeout(
+                        () =>
+                            this.uploadFilesWithRetry({
+                                uploadFiles,
+                                options,
+                                times: times - 1,
+                                interval,
+                                failedFiles: tempFailedFiles
+                            }).then(res => resolve(res))
+                                .catch(err => reject(err)),
+                        interval
+                    )
+                })
+            } else {
+                if (curError) {
+                    throw curError
+                }
+            }
         }
     }
 
