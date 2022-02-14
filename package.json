@@ -7,7 +7,8 @@
         "build": "rimraf lib types && npx tsc",
         "test": "jest --runInBand --detectOpenHandles --coverage --testTimeout=50000",
         "lint": "eslint \"./**/*.ts\"",
-        "lint:fix": "eslint --fix \"./**/*.ts\""
+        "lint:fix": "eslint --fix \"./**/*.ts\"",
+        "prepublishOnly": "npm run build"
     },
     "repository": {
         "type": "git",
