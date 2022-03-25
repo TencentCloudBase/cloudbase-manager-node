@@ -3,6 +3,11 @@
     "version": "3.12.1",
     "description": "The node manage service api for cloudbase.",
     "main": "lib/index.js",
+    "files": [
+        "lib/",
+        "types/",
+        "CHANGELOG*"
+    ],
     "scripts": {
         "build": "rimraf lib types && npx tsc",
         "test": "jest --runInBand --detectOpenHandles --coverage --testTimeout=50000",
