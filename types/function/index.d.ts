@@ -216,9 +216,10 @@ export declare class FunctionService {
     /**
      * 删除云函数
      * @param {string} name 云函数名称
+     * @param {string} qualifier 需要删除的版本号，不填默认删除函数下全部版本。
      * @returns {Promise<IResponseInfo>}
      */
-    deleteFunction(name: string): Promise<IResponseInfo>;
+    deleteFunction(name: string, qualifier?: string): Promise<IResponseInfo>;
     /**
      * 获取云函数详细信息
      * @param {string} name 云函数名称

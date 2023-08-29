@@ -234,11 +234,7 @@ function isNodeFunction(runtime: string) {
 }
 
 // 解析函数配置，换成请求参数
-function configToParams(options: {
-    func: ICloudFunction;
-    codeSecret: string;
-    baseParams: any;
-}) {
+function configToParams(options: { func: ICloudFunction; codeSecret: string; baseParams: any }) {
     const { func, codeSecret, baseParams } = options
     let installDependency
     // Node 函数默认安装依赖
@@ -378,7 +374,7 @@ export class FunctionService {
             force = false,
             base64Code,
             codeSecret,
-            functionPath,
+            functionPath
         } = funcParam
         const funcName = func.name
 
@@ -538,14 +534,16 @@ export class FunctionService {
     /**
      * 删除云函数
      * @param {string} name 云函数名称
+     * @param {string} qualifier 需要删除的版本号，不填默认删除函数下全部版本。
      * @returns {Promise<IResponseInfo>}
      */
     @preLazy()
-    async deleteFunction(name: string): Promise<IResponseInfo> {
+    async deleteFunction(name: string, qualifier?: string): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
         return this.scfService.request('DeleteFunction', {
             FunctionName: name,
-            Namespace: namespace
+            Namespace: namespace,
+            Qualifier: qualifier
         })
     }
 
@@ -1022,9 +1020,15 @@ export class FunctionService {
      * @memberof FunctionService
      */
     @preLazy()
-    public async setProvisionedConcurrencyConfig(concurrencyConfig: ISetProvisionedConcurrencyConfig): Promise<IResponseInfo> {
+    public async setProvisionedConcurrencyConfig(
+        concurrencyConfig: ISetProvisionedConcurrencyConfig
+    ): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
-        const { functionName: FunctionName, qualifier: Qualifier, versionProvisionedConcurrencyNum: VersionProvisionedConcurrencyNum } = concurrencyConfig
+        const {
+            functionName: FunctionName,
+            qualifier: Qualifier,
+            versionProvisionedConcurrencyNum: VersionProvisionedConcurrencyNum
+        } = concurrencyConfig
 
         return this.scfService.request('PutProvisionedConcurrencyConfig', {
             FunctionName,
@@ -1042,7 +1046,9 @@ export class FunctionService {
      * @memberof FunctionService
      */
     @preLazy()
-    public async getProvisionedConcurrencyConfig(concurrencyConfig: IGetProvisionedConcurrencyConfig): Promise<IGetProvisionedConcurrencyRes> {
+    public async getProvisionedConcurrencyConfig(
+        concurrencyConfig: IGetProvisionedConcurrencyConfig
+    ): Promise<IGetProvisionedConcurrencyRes> {
         const { namespace } = this.getFunctionConfig()
         const { functionName: FunctionName, qualifier: Qualifier } = concurrencyConfig
 
@@ -1061,7 +1067,9 @@ export class FunctionService {
      * @memberof FunctionService
      */
     @preLazy()
-    public async deleteProvisionedConcurrencyConfig(concurrencyConfig: IGetProvisionedConcurrencyConfig): Promise<IResponseInfo> {
+    public async deleteProvisionedConcurrencyConfig(
+        concurrencyConfig: IGetProvisionedConcurrencyConfig
+    ): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
         const { functionName: FunctionName, qualifier: Qualifier } = concurrencyConfig
 
@@ -1097,9 +1105,17 @@ export class FunctionService {
      * @memberof FunctionService
      */
     @preLazy()
-    public async listVersionByFunction(listVersionParams: IListFunctionVersionParams): Promise<IFunctionVersionsRes> {
+    public async listVersionByFunction(
+        listVersionParams: IListFunctionVersionParams
+    ): Promise<IFunctionVersionsRes> {
         const { namespace } = this.getFunctionConfig()
-        const { functionName: FunctionName, offset: Offset, limit: Limit, order: Order, orderBy: OrderBy } = listVersionParams
+        const {
+            functionName: FunctionName,
+            offset: Offset,
+            limit: Limit,
+            order: Order,
+            orderBy: OrderBy
+        } = listVersionParams
 
         return this.scfService.request('ListVersionByFunction', {
             FunctionName,
@@ -1118,9 +1134,17 @@ export class FunctionService {
      * @memberof FunctionService
      */
     @preLazy()
-    public async updateFunctionAliasConfig(updateVersionConfigParams: IUpdateFunctionAliasConfig): Promise<IResponseInfo> {
+    public async updateFunctionAliasConfig(
+        updateVersionConfigParams: IUpdateFunctionAliasConfig
+    ): Promise<IResponseInfo> {
         const { namespace } = this.getFunctionConfig()
-        const { functionName: FunctionName, name: Name, functionVersion: FunctionVersion, routingConfig: RoutingConfig, description: Description } = updateVersionConfigParams
+        const {
+            functionName: FunctionName,
+            name: Name,
+            functionVersion: FunctionVersion,
+            routingConfig: RoutingConfig,
+            description: Description
+        } = updateVersionConfigParams
 
         return this.scfService.request('UpdateAlias', {
             FunctionName,
