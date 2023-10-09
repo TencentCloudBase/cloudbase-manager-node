@@ -119,6 +119,12 @@ export interface EnvInfo {
     PackageId: string;
     PackageName: string;
     LogServices: LogServiceInfo[];
+    CustomLogServices: {
+        CreateTime: string;
+        ClsLogsetId: string;
+        ClsTopicId: string;
+        ClsRegion: string;
+    }[];
 }
 export interface FunctionInfo {
     Namespace?: string;

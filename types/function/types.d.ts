@@ -151,4 +151,6 @@ export interface IFunctionUpdateAttribute {
         };
     };
     Layers?: ILayerVersionItem[];
+    ClsLogsetId?: string;
+    ClsTopicId?: string;
 }

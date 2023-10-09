@@ -248,6 +248,12 @@ export interface EnvInfo {
     PackageName: string
     // 云日志服务列表
     LogServices: LogServiceInfo[]
+    CustomLogServices: {
+        CreateTime: string
+        ClsLogsetId: string
+        ClsTopicId: string
+        ClsRegion: string
+    }[]
 }
 export interface FunctionInfo {
     // 命名空间

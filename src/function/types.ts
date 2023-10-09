@@ -139,7 +139,6 @@ export interface IFunctionCode {
     ZipFile: string
 }
 
-
 export interface ILayerVersionItem {
     LayerName: string
     LayerVersion: number
@@ -161,4 +160,6 @@ export interface IFunctionUpdateAttribute {
         EipConfig: { EipStatus: string; EipAddress: string[] }
     }
     Layers?: ILayerVersionItem[]
+    ClsLogsetId?: string
+    ClsTopicId?: string
 }

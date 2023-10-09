@@ -361,6 +361,10 @@ export declare class FunctionService {
      */
     private getFunctionConfig;
     /**
+     * 获取日志cls配置信息
+     */
+    private getClsServiceConfig;
+    /**
      * 获取 vpc 信息
      * @returns
      */

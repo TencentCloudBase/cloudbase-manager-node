@@ -165,7 +165,6 @@ export interface IPublishVersionRes extends IResponseInfo {
     Namespace: string
 }
 
-
 export interface IListFunctionVersionParams {
     functionName: string
     offset?: number
@@ -397,6 +396,10 @@ export class FunctionService {
             },
             params.InstallDependency
         )
+
+        const { TopicId, LogsetId } = this.getClsServiceConfig()
+        params.ClsTopicId = TopicId
+        params.ClsLogsetId = LogsetId
 
         try {
             // 创建云函数
@@ -1293,6 +1296,19 @@ export class FunctionService {
             appId,
             namespace,
             env: envConfig.EnvId
+        }
+    }
+
+    /**
+     * 获取日志cls配置信息
+     */
+    private getClsServiceConfig() {
+        const currentEnv = this.environment.lazyEnvironmentConfig
+        const customLogServices = currentEnv?.CustomLogServices?.[0]
+        const logServices = currentEnv?.LogServices?.[0]
+        return {
+            TopicId: customLogServices?.ClsTopicId || logServices?.TopicId,
+            LogsetId: customLogServices?.ClsLogsetId || logServices?.LogsetId
         }
     }
 
