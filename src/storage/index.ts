@@ -1137,13 +1137,21 @@ export class StorageService {
     private getCos(parallel = 20) {
         const { secretId, secretKey, token, proxy } = this.environment.getAuthConfig()
         const cosProxy = process.env.TCB_COS_PROXY
+        const useCosInternalDomain = !!process.env.USE_COS_INTERNAL_DOMAIN
 
         return new COS({
             FileParallelLimit: parallel,
             SecretId: secretId,
             SecretKey: secretKey,
             Proxy: cosProxy || proxy,
-            SecurityToken: token
+            SecurityToken: token,
+            ...(useCosInternalDomain
+                ? {
+                    Domain: '{Bucket}.cos-internal.{Region}.tencentcos.cn',
+                    ServiceDomain: 'service.cos.tencentcos.cn',
+                    Protocol: 'http:'
+                }
+                : {})
         })
     }
 
@@ -1229,7 +1237,8 @@ export class StorageService {
                                 times: times - 1,
                                 interval,
                                 failedFiles: tempFailedFiles
-                            }).then(res => resolve(res))
+                            })
+                                .then(res => resolve(res))
                                 .catch(err => reject(err)),
                         interval
                     )
